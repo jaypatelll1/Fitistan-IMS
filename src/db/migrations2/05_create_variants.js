@@ -1,4 +1,5 @@
 exports.up = function (knex) {
+  // sahil kartik 
   return knex.schema.createTable("product_variants", (table) => {
     table
       .uuid("variant_id")
@@ -17,6 +18,7 @@ exports.up = function (knex) {
     table.string("barcode", 100).unique();
     table.enum("status", ["active", "inactive"]).defaultTo("active");
     table.timestamps(true, true);
+    
 
     // Indexes
     table.index("product_id");

@@ -1,10 +1,10 @@
-inventory-backend/
-├── src/
+src/
+├
 │ ├── config/
 │ │ ├── database.js
 │ │ └── clerk.js
 │ │
-│ ├── db/
+│ ├── models/
 │ │ ├── migrations/
 │ │ │ ├── 01_create_warehouses.js
 │ │ │ ├── 02_create_rooms.js

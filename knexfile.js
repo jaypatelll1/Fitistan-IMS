@@ -9,7 +9,7 @@ module.exports = {
       max: 10,
     },
     migrations: {
-      directory: "./src/db/migrations",
+      directory: "./src/models/migrations",
       tableName: "knex_migrations",
     },
     seeds: {
@@ -28,7 +28,7 @@ module.exports = {
       max: 20,
     },
     migrations: {
-      directory: "./src/db/migrations",
+      directory: "./src/models/migrations",
       tableName: "knex_migrations",
     },
   },

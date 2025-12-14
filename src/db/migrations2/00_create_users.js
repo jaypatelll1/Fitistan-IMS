@@ -1,5 +1,6 @@
 // src/db/migrations/20241214000000_create_users.js
 exports.up = function (knex) {
+
   return knex.schema.createTable("users", (table) => {
     table.uuid("user_id").primary().defaultTo(knex.raw("uuid_generate_v4()"));
     table.string("clerk_user_id", 100).notNullable().unique(); // From Clerk
@@ -9,10 +10,14 @@ exports.up = function (knex) {
     table.string("phone", 20);
     table
       .enum("role", ["admin", "manager", "staff", "viewer"])
-      .defaultTo("staff");
+      .defaultTo("staff"); 
+      // need to make a role table
     table
       .enum("status", ["active", "inactive", "suspended"])
       .defaultTo("active");
+
+      table.string("status",50),notNullable();
+      // use string and value in constants
     table.timestamp("last_login");
     table.timestamps(true, true);
 
