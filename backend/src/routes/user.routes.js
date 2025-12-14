@@ -1,10 +1,11 @@
 // src/routes/user.routes.js
+
 const express = require("express");
 const router = express.Router();
 const UserController = require("../controllers/user.controller");
 const {
   authenticateUser,
-  attachUserInfo,
+  // attachUserInfo,  // ❌ REMOVE THIS - doesn't exist
   isAdmin,
   isAdminOrManager,
 } = require("../middleware/auth.middleware");
@@ -15,7 +16,7 @@ const {
 } = require("../validators/user.validator");
 
 // All routes require authentication
-router.use(authenticateUser, attachUserInfo);
+router.use(authenticateUser); // ✅ FIXED - removed attachUserInfo
 
 // Current user profile (any authenticated user)
 router.get("/profile", UserController.getProfile);
@@ -31,12 +32,14 @@ router.patch(
   validate(updateRoleSchema),
   UserController.updateRole
 );
+
 router.patch(
   "/:id/status",
   isAdmin,
   validate(updateStatusSchema),
   UserController.updateStatus
 );
+
 router.delete("/:id", isAdmin, UserController.deactivate);
 
 module.exports = router;

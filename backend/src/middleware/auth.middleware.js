@@ -1,94 +1,66 @@
-// src/middleware/auth.middleware.js
-const { clerkClient, requireAuth } = require("@clerk/express");
-const logger = require("../utils/logger");
+const JWTHelper = require("../utils/jwtHelper");
 const ResponseHandler = require("../utils/responseHandler");
+const logger = require("../utils/logger");
 const db = require("../config/database");
 
-/**
- * Authenticate user using Clerk
- */
-const authenticateUser = requireAuth({
-  onError: (error) => {
-    logger.error("Authentication error:", error.message);
-  },
-});
-
-/**
- * Sync Clerk user with local database and attach user info
- */
-const attachUserInfo = async (req, res, next) => {
+const authenticateUser = async (req, res, next) => {
   try {
-    if (!req.auth?.userId) {
-      logger.warn("No userId found in request auth");
-      return ResponseHandler.unauthorized(res, "Authentication required");
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return ResponseHandler.unauthorized(res, "No token provided");
     }
 
-    const clerkUserId = req.auth.userId;
+    const token = authHeader.substring(7);
+    const decoded = JWTHelper.verifyToken(token);
 
-    // Check if user exists in our database
-    let user = await db("users").where({ clerk_user_id: clerkUserId }).first();
+    // Check if user exists and is active
+    const user = await db("users").where({ user_id: decoded.id }).first();
 
-    // If user doesn't exist, fetch from Clerk and create in our DB
     if (!user) {
-      logger.info(`First time login for Clerk user: ${clerkUserId}`);
-
-      const clerkUser = await clerkClient.users.getUser(clerkUserId);
-
-      // Create user in our database
-      const [newUser] = await db("users")
-        .insert({
-          clerk_user_id: clerkUserId,
-          email: clerkUser.emailAddresses[0]?.emailAddress,
-          first_name: clerkUser.firstName,
-          last_name: clerkUser.lastName,
-          role: "staff", // Default role
-          status: "active",
-          last_login: db.fn.now(),
-        })
-        .returning("*");
-
-      user = newUser;
-      logger.info(`✅ New user created: ${user.email} (${user.user_id})`);
-    } else {
-      // Update last login
-      await db("users")
-        .where({ user_id: user.user_id })
-        .update({ last_login: db.fn.now() });
+      return ResponseHandler.unauthorized(res, "User not found");
     }
 
-    // Check if user is active
     if (user.status !== "active") {
-      logger.warn(`Inactive user attempted login: ${user.email}`);
-      return ResponseHandler.unauthorized(
-        res,
-        "Your account is inactive. Please contact administrator."
-      );
+      return ResponseHandler.unauthorized(res, "Account is inactive");
     }
 
-    // Attach user info to request
+    // Check if password was changed after token was issued
+    if (user.password_changed_at) {
+      const changedTimestamp = parseInt(
+        user.password_changed_at.getTime() / 1000,
+        10
+      );
+      if (decoded.iat < changedTimestamp) {
+        return ResponseHandler.unauthorized(
+          res,
+          "Password recently changed. Please login again"
+        );
+      }
+    }
+
+    // Attach user to request
     req.user = {
       id: user.user_id,
-      clerkId: user.clerk_user_id,
       email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
       fullName: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
       role: user.role,
       status: user.status,
+      emailVerified: user.email_verified,
     };
 
-    logger.info(`✅ User authenticated: ${req.user.email} [${req.user.role}]`);
     next();
   } catch (error) {
-    logger.error("Error in attachUserInfo middleware:", error);
-    return ResponseHandler.error(res, "Authentication failed", 500);
+    logger.error("Authentication error:", error.message);
+    if (error.message === "Token expired") {
+      return ResponseHandler.unauthorized(res, "Token expired");
+    }
+    return ResponseHandler.unauthorized(res, "Invalid token");
   }
 };
 
-/**
- * Role-based authorization middleware
- * @param {Array} allowedRoles - Array of roles that can access the route
- */
 const authorize = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -97,7 +69,7 @@ const authorize = (...allowedRoles) => {
 
     if (!allowedRoles.includes(req.user.role)) {
       logger.warn(
-        `Unauthorized access attempt by ${req.user.email} [${req.user.role}] to ${req.path}`
+        `Unauthorized access by ${req.user.email} [${req.user.role}] to ${req.path}`
       );
       return ResponseHandler.error(
         res,
@@ -110,9 +82,6 @@ const authorize = (...allowedRoles) => {
   };
 };
 
-/**
- * Check if user is admin
- */
 const isAdmin = (req, res, next) => {
   if (req.user?.role !== "admin") {
     return ResponseHandler.error(res, "Admin access required", 403);
@@ -120,9 +89,6 @@ const isAdmin = (req, res, next) => {
   next();
 };
 
-/**
- * Check if user is admin or manager
- */
 const isAdminOrManager = (req, res, next) => {
   if (!["admin", "manager"].includes(req.user?.role)) {
     return ResponseHandler.error(res, "Admin or Manager access required", 403);
@@ -132,7 +98,6 @@ const isAdminOrManager = (req, res, next) => {
 
 module.exports = {
   authenticateUser,
-  attachUserInfo,
   authorize,
   isAdmin,
   isAdminOrManager,
