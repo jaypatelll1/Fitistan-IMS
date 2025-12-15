@@ -15,7 +15,7 @@ exports.up = function(knex) {
             table.string('name',255).notNullable();
             table.string('description',255).nullable();
 
-            addDefaultColumns(table);
+            addDefaultColumns(table,knex);
         });
   
 };

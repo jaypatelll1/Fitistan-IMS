@@ -1,4 +1,16 @@
 const PUBLIC_SCHEMA ='public'
+const FIELD_TYPE = {
+    STRING: "string",
+    INTEGER: "integer",
+    BIGINT: "bigint",
+    DOUBLE: "double",
+    BOOLEAN: "boolean",
+    ENUM: "enum",
+    JSONB: "jsonb",
+    DATE: "date",
+    DATETIME: "date-time"
+}
+
 
 const TABLE_DEFAULTS = {
     COLUMNS: {
