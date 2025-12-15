@@ -1,18 +1,31 @@
 exports.up = function (knex) {
   return knex.schema.createTable("products", (table) => {
-    table
-      .uuid("product_id")
+    table 
+      .increments("product_id") // .defaultTo(knex.raw("uuid_generate_v4()"));
       .primary()
-      .defaultTo(knex.raw("uuid_generate_v4()"));
-    table.string("product_name", 100).notNullable();
-    table.string("category", 50).notNullable();
-    table
-      .uuid("vendor_id")
+      .notNullable()
+      .string("product_name", 100).notNullable()
+      .string("category", 50).notNullable();
+
+
+    table // add vendor_id as foreign key from table vendors
+      .integer("vendor_id")
       .references("vendor_id")
       .inTable("vendors")
-      .onDelete("SET NULL")
-      .onUpdate("CASCADE");
-    table.enum("status", ["active", "inactive"]).defaultTo("active");
+      .unsigned()
+      .notNullable();
+
+      table // add status_id as foreign key from table status
+      .integer("status_id")
+      .references("status_id")
+      .inTable("status")
+      .unsigned()
+      .notNullable();
+
+
+    // .onDelete("SET NULL")
+    // .onUpdate("CASCADE");
+    // table.enum("status", ["active", "inactive"]).defaultTo("active");
     table.timestamps(true, true);
 
     // Indexes

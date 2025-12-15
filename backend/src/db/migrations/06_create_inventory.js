@@ -1,29 +1,41 @@
 exports.up = function (knex) {
   return knex.schema.createTable("inventory", (table) => {
     table
-      .uuid("inventory_id")
+      .increments("inventory_id")
       .primary()
-      .defaultTo(knex.raw("uuid_generate_v4()"));
-    table
-      .uuid("variant_id")
+      .notNullable()
+      // .defaultTo(knex.raw("uuid_generate_v4()"));
+      .integer("quantity_on_hand").defaultTo(0)
+      .integer("reserved_quantity").defaultTo(0)
+      .integer("reorder_level").defaultTo(10);
+
+    table // add variant_id as foreign key from table product_variants
+      .integer("variant_id")
       .notNullable()
       .references("variant_id")
       .inTable("product_variants")
-      .onDelete("CASCADE")
-      .onUpdate("CASCADE");
-    table
-      .uuid("room_id")
+      // .onDelete("CASCADE")
+      // .onUpdate("CASCADE");
+
+    table // add room_id as foreign key from table rooms
+      .integer("room_id")
       .notNullable()
       .references("room_id")
       .inTable("rooms")
-      .onDelete("CASCADE")
-      .onUpdate("CASCADE");
-    table.integer("quantity_on_hand").defaultTo(0);
-    table.integer("reserved_quantity").defaultTo(0);
-    table.integer("reorder_level").defaultTo(10);
-    table
-      .enum("status", ["in_stock", "low_stock", "out_of_stock"])
-      .defaultTo("in_stock");
+      // .onDelete("CASCADE")
+      // .onUpdate("CASCADE");
+
+    table // add status_id as foreign key from table status
+      .integer("status_id")
+      .references("status_id")
+      .inTable("status")
+      .unsigned()
+      .notNullable();
+      
+      
+    // table
+    //   .enum("status", ["in_stock", "low_stock", "out_of_stock"])
+    //   .defaultTo("in_stock");
     table.timestamp("last_updated").defaultTo(knex.fn.now());
 
     // Indexes

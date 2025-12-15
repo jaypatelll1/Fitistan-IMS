@@ -1,49 +1,61 @@
 exports.up = function (knex) {
   return knex.schema.createTable("stock_movements", (table) => {
     table
-      .uuid("movement_id")
-      .primary()
-      .defaultTo(knex.raw("uuid_generate_v4()"));
-    table
-      .uuid("variant_id")
+      .increments("movement_id")
+      .primary();
+      notNullable();
+      // .defaultTo(knex.raw("uuid_generate_v4()"));
+
+    table // add variant_id as foreign key from table product_variants
+      .integer("variant_id")
       .notNullable()
       .references("variant_id")
-      .inTable("product_variants")
-      .onDelete("CASCADE")
-      .onUpdate("CASCADE");
-    table
-      .uuid("from_room_id")
+      .inTable("product_variants");
+      // .onDelete("CASCADE")
+      // .onUpdate("CASCADE");
+
+    table // add from_room_id as foreign key from table rooms
+      .integer("from_room_id")
       .references("room_id")
-      .inTable("rooms")
-      .onDelete("SET NULL")
-      .onUpdate("CASCADE");
-    table
-      .uuid("to_room_id")
+      .inTable("rooms");
+      // .onDelete("SET NULL")
+      // .onUpdate("CASCADE");
+
+    table // add to_room_id as foreign key from table rooms
+      .integer("to_room_id")
       .references("room_id")
-      .inTable("rooms")
-      .onDelete("SET NULL")
-      .onUpdate("CASCADE");
-    table
-      .enum("movement_type", ["inbound", "outbound", "transfer", "adjustment"])
+      .inTable("rooms");
+      // .onDelete("SET NULL")
+      // .onUpdate("CASCADE");
+
+    table // add status_stockmove_id as foreign key from table stock_movement_status
+      .integer("status_stockmove_id")
+      .references("status_stockmove_id")
+      .inTable("stock_movement_status")
+      .unsigned()
       .notNullable();
-    table.integer("quantity").notNullable();
-    table.enum("reason", [
-      "new_stock",
-      "sale",
-      "return",
-      "damage",
-      "transfer",
-      "correction",
-    ]);
+
+    // table
+    //   .enum("movement_type", ["inbound", "outbound", "transfer", "adjustment"])
+    //   .notNullable();
+    // table.integer("quantity").notNullable();
+    // table.enum("reason", [
+    //   "new_stock",
+    //   "sale",
+    //   "return",
+    //   "damage",
+    //   "transfer",
+    //   "correction",
+   ;
 
     // UPDATED: Reference users table instead of just storing clerk_user_id
     table
-      .uuid("performed_by")
+      .increments("performed_by")
       .notNullable()
       .references("user_id")
       .inTable("users")
-      .onDelete("RESTRICT")
-      .onUpdate("CASCADE");
+      // .onDelete("RESTRICT")
+      // .onUpdate("CASCADE");
 
     table.text("notes");
     table.timestamp("created_at").defaultTo(knex.fn.now());
