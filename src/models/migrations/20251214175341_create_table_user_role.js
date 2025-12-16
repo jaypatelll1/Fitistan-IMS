@@ -15,7 +15,7 @@ exports.up = function(knex) {
             table.string('name',255).notNullable();
             table.string('description',255).nullable();
 
-            addDefaultColumns(table);
+            addDefaultColumns(table,knex);
         });
   
 };
@@ -25,5 +25,5 @@ exports.up = function(knex) {
  * @returns { Promise<void> }
  */
 exports.down = function(knex) {
-  
+  knex.schema.withSchema(PUBLIC_SCHEMA).dropTableIfExists('role');
 };

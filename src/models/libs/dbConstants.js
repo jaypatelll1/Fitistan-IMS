@@ -1,4 +1,16 @@
 const PUBLIC_SCHEMA ='public'
+const FIELD_TYPE = {
+    STRING: "string",
+    INTEGER: "integer",
+    BIGINT: "bigint",
+    DOUBLE: "double",
+    BOOLEAN: "boolean",
+    ENUM: "enum",
+    JSONB: "jsonb",
+    DATE: "date",
+    DATETIME: "date-time"
+}
+
 
 const TABLE_DEFAULTS = {
     COLUMNS: {
@@ -21,6 +33,10 @@ const TABLE_DEFAULTS = {
         UPDATED_AT: {
             KEY: "updated_at",
             TYPE: FIELD_TYPE.DATETIME
+        },
+        IS_ACTIVE: {
+            KEY: "is_active",
+            TYPE: FIELD_TYPE.BOOLEAN
         }
     }
 };
