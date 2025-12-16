@@ -33,6 +33,10 @@ const TABLE_DEFAULTS = {
         UPDATED_AT: {
             KEY: "updated_at",
             TYPE: FIELD_TYPE.DATETIME
+        },
+        IS_ACTIVE: {
+            KEY: "is_active",
+            TYPE: FIELD_TYPE.BOOLEAN
         }
     }
 };

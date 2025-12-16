@@ -1,5 +1,5 @@
 const { addDefaultColumns } = require("../utilities/MigrationUtilities")
-
+const {PUBLIC_SCHEMA}= require("../libs/dbConstants")
 
 
 /**
@@ -8,7 +8,7 @@ const { addDefaultColumns } = require("../utilities/MigrationUtilities")
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-    return knex.schema.withSchema('public')
+    return knex.schema.withSchema(PUBLIC_SCHEMA)
         .createTable('users', function (table) {
             table.increments('user_id').notNullable().primary();    // pk 
             table.string("name", 50);
@@ -29,7 +29,7 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-    return knex.schema.withSchema('public')
+    return knex.schema.withSchema(PUBLIC_SCHEMA)
         .dropTableIfExists('users');
 
 };
