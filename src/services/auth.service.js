@@ -66,6 +66,10 @@ class AuthService {
     //   throw new Error("Account is inactive. Contact administrator");
     // }
 
+    if (user.is_deleted === true  ) {
+  throw new Error("Account is inactive. Contact administrator");
+}
+
     // Verify password
     const isPasswordValid = await PasswordHelper.compare(
       password,

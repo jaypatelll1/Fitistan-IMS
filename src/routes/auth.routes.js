@@ -6,7 +6,7 @@ const validate = require("../middleware/validation.middleware");
 const {
   registerSchema,
   loginSchema,
-  refreshTokenSchema,
+  // refreshTokenSchema,
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
