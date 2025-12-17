@@ -21,9 +21,9 @@ const authenticateUser = async (req, res, next) => {
       return ResponseHandler.unauthorized(res, "User not found");
     }
 
-    if (user.status !== "active") {
-      return ResponseHandler.unauthorized(res, "Account is inactive");
-    }
+    // if (user.status !== "active") {
+    //   return ResponseHandler.unauthorized(res, "Account is inactive");
+    // }
 
     // Check if password was changed after token was issued
     if (user.password_changed_at) {
@@ -43,11 +43,15 @@ const authenticateUser = async (req, res, next) => {
     req.user = {
       id: user.user_id,
       email: user.email,
-      Name: user.name,
-      fullName: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+      // gender: user.gender,
+
+      // firstName: user.first_name,
+      // lastName: user.last_name,
+      // fullName: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+      name: user.name,
       role: user.role,
-      status: user.status,
-      emailVerified: user.email_verified,
+      // status: user.status,
+      // emailVerified: user.email_verified,
     };
 
     next();

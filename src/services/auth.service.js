@@ -6,34 +6,37 @@ const db = require("../config/database"); // ADDED THIS IMPORT
 
 class AuthService {
   static async register(userData) {
+
+    const { password, ...rest } = userData;
+    console.log("SERVICE DATA:", rest);
+
     // Check if user exists
-    const existingUser = await UserModel.findByEmail(userData.email);
+    const existingUser = await UserModel.findByEmail(rest.email);
     if (existingUser) {
       throw new Error("Email already registered");
     }
 
     // Validate password
-    const validation = PasswordHelper.validatePassword(userData.password);
+    const validation = PasswordHelper.validatePassword(password);
     if (!validation.isValid) {
       throw new Error(validation.errors.join(", "));
     }
 
     // Hash password
-    const hashedPassword = await PasswordHelper.hash(userData.password);
+    const hashedPassword = await PasswordHelper.hash(password);
 
     // Create user
     const user = await UserModel.create({
-      ...userData,
-      password: hashedPassword,
-      role: "staff", // Default role
-      status: "active",
-      email_verified: false,
+      ...rest,
+      password_hash: hashedPassword,
+      // role: "staff", // Default role
+      // status: "active",
+      // email_verified: false,
     });
 
     // Generate tokens
     // const tokens = JWTHelper.generateTokenPair(user);
     const tokens = JWTHelper.generateToken(user);
-
 
     // Save refresh token
     // await UserModel.update(user.user_id, {
@@ -59,14 +62,14 @@ class AuthService {
     }
 
     // Check if active
-    if (user.status !== "active") {
-      throw new Error("Account is inactive. Contact administrator");
-    }
+    // if (user.status !== "active") {
+    //   throw new Error("Account is inactive. Contact administrator");
+    // }
 
     // Verify password
     const isPasswordValid = await PasswordHelper.compare(
       password,
-      user.password
+      user.password_hash
     );
     if (!isPasswordValid) {
       throw new Error("Invalid email or password");
@@ -91,6 +94,8 @@ class AuthService {
       ...tokens,
     };
   }
+  
+  
 
   // static async refreshToken(refreshToken) {
   //   if (!refreshToken) {
@@ -125,6 +130,7 @@ class AuthService {
   // static async logout(userId) {
   //   await UserModel.update(userId, { refresh_token: null });
   // }
+
 
   static async changePassword(userId, currentPassword, newPassword) {
     const user = await UserModel.findById(userId);

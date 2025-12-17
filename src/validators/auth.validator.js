@@ -9,7 +9,11 @@ const registerSchema = Joi.object({
     'string.min': 'Password must be at least 8 characters',
     'any.required': 'Password is required',
   }),
-  name: Joi.string().min(2).max(50).required(),
+  // firstName: Joi.string().min(2).max(50).required(),
+  // lastName: Joi.string().min(2).max(50).required(),
+  profile_picture_url:Joi.string().optional(),
+  gender:Joi.string().required(),
+  name: Joi.string().min(2).max(100).required(),
   phone: Joi.string().pattern(/^[0-9]{10}$/).optional(),
 });
 
@@ -39,7 +43,7 @@ const resetPasswordSchema = Joi.object({
 module.exports = {
   registerSchema,
   loginSchema,
-  refreshTokenSchema,
+  // refreshTokenSchema,
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,

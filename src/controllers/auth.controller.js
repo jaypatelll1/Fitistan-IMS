@@ -5,12 +5,31 @@ const logger = require('../utils/logger');
 class AuthController {
   static async register(req, res, next) {
     try {
-      const { email, password, Name,  phone } = req.body;
-      
+      const { name,
+        gender,
+        phone,
+        profile_picture_url,
+        email,
+        role_id,
+        password } = req.body;
+
+
+      if (!password || password.length < 8) {
+        return res.status(400).json({ message: "Password required" });
+      }
+      console.log("REQ BODY:", req.body);
+
+
+
       const result = await AuthService.register({
         email,
         password,
-        name: Name,
+        // first_name: firstName,
+        // last_name: lastNam,
+        gender,
+        profile_picture_url,
+        role_id,
+        name,
         phone,
       });
 
