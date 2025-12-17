@@ -10,7 +10,8 @@ class AuthController {
         phone,
         profile_picture_url,
         email,
-        role_id,
+      
+        role_name,
         password } = req.body;
 
 
@@ -28,7 +29,8 @@ class AuthController {
         // last_name: lastNam,
         gender,
         profile_picture_url,
-        role_id,
+       
+        role_name,
         name,
         phone,
       });

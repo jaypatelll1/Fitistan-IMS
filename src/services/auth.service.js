@@ -3,11 +3,12 @@ const JWTHelper = require("../utils/jwtHelper");
 const PasswordHelper = require("../utils/passwordHelper");
 const logger = require("../utils/logger");
 const db = require("../config/database"); // ADDED THIS IMPORT
+const RoleModel = require("../models/role.model"); // ADDED THIS IMPORT impRoleModel from '../models/role.model'; // ADDED THIS IMPORT
 
 class AuthService {
   static async register(userData) {
 
-    const { password, ...rest } = userData;
+    const { password,role_name, ...rest } = userData;
     console.log("SERVICE DATA:", rest);
 
     // Check if user exists
@@ -34,6 +35,10 @@ class AuthService {
       // email_verified: false,
     });
 
+    const roles = await RoleModel.create({
+      role_name
+    }) ;
+
     // Generate tokens
     // const tokens = JWTHelper.generateTokenPair(user);
     const tokens = JWTHelper.generateToken(user);
@@ -46,10 +51,13 @@ class AuthService {
 
     // Remove sensitive data
     delete user.password;
+
     // delete user.refresh_token;
+    user.role_id = roles.role_id;
 
     return {
       user,
+      roles,
       ...tokens,
     };
   }
