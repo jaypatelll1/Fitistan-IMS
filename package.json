@@ -14,8 +14,8 @@
     "seed:run": "knex seed:run --knexfile knexfile.js",
     "db:reset": "knex migrate:rollback --all && knex migrate:latest && knex seed:run",
     "run_next_migration": "knex migrate:up --migrations-directory src/models/migrations",
-    "undo_last_migration": "knex migrate:down--migrations-directory src/models/migrations",
-    "create_migration": "knex migrate:make  src/models/migrations"
+    "undo_last_migration": "knex migrate:down--migrations-directory",
+    "create_migration": "knex migrate:make"
   
   },
   "keywords": [
