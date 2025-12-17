@@ -43,8 +43,7 @@ const authenticateUser = async (req, res, next) => {
     req.user = {
       id: user.user_id,
       email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
+      Name: user.name,
       fullName: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
       role: user.role,
       status: user.status,

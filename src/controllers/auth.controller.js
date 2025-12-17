@@ -5,13 +5,12 @@ const logger = require('../utils/logger');
 class AuthController {
   static async register(req, res, next) {
     try {
-      const { email, password, firstName, lastName, phone } = req.body;
+      const { email, password, Name,  phone } = req.body;
       
       const result = await AuthService.register({
         email,
         password,
-        first_name: firstName,
-        last_name: lastName,
+        name: Name,
         phone,
       });
 

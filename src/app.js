@@ -44,6 +44,9 @@ app.get("/health", (req, res) => {
 // API Routes
 app.use("/api/v1/auth", require("./routes/auth.routes"));
 app.use("/api/v1/users", require("./routes/user.routes"));
+app.use("/api/v1/warehouses", require("./routes/warehouse.routes"));
+app.use("/api/v1/shelf", require("./routes/shelf.routes"));
+
 // Add other routes here
 
 // Error handlers
