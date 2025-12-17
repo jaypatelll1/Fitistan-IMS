@@ -15,11 +15,11 @@ const {
 // Public routes
 router.post("/register", validate(registerSchema), AuthController.register);
 router.post("/login", validate(loginSchema), AuthController.login);
-router.post(
-  "/refresh",
-  validate(refreshTokenSchema),
-  AuthController.refreshToken
-);
+// router.post(
+//   "/refresh",
+//   validate(refreshTokenSchema),
+//   AuthController.refreshToken
+// );
 router.post(
   "/forgot-password",
   validate(forgotPasswordSchema),

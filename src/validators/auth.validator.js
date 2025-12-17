@@ -19,9 +19,9 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
-const refreshTokenSchema = Joi.object({
-  refreshToken: Joi.string().required(),
-});
+// const refreshTokenSchema = Joi.object({
+//   refreshToken: Joi.string().required(),
+// });
 
 const changePasswordSchema = Joi.object({
   currentPassword: Joi.string().required(),

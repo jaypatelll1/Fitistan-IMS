@@ -38,16 +38,16 @@ class AuthController {
     }
   }
 
-  static async refreshToken(req, res, next) {
-    try {
-      const { refreshToken } = req.body;
-      const result = await AuthService.refreshToken(refreshToken);
+  // static async refreshToken(req, res, next) {
+  //   try {
+  //     const { refreshToken } = req.body;
+  //     const result = await AuthService.refreshToken(refreshToken);
 
-      return ResponseHandler.success(res, result, 'Token refreshed');
-    } catch (error) {
-      next(error);
-    }
-  }
+  //     return ResponseHandler.success(res, result, 'Token refreshed');
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // }
 
   static async logout(req, res, next) {
     try {

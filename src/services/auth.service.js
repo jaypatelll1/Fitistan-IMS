@@ -31,17 +31,19 @@ class AuthService {
     });
 
     // Generate tokens
-    const tokens = JWTHelper.generateTokenPair(user);
+    // const tokens = JWTHelper.generateTokenPair(user);
+    const tokens = JWTHelper.generateToken(user);
+
 
     // Save refresh token
-    await UserModel.update(user.user_id, {
-      refresh_token: tokens.refreshToken,
-      last_login: new Date(),
-    });
+    // await UserModel.update(user.user_id, {
+    //   refresh_token: tokens.refreshToken,
+    //   last_login: new Date(),
+    // });
 
     // Remove sensitive data
     delete user.password;
-    delete user.refresh_token;
+    // delete user.refresh_token;
 
     return {
       user,
@@ -71,17 +73,18 @@ class AuthService {
     }
 
     // Generate tokens
-    const tokens = JWTHelper.generateTokenPair(user);
+    // const tokens = JWTHelper.generateTokenPair(user);
+    const tokens = JWTHelper.generateToken(user);
 
     // Update refresh token and last login
-    await UserModel.update(user.user_id, {
-      refresh_token: tokens.refreshToken,
-      last_login: new Date(),
-    });
+    // await UserModel.update(user.user_id, {
+    //   refresh_token: tokens.refreshToken,
+    //   last_login: new Date(),
+    // });
 
     // Remove sensitive data
     delete user.password;
-    delete user.refresh_token;
+    // delete user.refresh_token;
 
     return {
       user,
@@ -89,38 +92,39 @@ class AuthService {
     };
   }
 
-  static async refreshToken(refreshToken) {
-    if (!refreshToken) {
-      throw new Error("Refresh token required");
-    }
+  // static async refreshToken(refreshToken) {
+  //   if (!refreshToken) {
+  //     throw new Error("Refresh token required");
+  //   }
 
-    // Verify token
-    const decoded = JWTHelper.verifyToken(refreshToken);
+  //   // Verify token
+  //   const decoded = JWTHelper.verifyToken(refreshToken);
 
-    // Find user
-    const user = await UserModel.findById(decoded.id);
-    if (!user || user.refresh_token !== refreshToken) {
-      throw new Error("Invalid refresh token");
-    }
+  //   // Find user
+  //   const user = await UserModel.findById(decoded.id);
+  //   if (!user || user.refresh_token !== refreshToken) {
+  //     throw new Error("Invalid refresh token");
+  //   }
 
-    if (user.status !== "active") {
-      throw new Error("Account is inactive");
-    }
+  //   if (user.status !== "active") {
+  //     throw new Error("Account is inactive");
+  //   }
 
-    // Generate new tokens
-    const tokens = JWTHelper.generateTokenPair(user);
+  //   // Generate new tokens
+  //   // const tokens = JWTHelper.generateTokenPair(user);
+  //   const tokens = JWTHelper.generateToken(user);
 
-    // Update refresh token
-    await UserModel.update(user.user_id, {
-      refresh_token: tokens.refreshToken,
-    });
+  //   // Update refresh token
+  //   await UserModel.update(user.user_id, {
+  //     refresh_token: tokens.refreshToken,
+  //   });
 
-    return tokens;
-  }
+  //   return tokens;
+  // }
 
-  static async logout(userId) {
-    await UserModel.update(userId, { refresh_token: null });
-  }
+  // static async logout(userId) {
+  //   await UserModel.update(userId, { refresh_token: null });
+  // }
 
   static async changePassword(userId, currentPassword, newPassword) {
     const user = await UserModel.findById(userId);
