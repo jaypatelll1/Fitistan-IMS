@@ -35,9 +35,10 @@ class AuthService {
       // email_verified: false,
     });
 
-    const roles = await RoleModel.create({
-      role_name
-    }) ;
+    // const roles = await RoleModel.create({
+    //   role_name
+    // }) ;
+    const roles = await RoleModel.findByRole(role_name);
 
     
     const updateUserRoleInDb = await UserModel.update(user.user_id, { role_id: roles.role_id });
