@@ -1,6 +1,6 @@
 // routes/App Wrapper/ACCESS MANAGER/AccessManagement.js
 
-const { ACCESS_ROLES } = require("../Constants/roles");
+const { ACCESS_ROLES } = require("../Constants/RoleConstants");
 const AccessPermissionError = require("../Error Handler/AccessPermissionError");
 
 class AccessManagement {

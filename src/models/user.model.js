@@ -29,9 +29,32 @@ class UserModel {
     return user;
   }
 
-  static async updateRole(userId, role) {
-    return this.update(userId, { role });
+  // static async updateRole(userId, role) {
+  //   return this.update(userId, { role });
+  // }
+
+  static async updateRole(userId, roleId) {
+  const updated = await db("users")
+    .where({ user_id: userId })
+    .update(
+      {
+        role_id: roleId,
+        updated_at: db.fn.now()
+      },
+      ["user_id", "role_id"],
+
+      
+      console.log("Updating user role with:", roleId)
+
+    );
+
+  if (!updated.length) {
+    throw { statusCode: 404, message: "User not found" };
   }
+
+  return updated[0];
+}
+
 
   // static async updateStatus(userId, status) {
   //   return this.update(userId, { status });

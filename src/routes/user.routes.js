@@ -8,7 +8,7 @@ const { authenticateUser } = require("../middleware/auth.middleware");
 const validate = require("../middleware/validation.middleware");
 
 const { AppWrapper } = require("./App Wrapper/AppWrapper/AppWrapper");
-const { ACCESS_ROLES } = require("./App Wrapper/Constants/roles");
+const { ACCESS_ROLES } = require("../routes/App Wrapper/Constants/RoleConstants");
 
 const {
   updateRoleSchema,

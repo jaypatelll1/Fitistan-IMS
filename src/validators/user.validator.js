@@ -3,10 +3,10 @@ const Joi = require("joi");
 
 const updateRoleSchema = Joi.object({
   role_name: Joi.string()
-    .valid("admin", "manager", "staff", "viewer")
+    .valid("admin", "manager", "staff", "user")
     .required()
     .messages({
-      "any.only": "Role must be one of: admin, manager, staff, viewer",
+      "any.only": "Role must be one of: admin, manager, staff, user",
     }),
 });
 

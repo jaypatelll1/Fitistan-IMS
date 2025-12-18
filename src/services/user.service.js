@@ -1,5 +1,6 @@
 // src/services/user.service.js
 const UserModel = require("../models/user.model");
+const db = require("../config/database");
 
 class UserService {
   static async getAllUsers(filters = {}) {
@@ -24,16 +25,32 @@ class UserService {
     };
   }
 
-  static async updateUserRole(userId, role, adminId) {
-    const user = await this.getUserById(userId);
 
-    // Prevent self role change
-    if (userId === adminId) {
-      throw { statusCode: 400, message: "Cannot change your own role" };
-    }
 
-    return await UserModel.updateRole(userId, role);
+static async updateUserRole(userId, roleName, adminId) {
+  const user = await this.getUserById(userId);
+
+  // Prevent self role change
+  if (Number(userId) === Number(adminId)) {
+    throw { statusCode: 400, message: "Cannot change your own role" };
   }
+
+  // 1️⃣ Fetch role_id using role_name
+  const role = await db("role")
+    .where({ role_name: roleName })
+    .first();
+
+  if (!role) {
+    throw { statusCode: 400, message: "Invalid role" };
+  }
+
+  console.log("Resolved role_id:", role.role_id, typeof role.role_id);
+
+
+  // 2️⃣ PASS role_id (INTEGER) — THIS IS THE FIX
+  return await UserModel.updateRole(userId, role.role_id);
+}
+
 
   static async updateUserStatus(userId, status, adminId) {
     const user = await this.getUserById(userId);

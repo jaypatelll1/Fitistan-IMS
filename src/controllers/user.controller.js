@@ -51,10 +51,10 @@ class UserController {
    */
   static async updateRole(req, res, next) {
     try {
-      const { role } = req.body;
+      const { role_name } = req.body;
       const user = await UserService.updateUserRole(
         req.params.id,
-        role,
+        role_name,
         req.user.id
       );
       return ResponseHandler.success(res, user, 'User role updated successfully');
