@@ -39,9 +39,15 @@ class AuthService {
       role_name
     }) ;
 
+    
+    const updateUserRoleInDb = await UserModel.update(user.user_id, { role_id: roles.role_id });
+    console.log("role updated in db:", updateUserRoleInDb);
+
+
+
     // Generate tokens
     // const tokens = JWTHelper.generateTokenPair(user);
-    const tokens = JWTHelper.generateToken(user);
+    const tokens = JWTHelper.generateToken({user, roles});
 
     // Save refresh token
     // await UserModel.update(user.user_id, {
@@ -77,7 +83,7 @@ class AuthService {
     if (user.is_deleted === true  ) {
   throw new Error("Account is inactive. Contact administrator");
 }
-
+console.log("User Data:", user);
     // Verify password
     const isPasswordValid = await PasswordHelper.compare(
       password,
@@ -86,10 +92,11 @@ class AuthService {
     if (!isPasswordValid) {
       throw new Error("Invalid email or password");
     }
-
+ const roles = await RoleModel.findById(user.role_id);
+ console.log("User Roles:", roles);
     // Generate tokens
     // const tokens = JWTHelper.generateTokenPair(user);
-    const tokens = JWTHelper.generateToken(user);
+    const tokens = JWTHelper.generateToken({user, roles});
 
     // Update refresh token and last login
     // await UserModel.update(user.user_id, {
@@ -103,6 +110,7 @@ class AuthService {
 
     return {
       user,
+      roles,
       ...tokens,
     };
   }

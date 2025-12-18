@@ -12,6 +12,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
 
 class JWTHelper {
   static generateAccessToken(payload) {
+    console.log("Generating access token with payload:", payload);
     return jwt.sign(payload, JWT_SECRET, {
       // expiresIn: JWT_EXPIRES_IN,
       issuer: "inventory-api",
@@ -38,13 +39,14 @@ class JWTHelper {
       throw error;
     }
   }
-  static generateToken(user) {
+  static generateToken({user, roles}) {
     const payload = {
       id: user.user_id,
       email: user.email,
-      role: user.role,
+      role: roles.role_name,
     };
 
+    
     return {
       accessToken: this.generateAccessToken(payload),
       // refreshToken: this.generateRefreshToken(payload),
