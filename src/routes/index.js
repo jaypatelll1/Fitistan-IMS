@@ -12,4 +12,9 @@ router.use('/users', userRoutes);
 // router.use('/warehouses', warehouseRoutes);
 // ... other routes will be mounted here
 
+
+router.use("/rooms", require("./rooms.routes"));
+
+
+
 module.exports = router;

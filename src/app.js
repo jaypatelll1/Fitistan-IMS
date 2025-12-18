@@ -40,14 +40,22 @@ app.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-
+//env read
+console.log("PORT:", process.env.PORT);
+console.log("DB:", process.env.DATABASE_URL);
 // API Routes
 app.use("/api/v1/auth", require("./routes/auth.routes"));
 app.use("/api/v1/users", require("./routes/user.routes"));
-// Add other routes here
+
+app.use("/api/v1/rooms", require("./routes/room.routes"));
+app.use("/api/v1/variants", require("./routes/variant.routes"));
+
+
+
 
 // Error handlers
 app.use(notFoundHandler);
 app.use(errorHandler);
+
 
 module.exports = app;

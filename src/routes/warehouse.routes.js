@@ -1,32 +1,23 @@
-// routes/warehouse.routes.js
-
 const express = require("express");
 const router = express.Router();
-
 const WarehouseController = require("../controllers/warehouse.controller");
 
-// Create warehouse
+// CREATE
 router.post("/", WarehouseController.createWarehouse);
 
-// List all warehouses
+// READ
 router.get("/", WarehouseController.getAllWarehouses);
-
-// Get warehouse details
 router.get("/:id", WarehouseController.getWarehouseById);
 
-// Update warehouse
+// UPDATE
 router.put("/:id", WarehouseController.updateWarehouse);
 
-// Delete warehouse (soft delete)
+// DELETE (SOFT)
 router.delete("/:id", WarehouseController.deleteWarehouse);
 
-// Get all rooms in warehouse
+// EXTRA
 router.get("/:id/rooms", WarehouseController.getWarehouseRooms);
-
-// Get capacity utilization stats
 router.get("/:id/capacity", WarehouseController.getWarehouseCapacity);
-
-// Get all inventory in warehouse
 router.get("/:id/inventory", WarehouseController.getWarehouseInventory);
 
 module.exports = router;

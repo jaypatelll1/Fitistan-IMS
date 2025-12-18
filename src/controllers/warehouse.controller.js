@@ -1,141 +1,159 @@
-// controllers/warehouse.controller.js
-
-const knex = require("knex");
 const Warehouse = require("../models/warehouse.model");
 
-const WarehouseController = {
+class WarehouseController {
 
-    // CREATE
-    async createWarehouse(req, res) {
-        try {
-            const warehouse = await Warehouse.create({
-                ...req.body,
-                created_by: req.user?.user_id ?? null,
-            });
+  // CREATE WAREHOUSE
+  static async createWarehouse(req, res) {
+    try {
+      const warehouse = await Warehouse.create(req.body);
 
-            res.status(201).json({ success: true, data: warehouse });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
-    },
+      res.status(201).json({
+        success: true,
+        message: "Warehouse created successfully",
+        data: warehouse
+      });
+    } catch (error) {
+      console.error("Create warehouse error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error creating warehouse"
+      });
+    }
+  }
 
-    // LIST ALL
-    async getAllWarehouses(req, res) {
-        try {
-            const warehouses = await Warehouse.getAll();
-            res.json({ success: true, data: warehouses });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
-    },
+  // GET ALL WAREHOUSES
+  static async getAllWarehouses(req, res) {
+    try {
+      const warehouses = await Warehouse.findAll();
 
-    // GET DETAILS
-    async getWarehouseById(req, res) {
-        try {
-            const warehouse = await Warehouse.getById(req.params.id);
+      res.status(200).json({
+        success: true,
+        data: warehouses
+      });
+    } catch (error) {
+      console.error("Get warehouses error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching warehouses"
+      });
+    }
+  }
 
-            if (!warehouse) {
-                return res.status(404).json({ success: false, message: "Warehouse not found" });
-            }
+  // GET WAREHOUSE BY ID
+  static async getWarehouseById(req, res) {
+    try {
+      const warehouse = await Warehouse.findById(req.params.id);
 
-            res.json({ success: true, data: warehouse });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
-    },
+      if (!warehouse) {
+        return res.status(404).json({
+          success: false,
+          message: "Warehouse not found"
+        });
+      }
 
-    // UPDATE
-    async updateWarehouse(req, res) {
-        try {
-            const updated = await Warehouse.update(req.params.id, {
-                ...req.body,
-                last_modified_by: req.user?.user_id ?? null,
-            });
+      res.status(200).json({
+        success: true,
+        data: warehouse
+      });
+    } catch (error) {
+      console.error("Get warehouse error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching warehouse"
+      });
+    }
+  }
 
-            res.json({ success: true, data: updated });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
-    },
+  // UPDATE WAREHOUSE
+  static async updateWarehouse(req, res) {
+    try {
+      const updated = await Warehouse.update(req.params.id, req.body);
 
-    // DELETE SOFT
-    async deleteWarehouse(req, res) {
-        try {
-            await Warehouse.softDelete(req.params.id, req.user?.user_id ?? null);
-            res.json({ success: true, message: "Warehouse deleted" });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
-    },
+      res.status(200).json({
+        success: true,
+        message: "Warehouse updated successfully",
+        data: updated
+      });
+    } catch (error) {
+      console.error("Update warehouse error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error updating warehouse"
+      });
+    }
+  }
 
-    // GET ROOMS IN WAREHOUSE
-    async getWarehouseRooms(req, res) {
-        try {
-            const rooms = await knex("public.rooms")
-                .where({
-                    warehouse_id: req.params.id,
-                    is_deleted: false,
-                });
+  // DELETE WAREHOUSE (SOFT)
+  static async deleteWarehouse(req, res) {
+    try {
+      await Warehouse.delete(req.params.id);
 
-            res.json({ success: true, data: rooms });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
-    },
+      res.status(200).json({
+        success: true,
+        message: "Warehouse deleted successfully"
+      });
+    } catch (error) {
+      console.error("Delete warehouse error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error deleting warehouse"
+      });
+    }
+  }
 
-    // CAPACITY UTILIZATION
-    async getWarehouseCapacity(req, res) {
-        try {
-            const warehouse = await Warehouse.getById(req.params.id);
-            if (!warehouse) {
-                return res.status(404).json({ success: false, message: "Warehouse not found" });
-            }
+  // GET ROOMS IN WAREHOUSE
+  static async getWarehouseRooms(req, res) {
+    try {
+      const rooms = await Warehouse.getRooms(req.params.id);
 
-            const [{ used_capacity }] = await knex("inventory")
-                .join("bins", "inventory.bin_id", "bins.bin_id")
-                .join("shelves", "bins.shelf_id", "shelves.shelf_id")
-                .join("rooms", "shelves.room_id", "rooms.room_id")
-                .where("rooms.warehouse_id", req.params.id)
-                .sum("inventory.quantity_on_hand as used_capacity");
+      res.status(200).json({
+        success: true,
+        data: rooms
+      });
+    } catch (error) {
+      console.error("Get warehouse rooms error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching rooms"
+      });
+    }
+  }
 
-            const used = Number(used_capacity || 0);
-            const total = warehouse.capacity;
+  // CAPACITY STATS
+  static async getWarehouseCapacity(req, res) {
+    try {
+      const stats = await Warehouse.getCapacityStats(req.params.id);
 
-            res.json({
-                success: true,
-                data: {
-                    total_capacity: total,
-                    used_capacity: used,
-                    available_capacity: total - used,
-                    utilization_percent: total > 0 ? ((used / total) * 100).toFixed(2) : 0,
-                },
-            });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
-    },
+      res.status(200).json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      console.error("Capacity error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching capacity"
+      });
+    }
+  }
 
-    // INVENTORY IN WAREHOUSE
-    async getWarehouseInventory(req, res) {
-        try {
-            const inventory = await knex("inventory")
-                .select(
-                    "inventory.inventory_id",
-                    "inventory.quantity_on_hand",
-                    "bins.bin_code",
-                    "shelves.shelf_code",
-                    "rooms.room_name"
-                )
-                .join("bins", "inventory.bin_id", "bins.bin_id")
-                .join("shelves", "bins.shelf_id", "shelves.shelf_id")
-                .join("rooms", "shelves.room_id", "rooms.room_id")
-                .where("rooms.warehouse_id", req.params.id);
+  // INVENTORY
+  static async getWarehouseInventory(req, res) {
+    try {
+      const inventory = await Warehouse.getInventory(req.params.id);
 
-            res.json({ success: true, data: inventory });
-        } catch (err) {
-            res.status(500).json({ success: false, message: err.message });
-        }
-    },
-};
+      res.status(200).json({
+        success: true,
+        data: inventory
+      });
+    } catch (error) {
+      console.error("Inventory error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching inventory"
+      });
+    }
+  }
+}
 
 module.exports = WarehouseController;
