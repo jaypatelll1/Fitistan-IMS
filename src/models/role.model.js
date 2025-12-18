@@ -10,6 +10,10 @@ class RoleModel {
       const [role] = await db("role").insert(roleData).returning("*");
       return role;
     };
+    static async findByRole(role_name) {
+    return await db("role").where("role_name", role_name).first();
+  };
 };
+
 
 module.exports = RoleModel;
