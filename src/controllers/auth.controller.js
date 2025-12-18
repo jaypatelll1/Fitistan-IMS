@@ -96,6 +96,7 @@ class AuthController {
   static async forgotPassword(req, res, next) {
     try {
       const { email } = req.body;
+      console.log("Forgot Password Email:", email);
       await AuthService.forgotPassword(email);
 
       return ResponseHandler.success(

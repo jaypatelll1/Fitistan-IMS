@@ -3,7 +3,8 @@ const JWTHelper = require("../utils/jwtHelper");
 const PasswordHelper = require("../utils/passwordHelper");
 const logger = require("../utils/logger");
 const db = require("../config/database"); // ADDED THIS IMPORT
-const RoleModel = require("../models/role.model"); // ADDED THIS IMPORT impRoleModel from '../models/role.model'; // ADDED THIS IMPORT
+const RoleModel = require("../models/role.model"); 
+const PasswordResetModel = require("../models/PasswordReset.model");
 
 class AuthService {
   static async register(userData) {
@@ -35,9 +36,7 @@ class AuthService {
       // email_verified: false,
     });
 
-    // const roles = await RoleModel.create({
-    //   role_name
-    // }) ;
+    
     const roles = await RoleModel.findByRole(role_name);
 
     
@@ -179,9 +178,9 @@ console.log("User Data:", user);
     // Hash and update
     const hashedPassword = await PasswordHelper.hash(newPassword);
     await UserModel.update(userId, {
-      password: hashedPassword,
-      password_changed_at: new Date(),
-      refresh_token: null, // Invalidate all sessions
+      password_hash: hashedPassword,
+      // password_changed_at: new Date(),
+      // refresh_token: null, // Invalidate all sessions
     });
 
     logger.info(`Password changed for user: ${user.email}`);
@@ -197,21 +196,33 @@ console.log("User Data:", user);
     const resetToken = PasswordHelper.generateRandomToken();
     const expires = new Date(Date.now() + 3600000); // 1 hour
 
-    await UserModel.update(user.user_id, {
-      reset_password_token: resetToken,
+    const hashedResetToken = await PasswordHelper.hashToken(resetToken);
+    
+    // await UserModel.update(user.user_id, {
+    //   reset_password_token: resetToken,
+    //   reset_password_expires: expires,
+    // });
+     await PasswordResetModel.create({
+      user_id: user.user_id,
+      reset_password_token: hashedResetToken,
       reset_password_expires: expires,
     });
 
+
     // TODO: Send email with reset token
+
     logger.info(`Password reset requested for: ${email}`);
-    logger.info(`Reset token: ${resetToken}`); // Remove in production
+    logger.info(`Reset token: ${hashedResetToken}`); // Remove in production
+    console.log("Generated Reset Token:", resetToken);
   }
 
   static async resetPassword(token, newPassword) {
-    const user = await db("users")
-      .where("reset_password_token", token)
-      .where("reset_password_expires", ">", new Date())
-      .first();
+
+    const hashedtoken = await PasswordHelper.hashToken(token);
+    const user = await PasswordResetModel.findByToken(hashedtoken);
+    console.log("Reset User:", user);
+    console.log("Hashed Token:", hashedtoken);
+    console.log("Token:", token);
 
     if (!user) {
       throw new Error("Invalid or expired reset token");
@@ -226,14 +237,17 @@ console.log("User Data:", user);
     // Hash and update
     const hashedPassword = await PasswordHelper.hash(newPassword);
     await UserModel.update(user.user_id, {
-      password: hashedPassword,
-      password_changed_at: new Date(),
-      reset_password_token: null,
-      reset_password_expires: null,
-      refresh_token: null,
+      password_hash: hashedPassword,
+      // password_changed_at: new Date(),
+      // reset_password_token: null,
+      // reset_password_expires: null,
+      // refresh_token: null,
     });
 
+    await PasswordResetModel.delete(user.user_id);
+
     logger.info(`Password reset successful for: ${user.email}`);
+    
   }
 }
 
