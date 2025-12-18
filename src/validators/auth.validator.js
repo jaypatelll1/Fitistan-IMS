@@ -15,7 +15,12 @@ const registerSchema = Joi.object({
   gender:Joi.string().required(),
   name: Joi.string().min(2).max(100).required(),
   phone: Joi.string().pattern(/^[0-9]{10}$/).optional(),
-  role_name: Joi.string().required()
+  role_name:Joi.string()
+      .valid("admin", "manager", "staff", "user")
+      .required()
+      .messages({
+        "any.only": "Role must be one of: admin, manager, staff, user",
+      }),
 });
 
 const loginSchema = Joi.object({
