@@ -59,7 +59,9 @@ class AuthService {
     delete user.password;
 
     // delete user.refresh_token;
-    user.role_id = roles.role_id;
+    // user.role_id = roles.role_id;
+    user.role = roles.role_name;
+
 
     return {
       user,

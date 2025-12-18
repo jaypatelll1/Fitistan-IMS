@@ -33,15 +33,42 @@ class UserModel {
     return this.update(userId, { role });
   }
 
+  // static async updateStatus(userId, status) {
+  //   return this.update(userId, { status });
+  // }
+
   static async updateStatus(userId, status) {
-    return this.update(userId, { status });
+  // 1️⃣ Find status_id
+  const statusRow = await db("status")
+    .where({ status_name: status })
+    .first();
+
+  if (!statusRow) {
+    throw { statusCode: 400, message: "Invalid status" };
   }
+
+  // 2️⃣ Update user
+  return this.update(userId, {
+    status_id: statusRow.status_id
+  });
+}
+
 
   static async deactivate(userId) {
     return this.updateStatus(userId, "inactive");
   }
 
+  // 
+  
   static async getActivityStats(userId) {
+  try {
+    if (!userId) {
+      return {
+        total_movements: 0,
+        last_activity: null,
+      };
+    }
+
     const movements = await db("stock_movements")
       .where({ performed_by: userId })
       .count("* as total_movements")
@@ -53,10 +80,18 @@ class UserModel {
       .first();
 
     return {
-      total_movements: parseInt(movements.total_movements),
+      total_movements: Number(movements?.total_movements || 0),
       last_activity: lastActivity?.created_at || null,
     };
+  } catch (err) {
+    // 👇 graceful fallback
+    return {
+      total_movements: 0,
+      last_activity: null,
+    };
   }
+}
+
 }
 
 module.exports = UserModel;

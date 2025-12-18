@@ -49,7 +49,8 @@ const authenticateUser = async (req, res, next) => {
       // lastName: user.last_name,
       // fullName: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
       name: user.name,
-      role: user.role,
+      role: decoded.role,
+
       // status: user.status,
       // emailVerified: user.email_verified,
     };

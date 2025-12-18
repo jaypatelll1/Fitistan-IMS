@@ -13,6 +13,7 @@ exports.seed = async function (knex) {
   await knex("rooms").del();
   await knex("warehouses").del();
   await knex("users").del();
+  await knex("status").del();
 
   console.log("🗑️  Cleared existing data");
 
@@ -312,6 +313,13 @@ exports.seed = async function (knex) {
       performed_by: adminId,
       notes: "Initial stock entry - Water Bottles",
     },
+  ]);
+
+    // insert sample statuses
+  await knex("status").insert([
+    { status_name: "active" },
+    { status_name: "inactive" },
+    { status_name: "suspended" }
   ]);
 
   console.log("✅ 3 Stock movements created");

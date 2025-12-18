@@ -2,7 +2,7 @@
 const Joi = require("joi");
 
 const updateRoleSchema = Joi.object({
-  role: Joi.string()
+  role_name: Joi.string()
     .valid("admin", "manager", "staff", "viewer")
     .required()
     .messages({
