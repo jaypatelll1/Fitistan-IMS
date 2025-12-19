@@ -11,17 +11,17 @@ class UserModel extends BaseModel {
 
     async getUserByEmail({ email }, ) {
         try {
-            // Get query builder (transaction-safe)
+            
             const queryBuilder = await this.getQueryBuilder();
 
-            // Query the "user" table directly
+           
             const user = await queryBuilder
                 .select([
                    '*'
                 ])
                 .table("users")
                 .where(this.whereStatement({email}))
-                .first(); // fetch single row
+                .first();
                 console.log("user",user)
 
             return user || undefined; // return undefined if not found

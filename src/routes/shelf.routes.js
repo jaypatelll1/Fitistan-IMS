@@ -1,23 +1,23 @@
-const express = require("express");
-const router = express.Router();
+// const express = require("express");
+// const router = express.Router();
 
-const shelfController = require("../controllers/shelf.controller.js");
+// const shelfController = require("../controllers/shelf.controller.js");
 
-// Create shelf
-router.post("/", shelfController.createShelf);
+// // Create shelf
+// router.post("/", shelfController.createShelf);
 
-// Get all shelves
-router.get("/all", shelfController.getAllShelves);
+// // Get all shelves
+// router.get("/all", shelfController.getAllShelves);
 
-// Get shelf by ID 
-router.get("/:id", shelfController.getShelfById);
+// // Get shelf by ID 
+// router.get("/:id", shelfController.getShelfById);
 
-// Update shelf
-router.put("/:id", shelfController.updateShelf);
+// // Update shelf
+// router.put("/:id", shelfController.updateShelf);
 
-// Soft delete shelf
-router.post("/:id", shelfController.deleteShelf);
+// // Soft delete shelf
+// router.post("/:id", shelfController.deleteShelf);
 
-module.exports = router;
+// // module.exports = router;
 
 

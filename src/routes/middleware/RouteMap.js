@@ -8,6 +8,7 @@ const AccessPermissionError = require("../../errorhandlers/AccessPermissionError
 
 // openRouter 
 const authenticationRouter = require("../controllers/authenticationRouter")
+const shelf = require("../shelf.routes")
 class RouteMap {
     static setupRoutesAndAuth(app) {
 

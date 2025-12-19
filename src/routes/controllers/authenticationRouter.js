@@ -30,7 +30,7 @@ router.post("/login", appWrapper(async (req, res) => {
         error: err.message || "Invalid email or password"
       });
     }
-  }, [ACCESS_ROLES.ACCOUNT_SELF_MEMBER])
+  }, [ACCESS_ROLES.ALL])
 );
 
 module.exports = router;
