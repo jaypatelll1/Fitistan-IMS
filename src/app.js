@@ -42,31 +42,23 @@
 // logger.token('platform', (req, res) => req.headers['x-fitistan-platform'] || 'anonymous');
 // logger.token('tech', (req, res) => req.headers['x-fitistan-tech'] || 'anonymous');
 
-// app.use(logger(':method :url :status :res[content-length] - :response-time ms - user-id=:user-id - app-version=:app-version - platform=:platform - tech=:tech'));
+// Health check
+app.get("/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+  });
+});
 
-// app.use(express.json({
-//     limit: "100mb",
-//     verify(req, res, buf, encoding) {
-//         req.rawBody = buf;
-//     },
-// }));
-// app.use(express.urlencoded({ limit: "100mb" }));
+// API Routes
+app.use("/api/v1/auth", require("./routes/auth.routes"));
+app.use("/api/v1/users", require("./routes/user.routes"));
+app.use("/api/v1/shelf", require("./routes/shelf.routes"));
+// Add other routes here
 
-// app.use(cookieParser());
-// app.use(fileUpload({
-//     limits: { fileSize: 20 * 1024 * 1024 },
-// }));
-// app.use(express.static(path.join(__dirname, 'public')));
+// Error handlers
+app.use(notFoundHandler);
+app.use(errorHandler);
 
-// // Swagger.setup(app);
-// RouteMap.setupRoutesAndAuth(app);
-
-// // error handler
-// app.use(ErrorHandler.handleError);
-
-// // catch 404 and forward to error handler
-// app.use(function (req, res, next) {
-//     next(createError(404));
-// });
-
-// module.exports = app;
+module.exports = app;
