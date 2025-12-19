@@ -3,23 +3,39 @@ const Warehouse = require("../models/warehouse.model");
 class WarehouseController {
 
   // CREATE WAREHOUSE
-  static async createWarehouse(req, res) {
-    try {
-      const warehouse = await Warehouse.create(req.body);
+ static async createWarehouse(req, res) {
+  try {
+    const { name, location, capacity } = req.body;
 
-      res.status(201).json({
-        success: true,
-        message: "Warehouse created successfully",
-        data: warehouse
-      });
-    } catch (error) {
-      console.error("Create warehouse error:", error);
-      res.status(500).json({
+    // validation
+    if (!name) {
+      return res.status(400).json({
         success: false,
-        message: "Error creating warehouse"
+        message: "name is required"
       });
     }
+
+    const warehouse = await Warehouse.create({
+      name,
+      location,
+      capacity
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Warehouse created successfully",
+      data: warehouse
+    });
+
+  } catch (error) {
+    console.error("CREATE WAREHOUSE ERROR 👉", error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message   // 👈 VERY IMPORTANT
+    });
   }
+}
+
 
   // GET ALL WAREHOUSES
   static async getAllWarehouses(req, res) {

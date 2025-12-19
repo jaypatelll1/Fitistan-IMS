@@ -49,7 +49,7 @@ app.use("/api/v1/users", require("./routes/user.routes"));
 
 app.use("/api/v1/rooms", require("./routes/room.routes"));
 app.use("/api/v1/variants", require("./routes/variant.routes"));
-
+app.use("/api/v1/warehouses", require("./routes/warehouse.routes"));
 
 
 
