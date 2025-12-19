@@ -11,7 +11,7 @@ class ProductController {
 
         const product = req.body.data
         if(!product){
-            throw new InvalidRequestError()
+            throw new InvalidRequestError("Error ")
         }
 
         const users = await ProductService.createProduct({ product });

@@ -9,8 +9,7 @@ const registerSchema = Joi.object({
     'string.min': 'Password must be at least 8 characters',
     'any.required': 'Password is required',
   }),
-  firstName: Joi.string().min(2).max(50).required(),
-  lastName: Joi.string().min(2).max(50).required(),
+  name: Joi.string().min(2).max(50).required(),
   phone: Joi.string().pattern(/^[0-9]{10}$/).optional(),
 });
 

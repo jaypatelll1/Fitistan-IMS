@@ -4,8 +4,8 @@ const router = express.Router();
 const app = require('./src/app');
 const logger = require('./src/utils/logger');
 
-const userRoutes = require('./src/routes/user.routes');
-const productRoutes = require('./src/routes/product.routes');
+// const userRoutes = require('./src/routes/user.routes');
+// const productRoutes = require('./src/routes/product.routes');
 
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -16,8 +16,8 @@ const server = app.listen(PORT, () => {
   logger.info(`🔗 Test DB: http://localhost:${PORT}/test-db`);
 });
 
-router.use('/users', userRoutes);
-router.use('/product', productRoutes);
+// router.use('/users', userRoutes);
+// router.use('/product', productRoutes);
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

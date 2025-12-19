@@ -21,13 +21,12 @@ class AuthService {
     // Hash password
     const hashedPassword = await PasswordHelper.hash(userData.password);
 
+    const {password , ...userPayload} = userData;
+
     // Create user
     const user = await UserModel.create({
-      ...userData,
-      password: hashedPassword,
-      role: "staff", // Default role
-      status: "active",
-      email_verified: false,
+      ...userPayload,
+      password_hash: hashedPassword,
     });
 
     // Generate tokens
