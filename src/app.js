@@ -1,53 +1,72 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const compression = require("compression");
-const morgan = require("morgan");
-const logger = require("./utils/logger");
-const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
+// require('dotenv').config();
+// const createError = require('http-errors');
+// const express = require('express');
+// const path = require('path');
+// const cors = require('cors');
+// const cookieParser = require('cookie-parser');
+// const logger = require('morgan');
+// const fileUpload = require('express-fileupload');
+// const RouteMap = require('./src/routes/middleware/RouteMap');
+// const ErrorHandler = require('./src/errorhandlers/ErrorHandler');
 
-const app = express();
+// const app = express();
 
-// Security
-app.use(helmet());
+// // view engine setup
+// app.set('views', path.join(__dirname, './src/views'));
+// app.set('view engine', 'ejs');
 
-// CORS
-const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
-  credentials: true,
-};
-app.use(cors(corsOptions));
+// let corsOptions;
+// if (process.env.NODE_ENV === "production") {
+//     // TODO: Implement dynamic origins so as to accommodate all internal and third party domains
+//     corsOptions = {
+//         origin: function (origin, callback) {
+//             return callback(null, true);
+//         },
+//         credentials: true,
+//         optionsSuccessStatus: 200
+//     };
+// } else {
+//     corsOptions = {
+//         origin: function (origin, callback) {
+//             return callback(null, true);
+//         },
+//         credentials: true,
+//         optionsSuccessStatus: 200
+//     };
+// }
 
-// Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(cors(corsOptions));
 
-// Compression
-app.use(compression());
+// logger.token('user-id', (req, res) => res.locals.userInfo ? res.locals.userInfo['user']['user_id'] : 'anonymous');
+// logger.token('app-version', (req, res) => req.headers['x-fitistan-app-version'] || 'anonymous');
+// logger.token('platform', (req, res) => req.headers['x-fitistan-platform'] || 'anonymous');
+// logger.token('tech', (req, res) => req.headers['x-fitistan-tech'] || 'anonymous');
 
-// HTTP logging
-app.use(
-  morgan("dev", {
-    stream: { write: (message) => logger.info(message.trim()) },
-  })
-);
+// app.use(logger(':method :url :status :res[content-length] - :response-time ms - user-id=:user-id - app-version=:app-version - platform=:platform - tech=:tech'));
 
-// Health check
-app.get("/health", (req, res) => {
-  res.json({
-    success: true,
-    message: "Server is running",
-    timestamp: new Date().toISOString(),
-  });
-});
+// app.use(express.json({
+//     limit: "100mb",
+//     verify(req, res, buf, encoding) {
+//         req.rawBody = buf;
+//     },
+// }));
+// app.use(express.urlencoded({ limit: "100mb" }));
 
-// API Routes
-app.use("/api/v1/auth", require("./routes/auth.routes"));
-app.use("/api/v1/users", require("./routes/user.routes"));
-// Add other routes here
+// app.use(cookieParser());
+// app.use(fileUpload({
+//     limits: { fileSize: 20 * 1024 * 1024 },
+// }));
+// app.use(express.static(path.join(__dirname, 'public')));
 
-// Error handlers
-app.use(notFoundHandler);
-app.use(errorHandler);
+// // Swagger.setup(app);
+// RouteMap.setupRoutesAndAuth(app);
 
-module.exports = app;
+// // error handler
+// app.use(ErrorHandler.handleError);
+
+// // catch 404 and forward to error handler
+// app.use(function (req, res, next) {
+//     next(createError(404));
+// });
+
+// module.exports = app;

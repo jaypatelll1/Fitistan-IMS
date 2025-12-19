@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const AuthController = require("../controllers/auth.controller");
-const { authenticateUser } = require("../middleware/auth.middleware");
-const validate = require("../middleware/validation.middleware");
+const AuthController = require("../../controllers/auth.controller");
+const { authenticateUser } = require("../../middleware/auth.middleware");
+const validate = require("../../middleware/validation.middleware");
 const {
   registerSchema,
   loginSchema,
@@ -10,7 +10,7 @@ const {
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-} = require("../validators/auth.validator");
+} = require("../../validators/auth.validator");
 
 // Public routes
 router.post("/register", validate(registerSchema), AuthController.register);
