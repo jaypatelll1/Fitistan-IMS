@@ -5,17 +5,21 @@ class VariantController {
   // ================= CREATE VARIANT =================
   static async createVariant(req, res) {
     try {
-      const data = req.body;
+      const { name, sku, product_id } = req.body;
 
-      // basic validation (optional but recommended)
-      if (!data || Object.keys(data).length === 0) {
+      // Basic validation
+      if (!name || !sku || !product_id) {
         return res.status(400).json({
           success: false,
-          message: "Request body is empty"
+          message: "name, sku and product_id are required"
         });
       }
 
-      const variant = await Variant.create(data);
+      const variant = await Variant.create({
+        name,
+        sku,
+        product_id
+      });
 
       return res.status(201).json({
         success: true,
@@ -24,12 +28,19 @@ class VariantController {
       });
 
     } catch (error) {
-      console.error("CREATE VARIANT ERROR 👉", error.message);
-      console.error(error);
+      console.error("CREATE VARIANT ERROR 👉", error);
+
+      // ✅ Postgres duplicate key (SKU unique)
+      if (error.code === "23505") {
+        return res.status(409).json({
+          success: false,
+          message: "SKU already exists"
+        });
+      }
 
       return res.status(500).json({
         success: false,
-        message: error.message   // 👈 shows real DB error
+        message: error.message
       });
     }
   }
@@ -118,16 +129,23 @@ class VariantController {
       const { id } = req.params;
       const data = req.body;
 
-      const updated = await Variant.update(id, data);
+      const updatedVariant = await Variant.update(id, data);
 
       return res.status(200).json({
         success: true,
         message: "Variant updated successfully",
-        data: updated
+        data: updatedVariant
       });
 
     } catch (error) {
-      console.error("UPDATE VARIANT ERROR 👉", error.message);
+      console.error("UPDATE VARIANT ERROR 👉", error);
+
+      if (error.code === "23505") {
+        return res.status(409).json({
+          success: false,
+          message: "SKU already exists"
+        });
+      }
 
       return res.status(500).json({
         success: false,

@@ -2,69 +2,80 @@ const db = require("../config/database");
 
 class VariantModel {
 
-  // GET ALL VARIANTS (with optional filters)
-  static async findAll(filters = {}) {
-    let query = db("product_variants").select("*");
+  // CREATE VARIANT
+  static async create(data) {
 
-    if (filters.product_id) {
-      query = query.where({ product_id: filters.product_id });
+    // 1️⃣ Check SKU uniqueness
+    if (data.sku) {
+      const existingSku = await db("variants")
+        .where({ sku: data.sku })
+        .first();
+
+      if (existingSku) {
+        throw new Error("SKU already exists");
+      }
     }
 
-    if (filters.status) {
-      query = query.where({ status: filters.status });
-    }
+    const [variant] = await db("variants")
+      .insert({
+        name: data.name,
+        sku: data.sku,
+        product_id: data.product_id
+      })
+      .returning("*");
 
-    return query.orderBy("created_at", "desc");
+    return variant;
   }
 
-  // GET VARIANT BY ID
-  static async findById(variantId) {
-    return db("product_variants")
-      .where({ variant_id: variantId })
+  // GET ALL VARIANTS
+  static async findAll(filters = {}) {
+    let query = db("variants").select("*");
+
+    if (filters.product_id) {
+      query.where({ product_id: filters.product_id });
+    }
+
+    return query.orderBy("variant_id", "desc");
+  }
+
+  // GET BY ID
+  static async findById(id) {
+    return db("variants")
+      .where({ variant_id: id })
       .first();
   }
 
-  // FIND VARIANT BY BARCODE
+  // FIND BY BARCODE
   static async findByBarcode(barcode) {
-    return db("product_variants")
+    return db("variants")
       .where({ barcode })
       .first();
   }
 
-  // CREATE VARIANT
-  static async create(data) {
-    const [variant] = await db("product_variants")
-      .insert(data)
+  // UPDATE
+  static async update(id, data) {
+    const [updated] = await db("variants")
+      .where({ variant_id: id })
+      .update(data)
       .returning("*");
 
-    return variant;
+    return updated;
   }
 
-  // UPDATE VARIANT
-  static async update(variantId, data) {
-    const [variant] = await db("product_variants")
-      .where({ variant_id: variantId })
-      .update(
-        {
-          ...data,
-          updated_at: db.fn.now()
-        }
-      )
-      .returning("*");
-
-    return variant;
-  }
-
-  // DELETE VARIANT (SOFT DELETE if status column exists)
-  static async delete(variantId) {
-    return this.update(variantId, { status: "inactive" });
+  // DELETE
+  static async delete(id) {
+    return db("variants")
+      .where({ variant_id: id })
+      .del();
   }
 
   // GENERATE BARCODE
-  static async generateBarcode(variantId) {
+  static async generateBarcode(id) {
     const barcode = `VAR-${Date.now()}`;
 
-    await this.update(variantId, { barcode });
+    await db("variants")
+      .where({ variant_id: id })
+      .update({ barcode });
 
     return barcode;
   }
