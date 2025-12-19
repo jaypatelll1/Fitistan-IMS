@@ -4,12 +4,11 @@ const router = express.Router();
 
 // Import route modules
 const userRoutes = require('./user.routes');
-// const warehouseRoutes = require('./warehouse.routes');
-// ... other routes will be added by team
+const productRoutes = require('./product.routes');
+
 
 // Mount routes
 router.use('/users', userRoutes);
-// router.use('/warehouses', warehouseRoutes);
-// ... other routes will be mounted here
+router.use('/product', productRoutes);
 
 module.exports = router;

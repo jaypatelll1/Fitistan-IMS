@@ -1,8 +1,13 @@
 require('dotenv').config();
+const express = require('express');
+const router = express.Router();
 const app = require('./src/app');
 const logger = require('./src/utils/logger');
 
-const PORT = process.env.PORT || 5000;
+const userRoutes = require('./src/routes/user.routes');
+const productRoutes = require('./src/routes/product.routes');
+
+const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const server = app.listen(PORT, () => {
@@ -10,6 +15,9 @@ const server = app.listen(PORT, () => {
   logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
   logger.info(`🔗 Test DB: http://localhost:${PORT}/test-db`);
 });
+
+router.use('/users', userRoutes);
+router.use('/product', productRoutes);
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
