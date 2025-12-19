@@ -1,63 +1,56 @@
-const { del } = require('../config/database.js');
 const Vendor = require('../models/vendor.model.js');
-const bcrypt = require('bcryptjs');
 
-class VendorController{
+class VendorController {
 
-    //  Create new Vendor
-    static async createVendor(req,res){
-        try {
-            const vendorData = req.validatedData;
+  // =========================
+  // Create Vendor
+  // =========================
+  static async createVendor(req, res) {
+    try {
+      const vendorData = req.validatedData;
 
-            const emailExists = await Vendor.emailExists(vendorData.email);
-            if(emailExists){
-                return res.status(409).json({
-                    success: false,
-                    message: 'Email already exists'
-                })
-            }
+      // Check email uniqueness
+      const emailExists = await Vendor.emailExists(vendorData.email);
+      if (emailExists) {
+        return res.status(409).json({
+          success: false,
+          message: 'Email already exists'
+        });
+      }
 
-            if(vendorData.password){
-                const salt = await bcrypt.genSalt(10);
-                vendorData.password = await bcrypt.hash(vendorData.password,salt);
-            }
+      const vendor = await Vendor.createVendor(vendorData);
 
-            // creating user
-            const vendor = await Vendor.createVendor(vendorData);
+      res.status(201).json({
+        success: true,
+        message: 'Vendor created successfully',
+        data: vendor
+      });
 
-            // remove the pass
-
-            delete vendor.password;
-
-            res.status(201).json({
-                success:true,
-                message: "Vendor Created Successfully",
-                data: vendor
-            });
-
-        } catch (error) {
-            console.error('Failed Creating Vendor : ',error);
-            res.status(500).json({
-                success: false,
-                message: "Error Creating Vendor",
-                error: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
-        }
+    } catch (error) {
+      console.error('Create vendor error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error creating vendor',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
+  }
 
-  // Get all vendors with pagination
+  // =========================
+  // Get All Vendors
+  // =========================
   static async getAllVendors(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
-      const search = req.query.search || '';
 
-      const result = await Vendor.findAll(page, limit, { search });
+      const result = await Vendor.findAll(page, limit);
 
       res.status(200).json({
         success: true,
         ...result
       });
+
     } catch (error) {
       console.error('Get vendors error:', error);
       res.status(500).json({
@@ -68,12 +61,15 @@ class VendorController{
     }
   }
 
-   // Get vendor by ID
+  // =========================
+  // Get Vendor by ID
+  // =========================
   static async getVendorById(req, res) {
     try {
-      const vendorId = req.params.id;
-      const vendor = await Vendor.findVendorById(vendorId);
+      const vendorId = parseInt( req.params.id)
+      
 
+      const vendor = await Vendor.findVendorById(vendorId);
       if (!vendor) {
         return res.status(404).json({
           success: false,
@@ -81,13 +77,11 @@ class VendorController{
         });
       }
 
-      // Remove password from response
-      delete vendor.password;
-
       res.status(200).json({
         success: true,
         data: vendor
       });
+
     } catch (error) {
       console.error('Get vendor error:', error);
       res.status(500).json({
@@ -98,13 +92,14 @@ class VendorController{
     }
   }
 
-    // Update vendor
+  // =========================
+  // Update Vendor
+  // =========================
   static async updateVendor(req, res) {
     try {
       const vendorId = req.params.id;
       const updateData = req.validatedData;
 
-      // Check if vendor exists
       const existingVendor = await Vendor.findVendorById(vendorId);
       if (!existingVendor) {
         return res.status(404).json({
@@ -113,9 +108,12 @@ class VendorController{
         });
       }
 
-      // Check email uniqueness if email is being updated
-      if (updateData.email && updateData.email !== existingVendor.email) {
-        const emailExists = await Vendor.emailExists(updateData.email, vendorId);
+      // Email uniqueness check
+      if (
+        updateData.email &&
+        updateData.email !== existingVendor.email
+      ) {
+        const emailExists = await Vendor.emailExists(updateData.email);
         if (emailExists) {
           return res.status(409).json({
             success: false,
@@ -125,13 +123,13 @@ class VendorController{
       }
 
       const updatedVendor = await Vendor.updateVendor(vendorId, updateData);
-      delete updatedVendor.password;
 
       res.status(200).json({
         success: true,
         message: 'Vendor updated successfully',
         data: updatedVendor
       });
+
     } catch (error) {
       console.error('Update vendor error:', error);
       res.status(500).json({
@@ -142,7 +140,9 @@ class VendorController{
     }
   }
 
-  // Delete vendor (soft delete)
+  // =========================
+  // Delete Vendor (Hard Delete)
+  // =========================
   static async deleteVendor(req, res) {
     try {
       const vendorId = req.params.id;
@@ -155,12 +155,13 @@ class VendorController{
         });
       }
 
-      await Vendor.softDeleteVendor(vendorId);
+      await Vendor.deleteVendor(vendorId);
 
       res.status(200).json({
         success: true,
         message: 'Vendor deleted successfully'
       });
+
     } catch (error) {
       console.error('Delete vendor error:', error);
       res.status(500).json({

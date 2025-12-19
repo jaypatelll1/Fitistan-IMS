@@ -1,108 +1,140 @@
-const { func } = require('joi');
+// const { func } = require('joi'); 
 const knex = require('../config/database.js');
-const { PUBLIC_SCHEMA,TABLE_DEFAULTS } = require('./libs/dbConstants.js');
+const { PUBLIC_SCHEMA, TABLE_DEFAULTS } = require('./libs/dbConstants.js');
 
-const { CREATED_BY, LAST_MODIFIED_BY, IS_DELETED, CREATED_AT, UPDATED_AT } = TABLE_DEFAULTS.COLUMNS;
+const { UPDATED_AT } = TABLE_DEFAULTS.COLUMNS;
 
-class Vendor{
+class Vendor {
 
-    static get tableName() {
-        return "vendors";
-    }
+  static get tableName() {
+    return 'vendors';
+  }
 
-    static get schema(){
-        return PUBLIC_SCHEMA;
-    }
+  static get schema() {
+    return PUBLIC_SCHEMA;
+  }
 
-    // Create new Vendor
-    static async createVendor(vendorData){
-        const [vendor] = await knex(this.tableName)
-        .withSchema(this.schema)
-        .insert(vendorData)
-        .returning('*');
-    
+  
+  // Create Vendor
+  
+  static async createVendor(vendorData) {
+    const [vendor] = await knex(this.tableName)
+      .withSchema(this.schema)
+      .insert({
+        vendor_name: vendorData.vendor_name,
+        // contact_person: vendorData.contact_person,
+        email: vendorData.email,
+        phone: vendorData.phone,
+        address: vendorData.address
+      })
+      .returning('*');
+
     return vendor;
-    }
+  }
 
-    // Find Vendor by id
-    static async findVendorById(vendorId){
-        return await knex(this.tableName)
-        .withSchema(this.schema)
-        .where({vendor_id: vendorId , is_active : true})
-        .first();
-    }
+  
+  // Find Vendor by ID
 
-    // Find Vendor by email
-    static async findVendorByEmail(vendorEmail){
-        return await knex(this.tableName)
-        .withSchema(this.schema)
-        .where({email: vendorEmail , is_active : true})
-        .first();
-    }
+  static async findVendorById(vendorId) {
+    return await knex(this.tableName)
+      .withSchema(this.schema)
+      .where({ vendor_id: vendorId ,
+        is_deleted: false
+      })
+      .first();
+  }
 
-    static async findAll(page = 1,limit = 10 , filters={} ){
-        const offset = (page-1)*limit;
-
-        let query = knex(this.tableName)
-        .withSchema(this.schema)
-        .where({ is_active: true});
-
-        // apply filters
-        if(filters.search){
-            query = query.where(function(){
-                this.where('vendor_name', 'ilike', `%${filters.search}%`)
-                .orWhere('email', 'ilike', `%${filters.search}%`);
-            });
-        }
-
-        const vendors = await query
-             .orderBy(filters.field,filters.order)
-             .limit(limit)
-             .offset(offset);
-
-        const [{count}] = await knex(this.tableName)
-        .withSchema(this.schema)
-        .where({ is_active : true})
-        .count('vendor_id as count');
+  
+  // Find Vendor by Email
+  
+  static async findVendorByEmail(vendorEmail) {
+    return await knex(this.tableName)
+      .withSchema(this.schema)
+      .where({ email: vendorEmail,is_deleted: false
         
-        return {
-            data : vendors,
-            pagination: {
-                page,
-                limit,
-                total:parseInt(count),
-                totalPage:Math.ceil(count/limit),
-            }
-        };
+       })
+      .first();
+  }
 
-    }
+  
+  // Get All Vendors
+ 
+  static async findAll(page = 1, limit = 10, filters = {}) {
+    const offset = (page - 1) * limit;
 
-    // Update Vendor
+    let query = knex(this.tableName)
+      .withSchema(this.schema);
 
-    static async updateVendor(vendorId,updatedData){
-        const [updated] = await knex(this.tableName)
-        .withSchema(this.schema)
-        .where({vendor_id: vendorId})
-        .update({
-            ...updatedData,
-            UPDATED_AT:knex.fn.now()
-        })
-        .returning('*');
-    
-        return updated;
-    }
+    // Search filter
+    // if (filters.search) {
+    //   query.where(function () {
+    //     this.where('vendor_name', 'ilike', `%${filters.search}%`)
+    //       .orWhere('email', 'ilike', `%${filters.search}%`)
+    //       .orWhere('contact_person', 'ilike', `%${filters.search}%`);
+    //   });
+    // }
 
-    // Soft delete
-    static async softDeleteVendor(vendorId){
-        return await this.updateVendor(vendorId,{ is_active:false});
-    }
+    const vendors = await query
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .offset(offset);
 
-    // Check if email exists
-    static async emailExists(email){
-        let query = knex(this.tableName)
-        .withSchema(this.schema)
-        .where({email});
-        const vendor = await query.first();
-        return !!vendor;
-    }
+    const [{ count }] = await knex(this.tableName)
+      .withSchema(this.schema)
+      .count('vendor_id as count');
+
+    return {
+      data: vendors,
+      pagination: {
+        page,
+        limit,
+        total: parseInt(count),
+        totalPage: Math.ceil(count / limit)
+      }
+    };
+  }
+
+  
+  // Update Vendor
+ 
+  static async updateVendor(vendorId, updatedData) {
+    const [updatedVendor] = await knex(this.tableName)
+      .withSchema(this.schema)
+      .where({ vendor_id: vendorId, is_deleted: false })
+      .update({
+        vendor_name: updatedData.vendor_name,
+        // contact_person: updatedData.contact_person,
+        email: updatedData.email,
+        phone: updatedData.phone,
+        address: updatedData.address,
+        [UPDATED_AT]: knex.fn.now()
+      })
+      .returning('*');
+
+    return updatedVendor;
+  }
+
+  
+  // Delete Vendor (Hard Delete)
+  
+  static async deleteVendor(vendorId) {
+    return await knex(this.tableName)
+      .withSchema(this.schema)
+      .where({ vendor_id: vendorId, is_deleted: false })
+      .del();
+  }
+
+  
+  // Check if Email Exists
+  
+  static async emailExists(email) {
+    const vendor = await knex(this.tableName)
+      .withSchema(this.schema)
+      .where({ email, is_deleted: false })
+      .first();
+
+    return !!vendor;
+  }
 }
+
+module.exports = Vendor;
