@@ -2,18 +2,18 @@
 
 const express = require("express");
 const router = express.Router();
-const UserController = require("../controllers/user.controller");
+const UserController = require("../../controllers/user.controller");
 const {
   authenticateUser,
   // attachUserInfo,  // ❌ REMOVE THIS - doesn't exist
   isAdmin,
   isAdminOrManager,
-} = require("../middleware/auth.middleware");
-const validate = require("../middleware/validation.middleware");
+} = require("../../middleware/auth.middleware");
+const validate = require("../../middleware/validation.middleware");
 const {
   updateRoleSchema,
   updateStatusSchema,
-} = require("../validators/user.validator");
+} = require("../../validators/user.validator");
 
 // All routes require authentication
 router.use(authenticateUser); // ✅ FIXED - removed attachUserInfo

@@ -1,99 +1,80 @@
-const knex = require("../../config/database.js");
-const { PUBLIC_SCHEMA, TABLE_DEFAULTS } = require("./dbConstants.js");
+require('dotenv').config();
+const { TABLE_DEFAULTS } = require("./dbConstants");
+const Db = require("../libs/Db");
 
-const { CREATED_BY, LAST_MODIFIED_BY, IS_DELETED, CREATED_AT, UPDATED_AT } = TABLE_DEFAULTS.COLUMNS;
 
 class BaseModel {
-
-    constructor(userId = null){
-
-        if(userId === null && (typeof userId !== 'string' || userId.trim() === '' )){
-            throw new Error('userId must be a non-empty string or null');
-        }
-
+    constructor(userId, dbname=null, isRead = false) {
         this.userId = userId;
-        this.schema = PUBLIC_SCHEMA;
+        // this.dbname=dbname;
+        // dbname = process.env.DB_CONNECTION || "api_write"
+        // if (dbname == "api_write" && isRead) {
+        //     dbname = 'api_read'
+        // }
+        // console.log("dbname", dbname);
+        // this.DB = new Db(dbname)
     }
 
-    // Query Builder
-    async getQueryBuilder(trxProvider = undefined){
-        try {
-        if(trxProvider){
-            return trxProvider;
-        }
-        return knex.withSchema(this.schema);    
-        } catch (error) {
-            throw new Error(`Failed to get query builder: ${error.message}`);
-        }
-        
+ 
+
+    async getQueryBuilder() {
+        return Db.getQueryBuilder();
     }
 
-    // Default Whre Clause
-    whereStatement(extraFilters = {}){
+    getUserId() {
+        return this.userId;
+    }
 
-         if (typeof extraFilters !== 'object' ||  Array.isArray(extraFilters)) {
-            throw new Error('extraFilters must be a valid object');
+    insertStatement(insertObj) {
+        const userId = this.getUserId();
+        if (!userId) {
+            return insertObj;
         }
 
-        const baseFilters = {
-            IS_DELETED:false,
-        };
         return {
-            ...baseFilters,
-            ...extraFilters,
+            ...insertObj,
+            [TABLE_DEFAULTS.COLUMNS.CREATED_BY.KEY]: userId,
+            [TABLE_DEFAULTS.COLUMNS.LAST_MODIFIED_BY.KEY]: userId
         };
     }
 
-    // remove undefined key Values
-    getDefinedObject(data = {}){
-
-        if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-            throw new Error('data must be a valid object');
-        }
-        const cleaned = {};
-        Object.keys(data).forEach(key => {
-            if(data[key] !== undefined){
-                cleaned[key] = data[key];
-            }
-        });
-        return cleaned;
+    // Helper insert for array
+    insertArrayStatement(rows) {
+        return rows.map(r => this.insertStatement(r));
     }
 
-    // add default fields 
-    addDefaultFields(data = {},isUpdate = false){
-
-        if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-            throw new Error('data must be a valid object');
+    async updateStatement({ updateObj },) {
+        const userId = this.getUserId();
+        if (!userId) {
+            return updateObj;
         }
 
-        const now = new Date();
-        // for update 
-        if(isUpdate){
-            return {
-                ...data,
-                UPDATED_AT: now,
-                ...( this.userId && {LAST_MODIFIED_BY : this.userId})
-            }
-        }
-        // for create
+        const queryBuilder = await this.getQueryBuilder();
+
         return {
-            ...data,
-            CREATED_AT : now,
-            UPDATED_AT : now,
-            ...(this.userId && { CREATED_BY : this.userId , LAST_MODIFIED_BY : this.userId }),
+            ...updateObj,
+            [TABLE_DEFAULTS.COLUMNS.UPDATED_AT.KEY]: queryBuilder.raw("CURRENT_TIMESTAMP"),
+            [TABLE_DEFAULTS.COLUMNS.LAST_MODIFIED_BY.KEY]: userId
         };
     }
 
-    // Helper function to Create and Update
-
-    buildUpdateData(updateData = {}) {
-        const defined = this.getDefinedObject(updateData);
-        return this.addDefaultFields(defined, true);
+    whereStatement(whereObj) {
+        return {
+            [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: false,
+            ...whereObj
+        };
     }
 
-    buildCreateData(createData = {}) {
-        const defined = this.getDefinedObject(createData);
-        return this.addDefaultFields(defined, false);
-    }
+    getDefinedObject(object) {
+        const definedObject = {};
+        for (const key in object) {
+            if (object[key] !== undefined) {
+                definedObject[key] = object[key];
+            }
+        }
 
+        return definedObject;
+    }
 }
+
+module.exports = BaseModel;

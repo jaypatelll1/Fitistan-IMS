@@ -1,0 +1,34 @@
+
+
+const RES_LOCALS = {
+    USER_INFO: {
+        KEY: "userInfo"
+    }
+};
+
+const LOG_CONSTANTS = {
+    ERROR: {
+        FILE_NAME: "errorLogs.txt"
+    },
+    GARMIN_LOGS: {
+        FILE_NAME: "garminLogs.txt"
+    },
+    TRANSACTION_LOGS: {
+        FILE_NAME: "transactionLogs.txt"
+    },
+    EMAIL_LOG: {
+        FILE_NAME: "emailLogs.txt"
+    },
+    TOKEN_LOG: {
+        FILE_NAME: "tokenLogs.txt"
+    },
+    TOWNSCRIPT_LOG: {
+        FILE_NAME: "townscriptLogs.txt"
+    }
+};
+
+
+module.exports = {
+    RES_LOCALS,
+    LOG_CONSTANTS
+ }
