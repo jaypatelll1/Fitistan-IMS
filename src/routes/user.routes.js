@@ -59,6 +59,7 @@ router.patch(
   AppWrapper(sendJson(UserController.updateStatus), [ACCESS_ROLES.ADMIN])
 );
 
+//deactivates user
 router.delete(
   "/:id",
   AppWrapper(sendJson(UserController.deactivate), [ACCESS_ROLES.ADMIN])
