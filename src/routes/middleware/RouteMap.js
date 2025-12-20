@@ -1,37 +1,46 @@
 const express = require("express");
 const { expressjwt: jwt } = require("express-jwt");
 const { RES_LOCALS } = require("./constant");
-const router = express.Router();
+const Router = express.Router();
 const openRouter = express.Router();
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
+const UserModel = require("../../models/UserModel");
+const AuthenticationError = require("../../errorhandlers/AuthenticationError");
+
 
 
 // openRouter 
 const authenticationRouter = require("../controllers/authenticationRouter")
-const shelf = require("../shelf.routes")
+
+const shelf = require("../controllers/shelfRouter")
+
+
 class RouteMap {
     static setupRoutesAndAuth(app) {
 
 
         app.use(
             "/api",
+             ...RouteMap._setupAuth(),
             RouteMap._addUserInformation,
-            ...RouteMap._setupAuth(),
-            router
+           
+            Router
         );
         // router.use("/common_registration", commonRegistrationRouter);
+        // Router.use("/shelf", shelf );
 
-
+    
 
         app.get('/meow', (req, res) => {
             res.json({ 'meow': 'meow' });
         });
 
-
+      
 
         app.use("/open/api", openRouter);
 
         openRouter.use("/authentication", authenticationRouter);
+         openRouter.use("/shelf", shelf );
 
 
         app.use((req, res, next) => {
@@ -74,6 +83,8 @@ class RouteMap {
         });
         // return authJwt.unless({ path: [] })
         // next();
+
+        
         return [
             attachLocals,
             authJwt.unless({ path: [] }),
@@ -94,14 +105,18 @@ class RouteMap {
             next(new AccessPermissionError());
             return;
         }
+        console.log("this is a jet token ",jwtToken)
 
-        const userModel = new UserModel();
+        const userModel = new UserModel() ;
         let secret = process.env.JWT_SECRET_KEY;
         let userRoles;
+
         try {
             const decodedPayload = JwtUtilities.decodeJWT(jwtToken);
-            userRoles = decodedPayload && decodedPayload['user'] && decodedPayload['user']['user_id'] ? await userModel.getUserRoles({ userId: decodedPayload['user']['user_id'] }) : null;
-
+            console.log(jwtToken)
+            console.log(decodedPayload)
+            userRoles = decodedPayload && decodedPayload['user'] && decodedPayload['user']['user_id'] ? await userModel.getUserRoleById({ userId: decodedPayload['user']['user_id'] }) : null;
+conso;le.log("user roles",userRoles)
             if (userRoles && userRoles.length) {
                 console.log("different secret used");
                 secret = process.env.JWT_SECRET_KEY_1;
