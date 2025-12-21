@@ -36,6 +36,9 @@ class ShelfModel extends BaseModel {
         try {
             const queryBuilder = await this.getQueryBuilder();
             const shelf = await queryBuilder.select("*").table("shelf").where(this.whereStatement({shelf_id:id})).first();
+            if (!shelf) {
+                return null;
+            }
             return shelf;
         } catch (e) {
             throw new DatabaseError(e);
@@ -47,6 +50,10 @@ class ShelfModel extends BaseModel {
         try {
             const queryBuilder = await this.getQueryBuilder();
             const updateData = this.insertStatement(data);
+            const check = await queryBuilder.select("shelf_id").table("shelf").where(this.whereStatement({shelf_id:id})).first();
+            if (!check) {
+             return null;
+            }
             const [shelf] = await queryBuilder("shelf").update(updateData).where(this.whereStatement({shelf_id:id})).returning("*");
             return shelf;
         } catch (e) {
@@ -58,6 +65,10 @@ class ShelfModel extends BaseModel {
 
         try {
             const queryBuilder = await this.getQueryBuilder();
+            const check = await queryBuilder.select("shelf_id").table("shelf").where(this.whereStatement({shelf_id:id})).first();
+            if (!check) {
+               return null;
+            }
             const [shelf] = await queryBuilder("shelf").update({ is_deleted: true }).where(this.whereStatement({shelf_id:id})).returning("*");
             return shelf;
         } catch (e) {

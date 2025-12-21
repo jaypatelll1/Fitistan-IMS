@@ -32,6 +32,9 @@ class ShelfManager {
     try {
       const shelfModel = new ShelfModel();
       const shelf = await shelfModel.findById(id);
+      if (!shelf) {
+        return null;
+      }
       return shelf;
     } catch (err) {
       throw new Error(`Failed to get shelf by ID: ${err.message}`);
@@ -42,6 +45,9 @@ class ShelfManager {
     try {
       const shelfModel = new ShelfModel();
       const shelf = await shelfModel.update(id, data);
+      if (!shelf) {
+       return null;
+      }
       return shelf;
     } catch (err) {
       throw new Error(`Failed to update shelf: ${err.message}`);
@@ -52,12 +58,15 @@ class ShelfManager {
     try {
       const shelfModel = new ShelfModel();
       const shelf = await shelfModel.softDelete(id);
+      if (!shelf) {
+       return null;
+      }
       return shelf;
     } catch (err) {
       throw new Error(`Failed to delete shelf: ${err.message}`);
     }
   };
-  
+
 }
 
 module.exports = ShelfManager;
