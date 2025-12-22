@@ -1,19 +1,36 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const RoomController = require("../routes/controllers/RoomRouter");
+const { appWrapper } = require("../routes/routeWrapper");
 
-//get all rooms
-router.get("/all" )
+// GET ALL
+router.get(
+  "/all",
+  appWrapper(RoomController.list)
+);
 
-//get room by id
-router.get("/id")
+// GET BY ID
+router.get(
+  "/:id",
+  appWrapper(RoomController.get)
+);
 
-//create room
-router.post("/" )
+// CREATE
+router.post(
+  "/",
+  appWrapper(RoomController.create)
+);
 
-//update room
-router.put("/id" )
+// UPDATE
+router.put(
+  "/:id",
+  appWrapper(RoomController.update)
+);
 
-//delete room
-router.delete("/id" )
+// DELETE
+router.delete(
+  "/:id",
+  appWrapper(RoomController.remove)
+);
 
 module.exports = router;

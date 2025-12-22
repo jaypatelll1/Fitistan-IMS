@@ -29,6 +29,9 @@ class RouteMap {
         // router.use("/common_registration", commonRegistrationRouter);
         Router.use("/shelf", shelf );
 
+        app.use('api/v1/auth', require("../user.routes"));
+        app.use('api/v1/rooms', require("../user.routes"));
+
     
 
         app.get('/meow', (req, res) => {
@@ -38,6 +41,9 @@ class RouteMap {
       
 
         app.use("/open/api", openRouter);
+
+        app.use("/open/api/rooms", require("../room.routes"));
+        
 
         openRouter.use("/authentication", authenticationRouter);
         //  openRouter.use("/shelf", shelf );
@@ -105,7 +111,7 @@ class RouteMap {
             next(new AccessPermissionError());
             return;
         }
-        console.log("this is a jet token ",jwtToken)
+        console.log("this is a jwt token ",jwtToken)
 
         const userModel = new UserModel() ;
         let secret = process.env.JWT_SECRET_KEY;
