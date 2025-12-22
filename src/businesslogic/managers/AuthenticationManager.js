@@ -41,9 +41,11 @@ class AuthenticationManager {
       user: {
         user_id: user.user_id,
         email: user.email,
+        userRoles: user.role_name
       }
     };
 
+   
     // 4. Sign token
     const token = jwt.sign(
       payload,
@@ -57,7 +59,8 @@ class AuthenticationManager {
       user: {
         user_id: user.user_id,
         email: user.email,
-        name: user.name
+        name: user.name,
+        userRoles: user.role_name
       }
     };
   }

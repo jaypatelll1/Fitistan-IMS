@@ -27,7 +27,7 @@ class RouteMap {
             Router
         );
         // router.use("/common_registration", commonRegistrationRouter);
-        // Router.use("/shelf", shelf );
+        Router.use("/shelf", shelf );
 
     
 
@@ -40,7 +40,7 @@ class RouteMap {
         app.use("/open/api", openRouter);
 
         openRouter.use("/authentication", authenticationRouter);
-         openRouter.use("/shelf", shelf );
+        //  openRouter.use("/shelf", shelf );
 
 
         app.use((req, res, next) => {
@@ -113,9 +113,9 @@ class RouteMap {
 
         try {
             const decodedPayload = JwtUtilities.decodeJWT(jwtToken);
-            console.log(jwtToken)
+            console.log(jwtToken,"token value")
             console.log(decodedPayload)
-            userRoles = decodedPayload && decodedPayload['user'] && decodedPayload['user']['user_id'] ? await userModel.getUserRoleById({ userId: decodedPayload['user']['user_id'] }) : null;
+            userRoles = decodedPayload && decodedPayload['user'] && decodedPayload['user']['email'] ? await userModel.getUserRoleById({ email: decodedPayload['user']['email']}) : null;
             console.log("user roles",userRoles)
             if (userRoles && userRoles.length) {
                 console.log("different secret used");
@@ -135,9 +135,11 @@ class RouteMap {
 
             const payloadUser = payload["user"];
             const userId = payloadUser["user_id"];
+            const email = payloadUser["email"];
+            
 
 
-            const userInformation = await userModel.getDetailedUserById({ userId });
+            const userInformation = await userModel.getUserRoleById({ email });
 
             if (!userInformation) {
                 next(new AccessPermissionError());
@@ -154,7 +156,8 @@ class RouteMap {
 
 
 
-            res.locals[RES_LOCALS.USER_INFO.KEY] = { user, roles: userRoles, organization, organizations: userOrganizations };
+            // res.locals[RES_LOCALS.USER_INFO.KEY] = { user, roles: userRoles, organization, organizations: userOrganizations };
+             res.locals[RES_LOCALS.USER_INFO.KEY] = { user, roles: userRoles };
             next();
         } catch (err) {
             console.error("JWT Verification Error:", err);

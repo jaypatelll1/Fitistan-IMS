@@ -30,35 +30,40 @@ class UserModel extends BaseModel {
         }
     }
 
-  async getUserRoleById(userId) {
-    try {
-      const queryBuilder = await this.getQueryBuilder();
+  // async getUserRoleById(userId) {
+  //   try {
+  //     const queryBuilder = await this.getQueryBuilder();
 
-      const user = await queryBuilder("users")
-        .leftJoin("role ", "users.role_id", "role.role_id")
-        .where(this.whereStatement({ "users.user_id": userId }))
-        .first();
-      console.log("user ka data", user)
-      return user;
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
+  //     const user = await queryBuilder("users")
+  //       .leftJoin("role", "users.role_id", "role.role_id")
+  //       // .where(this.whereStatement({ "users.user_id": userId }))
+  //       .where({"users.user_id": userId,"users.is_deleted":false,"role.is_deleted":false}).first();
+  //     console.log("user ka data", user)
+  //     return user;
+  //   } catch (e) {
+  //     throw new DatabaseError(e);
+  //   }
+  // }
+
+  async getUserRoleById({ email }) {
+  try {
+    const queryBuilder = await this.getQueryBuilder();
+
+    const user = await queryBuilder("users")
+      .leftJoin("role", "users.role_id", "role.role_id")
+      .where({
+        "users.email": email,
+        "users.is_deleted": false,
+        "role.is_deleted": false,
+      })
+      .first();
+
+    console.log("user ka data", user);
+    return user;
+  } catch (e) {
+    throw new DatabaseError(e);
   }
-
-  async getUserRoleById({email}) {
-    try {
-      const queryBuilder = await this.getQueryBuilder();
-
-      const user = await queryBuilder("users")
-        .leftJoin("role ", "users.role_id", "role.role_id")
-        .where(this.whereStatement({ "users.email": email }))
-        .first();
-      console.log("user ka data", user)
-      return user;
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
-  }
+}
 
 
 }
