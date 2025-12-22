@@ -8,19 +8,23 @@ const AccessPermissionError = require("../../errorhandlers/AccessPermissionError
 
 // openRouter 
 const authenticationRouter = require("../controllers/authenticationRouter")
+const vendorRoutes = require("../vendorroutes")
 const shelf = require("../shelf.routes")
 class RouteMap {
     static setupRoutesAndAuth(app) {
 
-
+            
         app.use(
             "/api",
             RouteMap._addUserInformation,
             ...RouteMap._setupAuth(),
             router
         );
-        // router.use("/common_registration", commonRegistrationRouter);
 
+        app.use("/api/v1/vendors", require("../vendorroutes"));
+        
+       
+    
 
 
         app.get('/meow', (req, res) => {
@@ -30,6 +34,15 @@ class RouteMap {
 
 
         app.use("/open/api", openRouter);
+
+         app.use(
+            "/open/api/vendors", 
+            require("../vendorroutes"));
+
+         app.use(
+            "/open/api/products", 
+            require("../productroutes"));
+
 
         openRouter.use("/authentication", authenticationRouter);
 

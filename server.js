@@ -8,6 +8,7 @@ const logger = require('morgan');
 const fileUpload = require('express-fileupload');
 const RouteMap = require('./src/routes/middleware/RouteMap');
 const ErrorHandler = require('./src/errorhandlers/ErrorHandler');
+const PORT = process.env.PORT || 3000;
 
 const app = express();
 
@@ -70,7 +71,7 @@ app.use(function (_req, _res, next) {
 });
 
 app.listen(3000, () => {
-  console.log(` Server running on port`);
+  console.log(` Server running on port ${PORT}`);
 });
 
 
