@@ -6,7 +6,7 @@ const openRouter = express.Router();
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
 const UserModel = require("../../models/UserModel");
 const AuthenticationError = require("../../errorhandlers/AuthenticationError");
-
+const JwtUtilities = require("../utilities/JwtUtilities")
 
 
 // openRouter 
@@ -116,7 +116,7 @@ class RouteMap {
             console.log(jwtToken)
             console.log(decodedPayload)
             userRoles = decodedPayload && decodedPayload['user'] && decodedPayload['user']['user_id'] ? await userModel.getUserRoleById({ userId: decodedPayload['user']['user_id'] }) : null;
-conso;le.log("user roles",userRoles)
+            console.log("user roles",userRoles)
             if (userRoles && userRoles.length) {
                 console.log("different secret used");
                 secret = process.env.JWT_SECRET_KEY_1;

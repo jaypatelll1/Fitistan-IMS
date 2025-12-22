@@ -14,12 +14,14 @@ class AuthenticationManager {
 
 
     // 1. Get user from DB
-    const user= await userModel.getUserByEmail({ email });
+    const user= await userModel.getUserRoleById({ email });
     console.log(user)
     if (!user) {
       throw new AuthenticationError("Invalid email or password");
     }
 
+    const userpasswoerd=await bcrypt.hash(password,10);
+    console.log(userpasswoerd)
     
 
    
@@ -28,7 +30,7 @@ class AuthenticationManager {
       password,
       user.password_hash
     );
-    console.log(user.password_hash)
+    
 
     if (!isPasswordValid) {
       throw new AuthenticationError("Invalid email or password");
