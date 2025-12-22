@@ -1,3 +1,25 @@
+exports.up = async function (knex) {
+  await knex.schema.alterTable('users', (table) => {
+    table.dropForeign('status_id');
+  });
+
+  await knex.schema.dropTableIfExists('status');
+};
+
+exports.down = async function (knex) {
+  await knex.schema.createTable('status', (table) => {
+    table.increments('id').primary();
+    table.string('name').notNullable();
+  });
+
+  await knex.schema.alterTable('users', (table) => {
+    table
+      .integer('status_id')
+      .unsigned()
+      .references('id')
+      .inTable('status');
+  });
+};
 
 const {PUBLIC_SCHEMA} = require("../libs/dbConstants")
 
