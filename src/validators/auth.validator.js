@@ -1,47 +1,29 @@
-const Joi = require('joi');
+const Joi = require("joi");
 
-const registerSchema = Joi.object({
-  email: Joi.string().email().required().messages({
-    'string.email': 'Please provide a valid email',
-    'any.required': 'Email is required',
-  }),
-  password: Joi.string().min(8).required().messages({
-    'string.min': 'Password must be at least 8 characters',
-    'any.required': 'Password is required',
-  }),
-  firstName: Joi.string().min(2).max(50).required(),
-  lastName: Joi.string().min(2).max(50).required(),
-  phone: Joi.string().pattern(/^[0-9]{10}$/).optional(),
-});
+const registerSchema = (req, res, next) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+    name: Joi.string().min(2).max(50).required(),
+    phone: Joi.string().pattern(/^[0-9]{10}$/).optional(),
+    gender: Joi.string().valid("male", "female", "other").optional(),
+    profile_picture_url: Joi.string().uri().optional(),
+  });
 
-const loginSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
-});
-
-const refreshTokenSchema = Joi.object({
-  refreshToken: Joi.string().required(),
-});
-
-const changePasswordSchema = Joi.object({
-  currentPassword: Joi.string().required(),
-  newPassword: Joi.string().min(8).required(),
-});
-
-const forgotPasswordSchema = Joi.object({
-  email: Joi.string().email().required(),
-});
-
-const resetPasswordSchema = Joi.object({
-  token: Joi.string().required(),
-  newPassword: Joi.string().min(8).required(),
-});
-
-module.exports = {
-  registerSchema,
-  loginSchema,
-  refreshTokenSchema,
-  changePasswordSchema,
-  forgotPasswordSchema,
-  resetPasswordSchema,
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+  next();
 };
+
+const loginSchema = (req, res, next) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+  next();
+};
+
+module.exports = { registerSchema, loginSchema };

@@ -1,21 +1,21 @@
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 
-class PasswordHelper {
+class passwordHelper {
   static async hash(password) {
     const salt = await bcrypt.genSalt(12);
     return bcrypt.hash(password, salt);
   }
 
-  static async compare(password, hashedPassword) {
-    return bcrypt.compare(password, hashedPassword);
+  static async compare(password, hashedpassword) {
+    return bcrypt.compare(password, hashedpassword);
   }
 
   static generateRandomToken() {
     return crypto.randomBytes(32).toString("hex");
   }
 
-  static validatePassword(password) {
+  static validatepassword(password) {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
@@ -24,12 +24,12 @@ class PasswordHelper {
 
     const errors = [];
     if (password.length < minLength) {
-      errors.push(`Password must be at least ${minLength} characters`);
+      errors.push(`password must be at least ${minLength} characters`);
     }
-    if (!hasUpperCase) errors.push("Password must contain uppercase letter");
-    if (!hasLowerCase) errors.push("Password must contain lowercase letter");
-    if (!hasNumbers) errors.push("Password must contain number");
-    if (!hasSpecialChar) errors.push("Password must contain special character");
+    if (!hasUpperCase) errors.push("password must contain uppercase letter");
+    if (!hasLowerCase) errors.push("password must contain lowercase letter");
+    if (!hasNumbers) errors.push("password must contain number");
+    if (!hasSpecialChar) errors.push("password must contain special character");
 
     return {
       isValid: errors.length === 0,
@@ -38,4 +38,4 @@ class PasswordHelper {
   }
 }
 
-module.exports = PasswordHelper;
+module.exports = passwordHelper;
