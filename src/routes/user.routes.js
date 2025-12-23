@@ -1,45 +1,19 @@
-// src/routes/user.routes.js
-
 const express = require("express");
-const router = express.Router();
-const UserController = require("../controllers/user.controller");
-const {
-  authenticateUser,
-  // attachUserInfo,  // ❌ REMOVE THIS - doesn't exist
-  isAdmin,
-  isAdminOrManager,
-} = require("../middleware/auth.middleware");
-const validate = require("../middleware/validation.middleware");
-const {
-  updateRoleSchema,
-  updateStatusSchema,
-} = require("../validators/user.validator");
+const { appWrapper } = require("../routes/routeWrapper");
+const UserController = require("../routes/controllers/user.router");
 
-// All routes require authentication
-router.use(authenticateUser); // ✅ FIXED - removed attachUserInfo
 
-// Current user profile (any authenticated user)
-router.get("/profile", UserController.getProfile);
+const router = express.Router({ mergeParams: true });
 
-// Admin/Manager only routes
-router.get("/", isAdminOrManager, UserController.getAll);
-router.get("/:id", isAdminOrManager, UserController.getById);
 
-// Admin only routes
-router.patch(
-  "/:id/role",
-  isAdmin,
-  validate(updateRoleSchema),
-  UserController.updateRole
+router.get(
+  "/profile",
+  
+  appWrapper(async (req, res) => {
+    const profile = await UserController.profile(req, res);
+
+    return res.json({ data: profile });
+  })
 );
-
-router.patch(
-  "/:id/status",
-  isAdmin,
-  validate(updateStatusSchema),
-  UserController.updateStatus
-);
-
-router.delete("/:id", isAdmin, UserController.deactivate);
 
 module.exports = router;

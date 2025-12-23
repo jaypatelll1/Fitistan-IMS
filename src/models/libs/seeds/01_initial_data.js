@@ -19,9 +19,9 @@ exports.seed = async function (knex) {
   // ========================================
   // INSERT USERS (Admin, Manager, Staff)
   // ========================================
-  const adminPassword = await bcrypt.hash("Admin@123", 10);
-  const managerPassword = await bcrypt.hash("Manager@123", 10);
-  const staffPassword = await bcrypt.hash("Staff@123", 10);
+  const adminpassword = await bcrypt.hash("Admin@123", 10);
+  const managerpassword = await bcrypt.hash("Manager@123", 10);
+  const staffpassword = await bcrypt.hash("Staff@123", 10);
 
   const adminId = uuidv4();
   const managerId = uuidv4();
@@ -31,7 +31,7 @@ exports.seed = async function (knex) {
     {
       user_id: adminId,
       email: "admin@fitistan.com",
-      password: adminPassword,
+      password: adminpassword,
       first_name: "Admin",
       last_name: "User",
       phone: "+91 98765 00000",
@@ -42,7 +42,7 @@ exports.seed = async function (knex) {
     {
       user_id: managerId,
       email: "manager@fitistan.com",
-      password: managerPassword,
+      password: managerpassword,
       first_name: "Manager",
       last_name: "User",
       phone: "+91 98765 11111",
@@ -53,7 +53,7 @@ exports.seed = async function (knex) {
     {
       user_id: staffId,
       email: "staff@fitistan.com",
-      password: staffPassword,
+      password: staffpassword,
       first_name: "Staff",
       last_name: "User",
       phone: "+91 98765 22222",

@@ -2,6 +2,7 @@ const JWTHelper = require("../utils/jwtHelper");
 const ResponseHandler = require("../utils/responseHandler");
 const logger = require("../utils/logger");
 const db = require("../config/database");
+const { profile } = require("../routes/controllers/user.router");
 
 const authenticateUser = async (req, res, next) => {
   try {
@@ -34,7 +35,7 @@ const authenticateUser = async (req, res, next) => {
       if (decoded.iat < changedTimestamp) {
         return ResponseHandler.unauthorized(
           res,
-          "Password recently changed. Please login again"
+          "password recently changed. Please login again"
         );
       }
     }
@@ -43,12 +44,11 @@ const authenticateUser = async (req, res, next) => {
     req.user = {
       id: user.user_id,
       email: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      fullName: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
-      role: user.role,
-      status: user.status,
-      emailVerified: user.email_verified,
+      name: user.name,
+      passsword: user.password,
+      gender: user.gender,
+      phone: user.phone,
+      profile_picture_url: user.profile_picture_url,
     };
 
     next();

@@ -21,7 +21,7 @@ const vendorSchema = {
         }),  
     password: Joi.string().min(8).required()
         .message({
-        'string.password': 'Please enter the Password',
+        'string.password': 'Please enter the password',
         'string.empty': 'password is required',
         }),
     address: Joi.string().min(10).max(1000).required()
