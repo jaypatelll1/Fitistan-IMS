@@ -9,23 +9,19 @@ const appWrapper = (callback, allowedRoles = []) => {
 
      
       if (Array.isArray(allowedRoles) && allowedRoles.length > 0) {
-        const { roles = undefined, organization = undefined } = userInfo ?? {};
+        const { roles, organization } = userInfo ?? {};
         AccessManagement.checkIfAccessGrantedOrThrowError(
           allowedRoles,
           { roles, organization }
         );
       }
 
+      
       const result = await callback(req, res, next);
 
-    
-      if (result !== undefined && !res.headersSent) {
-        res.json(result);
-      }
-
-      if (!res.headersSent) {
-        res.json(result);
-      }
+     if (result !== undefined && !res.headersSent) {
+  res.json(result);
+}
 
     } catch (e) {
       LogUtilities.createLog(
@@ -37,6 +33,8 @@ const appWrapper = (callback, allowedRoles = []) => {
     }
   };
 };
+
+
 
 const successResponseAppWrapper = (callback, allowedRoles = []) => {
     return async (req, res, next) => {
