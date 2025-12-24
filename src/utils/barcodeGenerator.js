@@ -15,10 +15,18 @@ const generateBarcodeBuffer = (sku) => {
       {
         bcid: "code128",     // barcode type
         text: sku,           // SKU = barcode value
-        scale: 3,
-        height: 10,
+        scale: 2,          // controls width
+        height: 15,        // bar height (mm-ish)
+        width:30,        // force total width
+        paddingwidth: 10,
+        paddingheight: 10,
+
         includetext: true,
+        textsize: 8,
         textxalign: "center",
+        textxalign: "center",
+        backgroundcolor: "FFFFFF",
+        
       },
       (err, png) => {
         if (err) return reject(err);

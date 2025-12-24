@@ -54,26 +54,37 @@ static async removeItemStock(product_id, quantity) {
 
        
         const items = await itemModel.countByProductId(product_id);
+        console.log("items", items);
+
         if (items < quantity) {
             throw new Error("Insufficient stock");
         }
 
-        // FOR LOOP — remove ONE item per iteration
-        for (let i = 0; i < quantity; i++) {
-            const deleted = await itemModel.softDelete(product_id);
+       
+        
+            const deleted = await itemModel.softDelete(product_id,quantity);
 
-            if (deleted === 0) {
-                throw new Error("Stock exhausted during removal");
-            }
-        }
+       
+        
 
-        return { removed: quantity };
+        return { removed: quantity,
+            deleted
+         };
 
     } catch (error) {
         throw new Error(`Failed to remove stock: ${error.message}`);
     }
 }
 
+// static async getItemCount(product_id) {
+//     try {
+//         const itemModel = new ItemModel();
+//         const count = await itemModel.countByProductId(product_id);
+//         return count;
+//     } catch (error) {
+//         throw new Error(`Failed to get item count: ${error.message}`);
+//     }
+// }
 
 
 }

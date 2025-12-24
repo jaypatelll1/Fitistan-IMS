@@ -49,6 +49,23 @@ appWrapper (async (req,res) => {
         message: "Item(s) removed successfully",
     });
 
-}))
+},[ACCESS_ROLES.ALL]));
+
+router.get("/count/:product_id",
+appWrapper (async (req,res) => {
+    const {product_id} = req.params;
+    const count = await itemManager.getItemCount(product_id);
+    console.log("Item count:", count);
+    return res.json({
+      success: true,
+        data: { product_id, count },
+        message: "Item count retrieved successfully",
+    });
+},[ACCESS_ROLES.ALL]));
+
+
+
+
+
 
 module.exports = router;

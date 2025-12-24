@@ -34,21 +34,26 @@ class ItemModel extends BaseModel {
         }
     }
 
-    async softDelete(itemId){
-        try {
-            const queryBuilder = await this.getQueryBuilder();
-            // const check = await queryBuilder.select("*").from("items").where(this.whereStatement({id: itemId}));
-            // console.log("check",check);
-            // if(!check){
-            //     return null;
-            // }
-            const [item] = await queryBuilder("items").where(this.whereStatement({id: itemId})).update({ is_deleted: true }).returning("*");
-            return item;
-        }
-        catch (e) {
-            throw new DatabaseError(e);
-        }
+    async softDelete(product_id, quantity) {
+    try {
+        const queryBuilder = await this.getQueryBuilder();
+
+        return queryBuilder("items")
+            .whereIn("id", function () {
+                this.select("id")
+                    .from("items")
+                    .where(
+                       { product_id, is_deleted: false }
+                    )
+                    .limit(quantity);
+            })
+            .update({ is_deleted: true });
+
+    } catch (e) {
+        throw new DatabaseError(e);
     }
+}
+
 
 
     async countByProductId(product_id) {
