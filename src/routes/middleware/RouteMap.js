@@ -9,12 +9,16 @@ const JwtUtilities = require("../utilities/JwtUtilities");
 const { RES_LOCALS } = require("./constant");
 const Authrouter =  require("../../routes/auth.routes")
 const RoomRouter = require("../../routes/room.routes");
+const ProductRouter = require("../../routes/controllers/productRouter");
+const itemRouter = require("../../routes/controllers/itemRouter");
+
 
 class RouteMap {
   static setupRoutesAndAuth(app) {
 
     // 🔓 OPEN ROUTES (NO JWT)
-    app.use("/open/api/v1/auth", require("../../routes/auth.routes"));
+    app.use("/open/api/auth", require("../../routes/auth.routes"));
+
 
     // 🔐 PROTECTED ROUTES
     app.use(
@@ -24,10 +28,13 @@ class RouteMap {
       Router
     );
 
-    app.use("/api/v1/auth", Authrouter);
-    app.use("/api/v1/rooms", RoomRouter);
-
+    Router.use("/api/v1/auth", Authrouter);
+    Router.use("/api/v1/rooms", RoomRouter);
+    Router.use("/products", ProductRouter);
     Router.use("/shelf", require("../controllers/shelfRouter"));
+    Router.use("/items", itemRouter);
+
+    
 
     app.use((req, res) => {
       res.status(404).json({ error: "Specified path not found" });
@@ -124,7 +131,7 @@ module.exports = RouteMap;
 //         // router.use("/common_registration", commonRegistrationRouter);
 //         Router.use("/shelf", shelf );
 
-//         app.use('api/v1/auth', require("../controllers/auth.routes"));
+//         // app.use('api/v1/auth', require("../controllers/auth.routes"));
 //         app.use('api/v1/rooms', require("../user.routes"));
 
     
@@ -252,6 +259,7 @@ module.exports = RouteMap;
 //                 "name": userInformation["name"],
 //                 "email_id": userInformation["email_id"],
 //                 "mobile_number": userInformation["mobile_number"]
+
 //             };
 
 

@@ -42,7 +42,7 @@ class BaseModel {
     /**
      * Adds audit fields during UPDATE
      */
-    async updateStatement({ updateObj }) {
+    async updateStatement(updateObj) {
         const userId = this.getUserId();
         const queryBuilder = await this.getQueryBuilder();
 
@@ -82,30 +82,7 @@ class BaseModel {
         return definedObject;
     }
 
-    /**
-     * ✅ BUILD CREATE DATA
-     * Used before INSERT
-     */
-    buildCreateData(data) {
-        const definedData = this.getDefinedObject(data);
-
-        return this.insertStatement({
-            ...definedData,
-            [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: false
-        });
-    }
-
-    /**
-     * ✅ BUILD UPDATE DATA
-     * Used before UPDATE
-     */
-    async buildUpdateData(data) {
-        const definedData = this.getDefinedObject(data);
-
-        return await this.updateStatement({
-            updateObj: definedData
-        });
-    }
+    
 }
 
 module.exports = BaseModel;

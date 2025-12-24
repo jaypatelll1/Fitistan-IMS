@@ -1,33 +1,94 @@
 const ProductModel = require("../../models/productModel");
-const { appWrapper } = require("../../routes/routeWrapper");
+
 
 const productModel = new ProductModel(); // no userId for now
 class ProductManager {
 
-    static getAllProducts = appWrapper(async (req, res) => {
-        const products = await productModel.findAll();
-        res.json({ data: products });
-    });
+   static async getAllProducts() {
+       try {
+         const products = await productModel.findAll();
+         return products;
+       } catch (err) {
+        throw new Error(`Failed to create shelf: ${err.message}`);
+    }
+       }
+  
 
-    static getProductById = appWrapper(async (req, res) => {
-        const product = await productModel.findById(req.params.id);
-        res.json({ data: product });
-    });
+   static async getProductById(id) {
+       try {
+         const product = await productModel.findById(id);   
+            if (!product) {
 
-    static createProduct = appWrapper(async (req, res) => {
-        const product = await productModel.create(req.body);
-        res.status(201).json({ data: product });
-    });
+                return null;
+            }
+            return product;
+       }
+         catch (err) {
+        throw new Error(`Failed to get product by ID: ${err.message}`);
+    }
+    };
 
-    static updateProduct = appWrapper(async (req, res) => {
-        const product = await productModel.update(req.params.id, req.body);
-        res.json({ data: product });
-    });
+    static async createProduct(productData) {
+        try {
+          const productModel = new ProductModel();
+         const verifyProduct = await productModel.findBySkuId(productData.sku);
+         if (verifyProduct) {
+            throw new Error('Product with this SKU already exists.');
+         }
 
-    static deleteProduct = appWrapper(async (req, res) => {
-        await productModel.delete(req.params.id);
-        res.json({ message: "Product deleted successfully" });
-    });
+          const product = await productModel.create(productData);
+          return product;
+            
+        } catch (err) {
+        throw new Error(`Failed to create product: ${err.message}`);
+    }       
+
+
+    }
+    static async updateProduct(id, data) {
+        try {
+          const productModel = new ProductModel();
+          const verifyProduct = await productModel.findById(id);
+          if (!verifyProduct ) {
+            throw new Error('product does not exist');
+         }
+          const product = await productModel.update(id, data);
+          if (!product) {
+            return null;
+          }
+          return product;
+        } catch (err) {
+        throw new Error(`Failed to update product: ${err.message}`);
+    }
+    };
+    static async deleteProduct(id) {
+        try {
+          const product = await productModel.softDelete(id);
+          if (!product) {
+            return null;
+          }
+          return product;
+        } catch (err) {
+        throw new Error(`Failed to delete product: ${err.message}`);
+    }
+    };
+
+    static async findBysku(sku) {
+        try {
+          const product = await productModel.findBySkuId(sku);
+          return product;
+        } catch (err) {
+        throw new Error(`Failed to find product by SKU: ${err.message}`);
+    }};
+
+    static async findByBarcode(barcode) {
+        try {
+          const product = await productModel.findByBarcode(barcode);
+          return product;
+        } catch (err) {
+        throw new Error(`Failed to find product by barcode: ${err.message}`);
+    }}
+
 }
 
 module.exports = ProductManager;

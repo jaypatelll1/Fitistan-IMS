@@ -10,8 +10,8 @@ class ProductModel extends BaseModel {
 
     async findAll() {
         try {
-            const qb = await this.getQueryBuilder();
-            return qb.select('*')
+            const queryBuilder = await this.getQueryBuilder();
+            return queryBuilder.select('*')
                 .table(this.tableName)
                 .where(this.whereStatement())
                 .orderBy('product_id', 'asc');
@@ -22,8 +22,8 @@ class ProductModel extends BaseModel {
 
     async findById(product_id) {
         try {
-            const qb = await this.getQueryBuilder();
-            return qb.select('*')
+            const queryBuilder = await this.getQueryBuilder();
+            return queryBuilder.select('*')
                 .table(this.tableName)
                 .where(this.whereStatement({ product_id }))
                 .first();
@@ -34,10 +34,15 @@ class ProductModel extends BaseModel {
 
     async create(productData) {
         try {
-            const qb = await this.getQueryBuilder();
-            const data = this.buildCreateData(productData);
+            const queryBuilder = await this.getQueryBuilder();
+            const data = this.insertStatement(productData);
+console.log(" models Inserting product with data:", data);
+            const [product] = await queryBuilder.table(this.tableName).insert(data).returning('*');
+            if (!product) {
 
-            const [product] = await qb.table(this.tableName).insert(data).returning('*');
+                console.error("Product creation failed, no product returned.");
+                return null;
+            }
             return product;
         } catch (e) {
             throw new DatabaseError(e);
@@ -46,13 +51,17 @@ class ProductModel extends BaseModel {
 
    async update(product_id, productData) {
     try {
-        const qb = await this.getQueryBuilder();
+        const queryBuilder = await this.getQueryBuilder();
 
-        const data = await this.buildUpdateData(productData);
+        const data = await this.updateStatement(productData);
+        if(!data) {
+            console.error("No valid fields to update for product:", product_id);
+        }
 
-        const [updatedProduct] = await qb
+
+        const [updatedProduct] = await queryBuilder
             .table(this.tableName)
-            .where({ product_id })
+            .where(this.whereStatement({ product_id }))
             .update(data)
             .returning("*");
 
@@ -63,11 +72,11 @@ class ProductModel extends BaseModel {
 }
 
 
-    async delete(product_id) {
+    async softDelete(product_id) {
         try {
-            const qb = await this.getQueryBuilder();
-            return await qb.table(this.tableName)
-                .where({ product_id })
+            const queryBuilder = await this.getQueryBuilder();
+            return await queryBuilder.table(this.tableName)
+                .where(this.whereStatement({ product_id }))
                 .update({ [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: true });
         } catch (e) {
 
@@ -77,6 +86,34 @@ class ProductModel extends BaseModel {
             throw new DatabaseError(e);
 
 
+        }
+    }
+
+    async findBySkuId(sku) {
+        try {
+            console.log("Finding product by SKU:", sku);
+            const queryBuilder = await this.getQueryBuilder();
+            const data = await queryBuilder.select('*')
+                .table(this.tableName)
+                .where(this.whereStatement({ sku }))
+                .first();
+            return data;
+        } catch (e) {
+            throw new DatabaseError(e);
+        }
+    }
+
+    async findByBarcode(barcode) {
+        try {
+            console.log("Finding product by barcode:", barcode);
+            const queryBuilder = await this.getQueryBuilder();
+            const data = await queryBuilder.select('*')
+                .table(this.tableName)
+                .where(this.whereStatement({ barcode }))
+                .first();
+            return data;
+        } catch (e) {
+            throw new DatabaseError(e);
         }
     }
 }
