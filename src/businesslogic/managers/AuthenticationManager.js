@@ -1,59 +1,57 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const UserModel = require("../../models/UserModel");
+const AuthModel = require("../../models/AuthModel");
 const AuthenticationError = require("../../errorhandlers/AuthenticationError");
 
 class AuthenticationManager {
 
   static async register(payload) {
-    const userModel = new UserModel();
+    const userModel = new AuthModel();
 
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(payload.password, 10);
+    payload.password_hash = await bcrypt.hash(payload.password, 10);
+    delete payload.password;
+
+    if (!payload.role_id) {
+      throw new AuthenticationError("role_id is required");
+    }
 
     const user = await userModel.createUser({
       email: payload.email,
-      password_hash: hashedPassword,
+      password_hash: payload.password_hash,
       name: payload.name,
       phone: payload.phone,
       gender: payload.gender,
       profile_picture_url: payload.profile_picture_url,
+      role_id: payload.role_id
     });
 
-    return {
-      user_id: user.user_id,
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      gender: user.gender,
-      profile_picture_url: user.profile_picture_url,
-    };
+    delete user.password_hash; // 🔐 NEVER RETURN
+
+    return user;
   }
 
-  static async login(email, password) { // accept plain password
-    const userModel = new UserModel();
+  static async login(email, password) {
+    const userModel = new AuthModel();
 
-    const user = await userModel.getUserRoleById({ email });
+    const user = await userModel.getUserForLogin(email);
     if (!user) throw new AuthenticationError("Invalid email or password");
 
-    // Compare plain password with hashed password in DB
-
-    console.log("Login password:", password);
-    console.log("DB password hash:", user.password_hash);
     const isValid = await bcrypt.compare(password, user.password_hash);
-    console.log("Password valid:", isValid);
     if (!isValid) throw new AuthenticationError("Invalid email or password");
 
-    const payload = {
-      user: {
-        user_id: user.user_id,
-        email: user.email,
-        role: user.role_name,
-      },
-    };
+    delete user.password_hash; // 🔐 REMOVE AFTER CHECK
 
-    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
+    const token = jwt.sign(
+  {
+    user_id: user.user_id,
+    email: user.email,   // ✅ ADD THIS
+    role: user.role_name
+  },
+  process.env.JWT_SECRET_KEY,
+  { expiresIn: "7d" }
+);
+
 
     return {
       jwt_token: token,
@@ -61,8 +59,8 @@ class AuthenticationManager {
         user_id: user.user_id,
         email: user.email,
         name: user.name,
-        role: user.role_name,
-      },
+        role: user.role_name
+      }
     };
   }
 }

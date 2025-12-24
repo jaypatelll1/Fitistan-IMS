@@ -12,7 +12,7 @@ class ShelfManager {
 
       return shelf;
     } catch (err) {
-      throw new Error(`Failed to create shelf: ${err.message}`);
+      throw new Error(`Failed to fetch all shelfs: ${err.message}`);
     }
   };
 

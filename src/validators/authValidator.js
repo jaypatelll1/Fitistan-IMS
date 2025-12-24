@@ -8,6 +8,8 @@ const registerSchema = (req, res, next) => {
     phone: Joi.string().pattern(/^[0-9]{10}$/).optional(),
     gender: Joi.string().valid("male", "female", "other").optional(),
     profile_picture_url: Joi.string().uri().optional(),
+    role_id: Joi.number().integer().positive().required()
+
   });
 
   const { error } = schema.validate(req.body);

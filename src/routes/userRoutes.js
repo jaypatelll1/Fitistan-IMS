@@ -13,7 +13,7 @@ router.get(
     const profile = await UserController.profile(req, res);
 
     return res.json({ data: profile });
-  })
+  },[ACCESS_ROLES.ADMIN])
 );
 
 module.exports = router;
