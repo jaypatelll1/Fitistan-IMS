@@ -9,12 +9,16 @@ const JwtUtilities = require("../utilities/JwtUtilities");
 const { RES_LOCALS } = require("./constant");
 const Authrouter =  require("../../routes/auth.routes")
 const RoomRouter = require("../../routes/room.routes");
+const { shopifyWebhookHandler } = require("../controllers/open/shopifyapi");
 
 class RouteMap {
   static setupRoutesAndAuth(app) {
 
     // 🔓 OPEN ROUTES (NO JWT)
     app.use("/open/api/v1/auth", require("../../routes/auth.routes"));
+
+
+    app.post("/open/api/webhooks/shopify",shopifyWebhookHandler);
 
     // 🔐 PROTECTED ROUTES
     app.use(
@@ -23,6 +27,8 @@ class RouteMap {
       RouteMap._addUserInformation,
       Router
     );
+
+    
 
     app.use("/api/v1/auth", Authrouter);
     app.use("/api/v1/rooms", RoomRouter);
