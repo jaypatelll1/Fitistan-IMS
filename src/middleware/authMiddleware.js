@@ -49,16 +49,25 @@ const authenticateUser = async (req, res, next) => {
       gender: user.gender,
       phone: user.phone,
       profile_picture_url: user.profile_picture_url,
+
+       
     };
 
-    next();
-  } catch (error) {
-    logger.error("Authentication error:", error.message);
-    if (error.message === "Token expired") {
-      return ResponseHandler.unauthorized(res, "Token expired");
-    }
-    return ResponseHandler.unauthorized(res, "Invalid token");
+      res.locals[RES_LOCALS.USER_INFO.KEY] = {
+      user_id: user.user_id,
+      roles: decoded.roles
+    };
+
+  
+
+  next();
+} catch (error) {
+  logger.error("Authentication error:", error.message);
+  if (error.message === "Token expired") {
+    return ResponseHandler.unauthorized(res, "Token expired");
   }
+  return ResponseHandler.unauthorized(res, "Invalid token");
+}
 };
 
 const authorize = (...allowedRoles) => {

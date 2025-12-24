@@ -17,19 +17,20 @@ const appWrapper = (callback, allowedRoles = []) => {
       }
 
       
-      const result = await callback(req, res, next);
+   const result = await callback(req, res, next);
 
-     if (result !== undefined && !res.headersSent) {
-  res.json(result);
+if (result !== undefined && !res.headersSent) {
+  res.status(200).json(result);
 }
 
-    } catch (e) {
+
+    } catch (err) {
       LogUtilities.createLog(
         LOG_CONSTANTS.ERROR.FILE_NAME,
         "Error",
-        e.toString()
+        err.toString()
       );
-      next(e);
+      next(err);
     }
   };
 };
