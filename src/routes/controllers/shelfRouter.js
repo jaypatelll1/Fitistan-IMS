@@ -2,8 +2,9 @@ const express = require("express");
 const { successResponseAppWrapper, appWrapper } = require("../routeWrapper");
 const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 const shelfManager =require("../../businesslogic/managers/ShelfManager")
-const validators = require("../../validators/shelf.validator");
-const validate = require("../../middleware/validation.middleware");
+
+const {validateShelf} = require("../../validators/shelfValidator");
+
 
 const router = express.Router({ mergeParams: true });
 
@@ -20,7 +21,9 @@ router.get("/all", appWrapper(async (req, res) => {
 );
 
 //create shelf
-router.post("/create",validate(validators.createShelfSchema),appWrapper(async (req,res)=>{
+router.post("/create",
+    validateShelf("create"),
+    appWrapper(async (req,res)=>{
 
 const createShelf = await shelfManager.createShelf(req.body)
 return res.json({
@@ -31,7 +34,9 @@ return res.json({
 },[ACCESS_ROLES.ALL]))
 
 //get shelf by id
-router.get("/:id",appWrapper (async (req,res)=>{
+router.get("/:id",
+    validateShelf("id"),
+    appWrapper (async (req,res)=>{
     const {id} = req.params
     const getShelfById = await shelfManager.getShelfById(id) 
     if(!getShelfById){
@@ -51,10 +56,14 @@ router.get("/:id",appWrapper (async (req,res)=>{
 },[ACCESS_ROLES.ALL]))
 
 //update shelf
-router.put("/update/:id",validate(validators.updateShelfSchema),appWrapper (async (req,res)=>{
+router.put("/update/:id",
+    validateShelf("id"),
+    validateShelf("update")
+,appWrapper (async (req,res)=>{
     const {id} = req.params
     
-    const updateShelf = await shelfManager.updateShelf(id,req.body)
+    const updateShelf = await shelfManager.updateShelf( req.validatedData.id,
+      req.validatedData.updateBody)
     if(!updateShelf){
         return res
         .status
@@ -72,7 +81,9 @@ router.put("/update/:id",validate(validators.updateShelfSchema),appWrapper (asyn
 },[ACCESS_ROLES.ALL]))
 
 //delete shelf
-router.post("/delete/:id",appWrapper (async (req,res)=>{
+router.post("/delete/:id",
+validateShelf("id"),
+    appWrapper (async (req,res)=>{
     const {id} = req.params
    
     const deleteShelf = await shelfManager.deleteShelf(id)  

@@ -10,6 +10,7 @@ const { RES_LOCALS } = require("./constant");
 
 const Authrouter = require("../../routes/controllers/Authrouter");
 const RoomRouter = require("../../routes/controllers/RoomRouter");
+const shelfRouter = require("../controllers/shelfRouter")
 const authenticationRouter = require("../controllers/authenticationRouter");
 
 class RouteMap {
@@ -29,12 +30,16 @@ class RouteMap {
 
 
     Router.use("/rooms", RoomRouter);
+    Router.use("/shelf",shelfRouter);
 
-
-
+    
     app.use((req, res) => {
       res.status(404).json({ error: "Specified path not found" });
     });
+
+
+
+    
   }
 
 
