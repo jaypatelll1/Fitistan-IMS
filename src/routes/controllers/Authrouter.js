@@ -5,7 +5,7 @@ const { registerSchema, loginSchema } = require("../../validators/AuthValidator"
 const router = express.Router();
 
 // REGISTER
-router.post("/register", registerSchema, async (req, res, next) => {
+router.post("/manage/register", registerSchema, async (req, res, next) => {
   try {
     const user = await AuthenticationManager.register(req.body);
     return res.json({
@@ -19,7 +19,7 @@ router.post("/register", registerSchema, async (req, res, next) => {
 });
 
 // LOGIN
-router.post("/login", loginSchema, async (req, res, next) => {
+router.post("/manage/login", loginSchema, async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const result = await AuthenticationManager.login(email, password);

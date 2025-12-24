@@ -8,7 +8,7 @@ class RoomModel extends BaseModel {
   }
 
   // GET ALL ROOMS
-  async getAllRooms() {
+  async   getAllRooms() {
     try {
       const qb = await this.getQueryBuilder();
       return qb("rooms")
@@ -127,10 +127,11 @@ async createRoom(roomData) {
   }
 
   // SOFT DELETE ROOM
-  async deleteRoom(room_id) {
+   async deleteRoom(room_id) {
     try {
       const qb = await this.getQueryBuilder();
 
+      // 🔍 Check room exists & not already deleted
       const room = await qb("rooms")
         .where({ room_id })
         .first();
@@ -139,6 +140,18 @@ async createRoom(roomData) {
         return null;
       }
 
+      // 🧹 SOFT DELETE ALL SHELVES INSIDE ROOM
+      await qb("shelf")
+        .where({
+          room_id,
+          [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: false
+        })
+        .update({
+          [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: true,
+          [TABLE_DEFAULTS.COLUMNS.UPDATED_AT.KEY]: qb.raw("CURRENT_TIMESTAMP")
+        });
+
+      // 🗑️ SOFT DELETE ROOM
       await qb("rooms")
         .where({ room_id })
         .update({
@@ -152,5 +165,6 @@ async createRoom(roomData) {
     }
   }
 }
+
 
 module.exports = RoomModel;

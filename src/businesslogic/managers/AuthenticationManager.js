@@ -26,8 +26,7 @@ class AuthenticationManager {
       role_id: payload.role_id
     });
 
-    delete user.password_hash; // 🔐 NEVER RETURN
-
+    delete user.password_hash;
     return user;
   }
 
@@ -37,21 +36,22 @@ class AuthenticationManager {
     const user = await userModel.getUserForLogin(email);
     if (!user) throw new AuthenticationError("Invalid email or password");
 
+    if (!user.password_hash) {
+      throw new AuthenticationError("User password not set");
+    }
+
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) throw new AuthenticationError("Invalid email or password");
 
-    delete user.password_hash; // 🔐 REMOVE AFTER CHECK
-
     const token = jwt.sign(
-  {
-    user_id: user.user_id,
-    email: user.email,   // ✅ ADD THIS
-    role: user.role_name
-  },
-  process.env.JWT_SECRET_KEY,
-  { expiresIn: "7d" }
-);
-
+      {
+        user_id: user.user_id,
+        email: user.email,
+        role: user.role_name
+      },
+      process.env.JWT_SECRET_KEY, // must be defined
+      { expiresIn: "7d" }
+    );
 
     return {
       jwt_token: token,

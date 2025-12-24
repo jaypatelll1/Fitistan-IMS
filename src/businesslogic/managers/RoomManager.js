@@ -1,91 +1,117 @@
-
-
 const RoomModel = require("../../models/RoomModel");
-
-
 
 class RoomManager {
 
+  // GET ALL ROOMS
   static async getAllRooms(userId) {
     try {
-      console.log(userId);
-
-      const roomModel = new RoomModel();
-      const room = await roomModel.getAllRooms();
-
-      return room;
+      const roomModel = new RoomModel(userId);
+      const rooms = await roomModel.getAllRooms();
+      return rooms; // array of rooms
     } catch (err) {
-      throw new Error(`Failed to fecth all rooms: ${err.message}`);
+      // Database errors bubble up
+      throw err;
     }
   }
 
+  // GET ROOM BY ID
   static async getRoomById(id, userId) {
-
     try {
       const roomModel = new RoomModel(userId);
       const room = await roomModel.getRoomById(id);
+
       if (!room) {
-        throw new Error(`Room not found or the room is deleted`);
+        return {
+          success: false,
+          message: "Room not found or it has been deleted"
+        };
       }
-      return room;
-    } catch (error) {
-      throw new Error(`Failed to get room by ID: ${error.message}`);
+
+      return {
+        success: true,
+        data: room
+      };
+    } catch (err) {
+      throw err;
     }
-
   }
 
-static async createRoom(data, userId) {
-  try {
-    const roomModel = new RoomModel(userId);
-    return await roomModel.createRoom(data);
-  } catch (error) {
-    throw new Error(error.message);
+  // CREATE ROOM
+  static async createRoom(data, userId) {
+    try {
+      const roomModel = new RoomModel(userId);
+      const room = await roomModel.createRoom(data);
+
+      return {
+        success: true,
+        data: room,
+        message: "Room created successfully"
+      };
+    } catch (err) {
+      // Capture Model errors for duplicate / deleted room
+      return {
+        success: false,
+        message: err.message
+      };
+    }
   }
-}
 
-
+  // UPDATE ROOM
   static async updateRoom(id, data, userId) {
-
     try {
       const roomModel = new RoomModel(userId);
       const room = await roomModel.updateRoom(id, data);
 
       if (!room) {
-        throw new Error(`Room does not exist or no fields to update`);
+        return {
+          success: false,
+          message: "Room does not exist or no fields to update"
+        };
       }
 
-      if(room.is_deleted){
-        throw new Error(`Room is already deleted`);
+      if (room.is_deleted) {
+        return {
+          success: false,
+          message: "Room is already deleted"
+        };
       }
 
-      return room;
-
-    } catch (error) {
-      throw new Error(`Failed to update room: ${error.message}`);
+      return {
+        success: true,
+        data: room,
+        message: "Room updated successfully"
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.message
+      };
     }
-    
   }
 
+  // DELETE ROOM
   static async deleteRoom(id, userId) {
     try {
       const roomModel = new RoomModel(userId);
-    const room = await roomModel.getRoomById(id);
+      const deleted = await roomModel.deleteRoom(id);
 
-    if (!room) {
-      throw new Error(`Room not found`);
-    }
+      if (!deleted) {
+        return {
+          success: false,
+          message: "Room not found or already deleted"
+        };
+      }
 
-    if (room.is_deleted) {
-      throw new Error(`Room is already deleted`);
+      return {
+        success: true,
+        message: "Room deleted successfully"
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.message
+      };
     }
-
-    return roomModel.deleteRoom(id);
-      
-    } catch (error) {
-     
-      throw new Error(`Failed to delete room: ${error.message}`);
-    }
-    
   }
 }
 

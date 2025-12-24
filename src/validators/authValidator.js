@@ -1,5 +1,6 @@
 const Joi = require("joi");
 
+// REGISTER VALIDATION
 const registerSchema = (req, res, next) => {
   const schema = Joi.object({
     email: Joi.string().email().required(),
@@ -9,22 +10,42 @@ const registerSchema = (req, res, next) => {
     gender: Joi.string().valid("male", "female", "other").optional(),
     profile_picture_url: Joi.string().uri().optional(),
     role_id: Joi.number().integer().positive().required()
-
   });
 
-  const { error } = schema.validate(req.body);
-  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+  const { error } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation error",
+      errors: error.details.map(d => ({
+        field: d.path[0],
+        message: d.message
+      }))
+    });
+  }
+
   next();
 };
 
+// LOGIN VALIDATION
 const loginSchema = (req, res, next) => {
   const schema = Joi.object({
     email: Joi.string().email().required(),
-    password: Joi.string().required(),
+    password: Joi.string().required()
   });
 
-  const { error } = schema.validate(req.body);
-  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
+  const { error } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+  if (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Validation error",
+      errors: error.details.map(d => ({
+        field: d.path[0],
+        message: d.message
+      }))
+    });
+  }
+
   next();
 };
 
