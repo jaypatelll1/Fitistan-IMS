@@ -161,7 +161,7 @@ router.get(
     const { barcode } = req.params;
 
     // ensure product exists
-    const product = await ProductManager.findByBarcode(barcode);
+    const product = await ProductManager.generateBarcode(barcode);
     if (!product) {
       return res.status(404).json({
         success: false,

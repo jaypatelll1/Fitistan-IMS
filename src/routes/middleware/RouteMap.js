@@ -18,6 +18,7 @@ class RouteMap {
 
     // 🔓 OPEN ROUTES (NO JWT)
     app.use("/open/api/auth", require("../../routes/auth.routes"));
+    app.use("/open/api/barcode", require("../../routes/controllers/productRouter"));
 
 
     // 🔐 PROTECTED ROUTES

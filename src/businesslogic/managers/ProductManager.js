@@ -81,9 +81,9 @@ class ProductManager {
         throw new Error(`Failed to find product by SKU: ${err.message}`);
     }};
 
-    static async findByBarcode(barcode) {
+    static async generateBarcode(barcode) {
         try {
-          const product = await productModel.findByBarcode(barcode);
+          const product = await productModel.generateBarcode(barcode);
           return product;
         } catch (err) {
         throw new Error(`Failed to find product by barcode: ${err.message}`);

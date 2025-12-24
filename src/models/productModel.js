@@ -103,7 +103,7 @@ class ProductModel extends BaseModel {
         }
     }
 
-    async findByBarcode(barcode) {
+    async generateBarcode(barcode) {
         try {
             console.log("Finding product by barcode:", barcode);
             const queryBuilder = await this.getQueryBuilder();
