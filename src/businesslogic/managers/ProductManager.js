@@ -35,7 +35,7 @@ class ProductManager {
          if (verifyProduct) {
             throw new Error('Product with this SKU already exists.');
          }
-
+       productData.barcode = productData.sku;
           const product = await productModel.create(productData);
           return product;
             

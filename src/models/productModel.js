@@ -1,6 +1,6 @@
 const BaseModel = require("../models/libs/BaseModel");
 const DatabaseError = require("../errorhandlers/DatabaseError");
-const {TABLE_DEFAULTS} = require("../models/libs/dbConstants");
+const { TABLE_DEFAULTS } = require("../models/libs/dbConstants");
 
 class ProductModel extends BaseModel {
     constructor(userId) {
@@ -36,7 +36,7 @@ class ProductModel extends BaseModel {
         try {
             const queryBuilder = await this.getQueryBuilder();
             const data = this.insertStatement(productData);
-console.log(" models Inserting product with data:", data);
+            console.log(" models Inserting product with data:", data);
             const [product] = await queryBuilder.table(this.tableName).insert(data).returning('*');
             if (!product) {
 
@@ -49,27 +49,27 @@ console.log(" models Inserting product with data:", data);
         }
     }
 
-   async update(product_id, productData) {
-    try {
-        const queryBuilder = await this.getQueryBuilder();
+    async update(product_id, productData) {
+        try {
+            const queryBuilder = await this.getQueryBuilder();
 
-        const data = await this.updateStatement(productData);
-        if(!data) {
-            console.error("No valid fields to update for product:", product_id);
+            const data = await this.updateStatement(productData);
+            if (!data) {
+                console.error("No valid fields to update for product:", product_id);
+            }
+
+
+            const [updatedProduct] = await queryBuilder
+                .table(this.tableName)
+                .where(this.whereStatement({ product_id }))
+                .update(data)
+                .returning("*");
+
+            return updatedProduct;
+        } catch (e) {
+            throw new DatabaseError(e);
         }
-
-
-        const [updatedProduct] = await queryBuilder
-            .table(this.tableName)
-            .where(this.whereStatement({ product_id }))
-            .update(data)
-            .returning("*");
-
-        return updatedProduct;
-    } catch (e) {
-        throw new DatabaseError(e);
     }
-}
 
 
     async softDelete(product_id) {

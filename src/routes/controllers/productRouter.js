@@ -154,7 +154,7 @@ router.get(
 
 
 
-// GET BARCODE BY SKU
+// generate BARCODE BY barcode id
 router.get(
   "/barcode/:barcode",
   appWrapper(async (req, res) => {
@@ -170,14 +170,14 @@ router.get(
     }
 
     // generate barcode image
-    // const png = await generateBarcodeBuffer(product.sku);
+    const png = await generateBarcodeBuffer(product.sku);
 
-    // res.set("Content-Type", "image/png");
-    // res.send(png);
-    return res.json({
-      success: true,
-      data: product,
-    });
+    res.set("Content-Type", "image/png");
+    res.send(png);
+    // return res.json({
+    //   success: true,
+    //   data: product,
+    // });
   })
 );
 
