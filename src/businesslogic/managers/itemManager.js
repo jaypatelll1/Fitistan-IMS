@@ -18,7 +18,7 @@ class itemManager {
             return null; // product not found
         }
 
-        quantity = Number(quantity);
+       
         if (quantity <= 0) {
             throw new Error("Quantity must be greater than 0");
         }
