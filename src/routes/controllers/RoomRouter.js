@@ -7,16 +7,16 @@ const validateRoom = require("../../validators/RoomValidator");
 
 // GET ALL ROOMS
 router.get(
-  "/manage/all",
+  "/get_all_Rooms",
   appWrapper(async (req, res) => {
     const rooms = await roomManager.getAllRooms();
-    return { success: true, data: rooms };
-  }, [ACCESS_ROLES.ACCOUNT_ADMIN])
+    return { success: true, rooms: rooms };
+  }, [ACCESS_ROLES.ALL])
 );
 
 // CREATE ROOM
 router.post(
-  "/manage/create",
+  "/create_room",
   validateRoom("create"),
   appWrapper(async (req, res) => {
     const room = await roomManager.createRoom(req.validatedData);
@@ -26,7 +26,7 @@ router.post(
 
 // GET ROOM BY ID
 router.get(
-  "/manage/:id",
+  "/get_room/:id",
   validateRoom("id"),
   appWrapper(async (req, res) => {
     const { id } = req.validatedData;
@@ -37,7 +37,7 @@ router.get(
 
 // UPDATE ROOM
 router.put(
-  "/manage/update/:id",
+  "/update_room/:id",
   validateRoom("update"),
   appWrapper(async (req, res) => {
     const { id } = req.params;
@@ -55,7 +55,7 @@ router.put(
 
 // DELETE ROOM
 router.delete(
-  "/manage/delete/:id",
+  "/delete_room/:id",
   validateRoom("id"),
   appWrapper(async (req, _res) => {
     const { id } = req.validatedData;
