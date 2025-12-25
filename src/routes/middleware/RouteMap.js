@@ -32,7 +32,7 @@ class RouteMap {
     Router.use("/shelfs", ShelfRouter);
     Router.use("/warehouses", WarehouseRouter);
 
-    // ❌ 404 HANDLER
+    //  404 HANDLER
     app.use((req, res) => {
       res.status(404).json({
         status: 404,
