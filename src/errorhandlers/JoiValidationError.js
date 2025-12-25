@@ -11,13 +11,17 @@ class JoiValidatorError extends AppError {
 
     this.name = "JoiValidatorError";
 
-    this.response = {
+     this.response = {
       status: 400,
-      message: "joi Validation Error",
-      body_errors: joiError.details.map(detail => ({
-        key: detail.path.join("."),
-        message: detail.message.replace(/"/g, "")
-      }))
+      message: "Validation Error",
+      errors: [
+        {
+          body_error: joiError.details.map(detail => ({
+            key: detail.path.join("."),
+            message: detail.message.replace(/"/g, "")
+          }))
+        }
+      ]
     };
   }
 }

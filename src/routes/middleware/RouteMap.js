@@ -13,6 +13,7 @@ const RoomRouter = require("../../routes/controllers/RoomRouter");
 const ShelfRouter = require("../../routes/controllers/shelfRouter");
 const WarehouseRouter = require("../../routes/controllers/warehouseRouter");
 const Authrouter = require("../../routes/controllers/Authrouter");
+const vendorRouter = require("../../routes/controllers/vendorRouter")
 
 
 
@@ -38,6 +39,8 @@ class RouteMap {
     Router.use("/rooms", RoomRouter);
     Router.use("/shelfs", ShelfRouter);
     Router.use("/warehouses", WarehouseRouter);
+    Router.use("/vendors", vendorRouter );
+
 
     //  404 HANDLER
     app.use((req, res) => {

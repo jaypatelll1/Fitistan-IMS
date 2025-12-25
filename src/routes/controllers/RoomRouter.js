@@ -15,7 +15,7 @@ router.get(
       const rooms = await roomManager.getAllRooms(userId);
 
       return {
-        success: true,
+        
         rooms:rooms,
         message: "Rooms fetched successfully"
       };
@@ -33,9 +33,9 @@ router.post(
       const room = await roomManager.createRoom(req.body, userId);
 
       return {
-        success: true,
-        room:room,
-        message: "Room created successfully"
+        
+        room:room
+        
       };
     },
     [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
@@ -53,9 +53,9 @@ router.get(
       const room = await roomManager.getRoomById(id, userId);
 
       return {
-        success: true,
-        room:room,
-        message: "Room fetched successfully"
+        
+        room:room
+        
       };
     },
     [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
@@ -77,9 +77,9 @@ router.put(
       );
 
       return {
-        success: true,
-        updated_room: updatedRoom,
-        message: "Room updated successfully"
+       
+        updated_room: updatedRoom
+        
       };
     },
     [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
@@ -97,7 +97,7 @@ router.delete(
       const result = await roomManager.deleteRoom(id, userId);
 
       return {
-        success: true,
+        
         deleted_room: result,
         message: "Room deleted successfully"
       };

@@ -1,108 +1,102 @@
-const { func } = require('joi');
-const knex = require('../config/database.js');
-const { PUBLIC_SCHEMA,TABLE_DEFAULTS } = require('./libs/dbConstants.js');
+const BaseModel = require("./libs/BaseModel");
+const DatabaseError = require("../errorhandlers/DatabaseError");
 
-const { CREATED_BY, LAST_MODIFIED_BY, IS_DELETED, CREATED_AT, UPDATED_AT } = TABLE_DEFAULTS.COLUMNS;
+class VendorModel extends BaseModel {
+  constructor(userId) {
+    super(userId);
+  }
 
-class Vendor{
+  // 👇 Only expose these fields in responses
+  getPublicColumns() {
+    return ["vendor_id", "vendor_name", "email", "phone", "address"];
+  }
 
-    static get tableName() {
-        return "vendors";
+  async getAllVendors() {
+    try {
+      const qb = await this.getQueryBuilder();
+      return await qb("vendors")
+        .select(this.getPublicColumns())
+        .where({ is_deleted: false });
+    } catch (e) {
+      throw new DatabaseError(e);
     }
+  }
 
-    static get schema(){
-        return PUBLIC_SCHEMA;
-    }
-
-    // Create new Vendor
-    static async createVendor(vendorData){
-        const [vendor] = await knex(this.tableName)
-        .withSchema(this.schema)
-        .insert(vendorData)
-        .returning('*');
-    
-    return vendor;
-    }
-
-    // Find Vendor by id
-    static async findVendorById(vendorId){
-        return await knex(this.tableName)
-        .withSchema(this.schema)
-        .where({vendor_id: vendorId , is_active : true})
+  async getVendorById(vendor_id) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const vendor = await qb("vendors")
+        .select(this.getPublicColumns())
+        .where({ vendor_id, is_deleted: false })
         .first();
+      return vendor || null;
+    } catch (e) {
+      throw new DatabaseError(e);
     }
+  }
 
-    // Find Vendor by email
-    static async findVendorByEmail(vendorEmail){
-        return await knex(this.tableName)
-        .withSchema(this.schema)
-        .where({email: vendorEmail , is_active : true})
-        .first();
-    }
-
-    static async findAll(page = 1,limit = 10 , filters={} ){
-        const offset = (page-1)*limit;
-
-        let query = knex(this.tableName)
-        .withSchema(this.schema)
-        .where({ is_active: true});
-
-        // apply filters
-        if(filters.search){
-            query = query.where(function(){
-                this.where('vendor_name', 'ilike', `%${filters.search}%`)
-                .orWhere('email', 'ilike', `%${filters.search}%`);
-            });
-        }
-
-        const vendors = await query
-             .orderBy(filters.field,filters.order)
-             .limit(limit)
-             .offset(offset);
-
-        const [{count}] = await knex(this.tableName)
-        .withSchema(this.schema)
-        .where({ is_active : true})
-        .count('vendor_id as count');
-        
-        return {
-            data : vendors,
-            pagination: {
-                page,
-                limit,
-                total:parseInt(count),
-                totalPage:Math.ceil(count/limit),
-            }
-        };
-
-    }
-
-    // Update Vendor
-
-    static async updateVendor(vendorId,updatedData){
-        const [updated] = await knex(this.tableName)
-        .withSchema(this.schema)
-        .where({vendor_id: vendorId})
-        .update({
-            ...updatedData,
-            UPDATED_AT:knex.fn.now()
+  async createVendor(data) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const [vendor] = await qb("vendors")
+        .insert({
+          vendor_name: data.vendor_name,
+          email: data.email || null,
+          phone: data.phone || null,
+          address: data.address || null,
+          is_deleted: false
         })
-        .returning('*');
-    
-        return updated;
-    }
+        .returning(this.getPublicColumns());
 
-    // Soft delete
-    static async softDeleteVendor(vendorId){
-        return await this.updateVendor(vendorId,{ is_active:false});
+      return vendor;
+    } catch (e) {
+      throw new DatabaseError(e);
     }
+  }
 
-    // Check if email exists
-    static async emailExists(email){
-        let query = knex(this.tableName)
-        .withSchema(this.schema)
-        .where({email});
-        const vendor = await query.first();
-        return !!vendor;
+  async updateVendor(vendor_id, data) {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      const exists = await qb("vendors")
+        .select("vendor_id")
+        .where({ vendor_id, is_deleted: false })
+        .first();
+
+      if (!exists) return null;
+
+      const [vendor] = await qb("vendors")
+        .where({ vendor_id, is_deleted: false })
+        .update(data)
+        .returning(this.getPublicColumns());
+
+      return vendor;
+    } catch (e) {
+      throw new DatabaseError(e);
     }
+  }
+
+  async deleteVendor(vendor_id) {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      const exists = await qb("vendors")
+        .select("vendor_id")
+        .where({ vendor_id, is_deleted: false })
+        .first();
+
+      if (!exists) return null;
+
+      const [vendor] = await qb("vendors")
+        .where({ vendor_id, is_deleted: false })
+        .update({ is_deleted: true })
+        .returning(this.getPublicColumns());
+
+      return vendor;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 }
+
+module.exports = VendorModel;
