@@ -1,96 +1,65 @@
 const express = require("express");
-const { successResponseAppWrapper, appWrapper } = require("../routeWrapper");
+const { appWrapper } = require("../routeWrapper");
 const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
-const shelfManager =require("../../businesslogic/managers/ShelfManager")
-const validators = require("../../validators/shelf.validator");
-const validate = require("../../middleware/validation.middleware");
+const shelfManager = require("../../businesslogic/managers/ShelfManager");
+const validateShelf = require("../../validators/shelfValidator");
 
 const router = express.Router({ mergeParams: true });
 
-//get all shelves
-router.get("/all", appWrapper(async (req, res) => {
-      
-    const getAllShelves = await shelfManager.getAllShelf()
-    return res.json({
-        success: true,
-        data :getAllShelves
-    })
-    
-    }, [ACCESS_ROLES.ALL])
+router.get(
+  "/manage/all",
+  appWrapper(async () => {
+    return {
+      success: true,
+      data: await shelfManager.getAllShelf()
+    };
+  }, [ACCESS_ROLES.ALL])
 );
 
-//create shelf
-router.post("/create",validate(validators.createShelfSchema),appWrapper(async (req,res)=>{
+router.post(
+  "/manage/create",
+  validateShelf("create"),
+  appWrapper(async (req) => {
+    return {
+      success: true,
+      data: await shelfManager.createShelf(req.validatedData),
+      message: "Shelf created successfully"
+    };
+  }, [ACCESS_ROLES.ALL])
+);
 
-const createShelf = await shelfManager.createShelf(req.body)
-return res.json({
-    succes:true ,
-    data: createShelf,
-    message:"data inserted succesfully"
-})
-},[ACCESS_ROLES.ALL]))
+router.get(
+  "/manage/:id",
+  validateShelf("id"),
+  appWrapper(async (req) => {
+    const shelf = await shelfManager.getShelfById(req.validatedData.id);
+    return shelf
+      ? { success: true, data: shelf }
+      : { success: false, message: "Shelf not found or already deleted" };
+  }, [ACCESS_ROLES.ALL])
+);
 
-//get shelf by id
-router.get("/:id",appWrapper (async (req,res)=>{
-    const {id} = req.params
-    const getShelfById = await shelfManager.getShelfById(id) 
-    if(!getShelfById){
-        return res
-        .status(404)
-        .json({
+router.put(
+  "/manage/update/:id",
+  validateShelf("id"),
+  validateShelf("update"),
+  appWrapper(async (req) => {
+    const shelf = await shelfManager.updateShelf(req.validatedData.id, req.validatedData.updateBody);
+    return shelf
+      ? { success: true, data: shelf, message: "Shelf updated successfully" }
+      : { success: false, message: "Shelf not found or nothing to update" };
+  }, [ACCESS_ROLES.ALL])
+);
 
-            success:false,
-            message:"data not found"
-        })
-    }
-    
-    return res.json({
-        success:true,
-        data:getShelfById
-    })
-},[ACCESS_ROLES.ALL]))
-
-//update shelf
-router.put("/update/:id",validate(validators.updateShelfSchema),appWrapper (async (req,res)=>{
-    const {id} = req.params
-    
-    const updateShelf = await shelfManager.updateShelf(id,req.body)
-    if(!updateShelf){
-        return res
-        .status
-        (404)
-        .json({
-            success:false,
-            message:"data not found"
-        })
-    }
-    return res.json({
-        success:true,
-        data:updateShelf,
-        message:"data updated succesfully"
-    })
-},[ACCESS_ROLES.ALL]))
-
-//delete shelf
-router.post("/delete/:id",appWrapper (async (req,res)=>{
-    const {id} = req.params
-   
-    const deleteShelf = await shelfManager.deleteShelf(id)  
-    if(!deleteShelf){
-        return res
-        .status(404)
-        .json({
-            success:false,
-            message:"data not found"
-        })
-    }
-    return res.json({
-        success:true,
-        data:deleteShelf,
-        message:"data deleted succesfully"
-    })
-},[ACCESS_ROLES.ALL]))
+router.post(
+  "/manage/delete/:id",
+  validateShelf("id"),
+  appWrapper(async (req) => {
+    const deleted = await shelfManager.deleteShelf(req.validatedData.id);
+    return deleted
+      ? { success: true, message: "Shelf deleted successfully" }
+      : { success: false, message: "Shelf not found or already deleted" };
+  }, [ACCESS_ROLES.ALL])
+);
 
 module.exports = router;
-
-

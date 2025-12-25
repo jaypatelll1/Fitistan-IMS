@@ -6,74 +6,60 @@ class ShelfModel extends BaseModel {
         super(userId);
     }
 
- async findAll(){
-
+    async getAllShelf() {
         try {
-
-
-            const queryBuilder = await this.getQueryBuilder();
-            const findAllShelf = await queryBuilder.select("*").table("shelf").where(this.whereStatement({}))
-            return findAllShelf;
+            const qb = await this.getQueryBuilder();
+            return await qb("shelf").select("*").where(this.whereStatement({})).orderBy("shelf_id", "asc");
         } catch (error) {
-            throw new DatabaseError(e)
+            throw new DatabaseError(error);
         }
     }
-    async create(data){
 
+    async createShelf(data) {
         try {
-            const queryBuilder = await this.getQueryBuilder();
+            const qb = await this.getQueryBuilder();
             const insertData = this.insertStatement(data);
-            const [shelf] = await queryBuilder("shelf").insert(insertData).returning("*");
+            const [shelf] = await qb("shelf").insert(insertData).returning("*");
+            
             return shelf;
-        } catch (e) {
-            throw new DatabaseError(e);
+        } catch (error) {
+            throw new DatabaseError(error);
         }
     }
 
-
-    async findById(id){
-
+    async getShelfById(id) {
         try {
-            const queryBuilder = await this.getQueryBuilder();
-            const shelf = await queryBuilder.select("*").table("shelf").where(this.whereStatement({shelf_id:id})).first();
-            if (!shelf) {
-                return null;
-            }
-            return shelf;
-        } catch (e) {
-            throw new DatabaseError(e);
+            const qb = await this.getQueryBuilder();
+            const shelf = await qb("shelf").select("*").where(this.whereStatement({ shelf_id: id })).first();
+            return shelf || null;
+        } catch (error) {
+            throw new DatabaseError(error);
         }
     }
 
-    async update(id, data){
-
+    async updateShelf(id, data) {
         try {
-            const queryBuilder = await this.getQueryBuilder();
+            const qb = await this.getQueryBuilder();
             const updateData = this.insertStatement(data);
-            const check = await queryBuilder.select("shelf_id").table("shelf").where(this.whereStatement({shelf_id:id})).first();
-            if (!check) {
-             return null;
-            }
-            const [shelf] = await queryBuilder("shelf").update(updateData).where(this.whereStatement({shelf_id:id})).returning("*");
+            const exists = await qb("shelf").select("shelf_id").where(this.whereStatement({ shelf_id: id })).first();
+            if (!exists) return null;
+            const [shelf] = await qb("shelf").update(updateData).where(this.whereStatement({ shelf_id: id })).returning("*");
             return shelf;
-        } catch (e) {
-            throw new DatabaseError(e);
+        } catch (error) {
+            throw new DatabaseError(error);
         }
     }
 
-    async softDelete(id){
-
+    async   deleteShelf(id) {
         try {
-            const queryBuilder = await this.getQueryBuilder();
-            const check = await queryBuilder.select("shelf_id").table("shelf").where(this.whereStatement({shelf_id:id})).first();
-            if (!check) {
-               return null;
-            }
-            const [shelf] = await queryBuilder("shelf").update({ is_deleted: true }).where(this.whereStatement({shelf_id:id})).returning("*");
+            const qb = await this.getQueryBuilder();
+            const exists = await qb("shelf").select("shelf_id").where(this.whereStatement({ shelf_id: id })).first();
+            if (!exists) return null;
+            const [shelf] = await qb("shelf").update({ is_deleted: true }).where(this.whereStatement({ shelf_id: id })).returning("*");
             return shelf;
-        } catch (e) {
-            throw new DatabaseError(e);
-        }       
+        } catch (error) {
+            throw new DatabaseError(error);
+        }
     }
 }
 

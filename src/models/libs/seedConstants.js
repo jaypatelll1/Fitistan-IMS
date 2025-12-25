@@ -9,3 +9,6 @@ const USER_ROLES_INFO = {
     },
     
 };
+
+
+module.exports = USER_ROLES_INFO;

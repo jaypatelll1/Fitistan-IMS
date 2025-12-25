@@ -1,72 +1,53 @@
 require('dotenv').config();
-const ShelfModel = require("../../models/shelfModel"); // ✅ Class name
+const ShelfModel = require("../../models/shelfModel");
+const RoomModel = require("../../models/RoomModel");
+const ValidationError = require("../../errorhandlers/ValidationError");
 
 class ShelfManager {
 
-  static async getAllShelf(data) {
-    try {
-      console.log(data);
-
-      const shelfModel = new ShelfModel(); 
-      const shelf = await shelfModel.findAll();
-
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to create shelf: ${err.message}`);
-    }
-  };
+  static async getAllShelf() {
+    const shelfModel = new ShelfModel();
+    return await shelfModel.getAllShelf();
+  }
 
   static async createShelf(data) {
-    try {
-      console.log(data);
+    const roomModel = new RoomModel();
+    
 
-      const shelfModel = new ShelfModel();
-      const shelf = await shelfModel.create(data);
-
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to create shelf: ${err.message}`);
+    // Check room exists and not deleted
+    const room = await roomModel.getRoomById(data.room_id);
+    
+    if (!room) {
+      throw new ValidationError({
+        details: [
+          {
+            path: ["room_id"],
+            message: "Cannot create shelf in a deleted or non-existing room"
+          }
+        ]
+      });
     }
-  };  
+
+    
+
+    const shelfModel = new ShelfModel();
+    return await shelfModel.createShelf(data);
+  }
+
   static async getShelfById(id) {
-    try {
-      const shelfModel = new ShelfModel();
-      const shelf = await shelfModel.findById(id);
-      if (!shelf) {
-        return null;
-      }
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to get shelf by ID: ${err.message}`);
-    } 
-  };
+    const shelfModel = new ShelfModel();
+    return await shelfModel.getShelfById(id);
+  }
 
   static async updateShelf(id, data) {
-    try {
-      const shelfModel = new ShelfModel();
-      const shelf = await shelfModel.update(id, data);
-      if (!shelf) {
-       return null;
-      }
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to update shelf: ${err.message}`);
-    }
-  };
+    const shelfModel = new ShelfModel();
+    return await shelfModel.updateShelf(id, data);
+  }
 
   static async deleteShelf(id) {
-    try {
-      const shelfModel = new ShelfModel();
-      const shelf = await shelfModel.softDelete(id);
-      if (!shelf) {
-       return null;
-      }
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to delete shelf: ${err.message}`);
-    }
-  };
-
+    const shelfModel = new ShelfModel();
+    return await shelfModel.deleteShelf(id);
+  }
 }
 
 module.exports = ShelfManager;
