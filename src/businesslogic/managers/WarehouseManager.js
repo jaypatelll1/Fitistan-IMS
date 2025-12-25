@@ -66,7 +66,7 @@ class WarehouseManager {
     }
 
     // 4️⃣ Fetch joined data
-    return await model.getWarehouseByIds(ids);
+    return await model.getWarehouseDetailsByIds(ids);
   }
 }
 
