@@ -6,19 +6,25 @@ const AuthenticationError = require("../../errorhandlers/AuthenticationError");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
 const { RES_LOCALS } = require("./constant");
 
-const Authrouter = require("../../routes/controllers/Authrouter");
+const openrouter = express.Router();
+
+const Authloginrouter = require("../../routes/controllers/open/authloginrouter");
 const RoomRouter = require("../../routes/controllers/RoomRouter");
 const ShelfRouter = require("../../routes/controllers/shelfRouter");
 const WarehouseRouter = require("../../routes/controllers/warehouseRouter");
+const Authrouter = require("../../routes/controllers/Authrouter");
 
-const globalErrorHandler = require("../../errorhandlers/globalErrorHandler");
+
 
 
 class RouteMap {
   static setupRoutesAndAuth(app) {
 
     // 🔓 OPEN ROUTES
-    app.use("/open/api/auth", Authrouter);
+    app.use("/open/api", openrouter);
+
+    openrouter.use("/auth", Authloginrouter);
+
 
     // 🔐 PROTECTED ROUTES
     app.use(
@@ -28,6 +34,7 @@ class RouteMap {
       Router
     );
 
+    Router.use("/auth", Authrouter);
     Router.use("/rooms", RoomRouter);
     Router.use("/shelfs", ShelfRouter);
     Router.use("/warehouses", WarehouseRouter);
@@ -40,7 +47,7 @@ class RouteMap {
       });
     });
 
-     app.use(globalErrorHandler);
+     
 
   }
 

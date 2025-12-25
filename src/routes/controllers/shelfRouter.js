@@ -1,63 +1,63 @@
 const express = require("express");
 const { appWrapper } = require("../routeWrapper");
-const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
+const  ACCESS_ROLES  = require("../../businesslogic/accessmanagement/RoleConstants");
 const shelfManager = require("../../businesslogic/managers/ShelfManager");
 const validateShelf = require("../../validators/shelfValidator");
 
 const router = express.Router({ mergeParams: true });
 
 router.get(
-  "/manage/all",
+  "/get_all_shelfs",
   appWrapper(async () => {
     return {
       success: true,
-      data: await shelfManager.getAllShelf()
+      Shelfs: await shelfManager.getAllShelf()
     };
   }, [ACCESS_ROLES.ALL])
 );
 
 router.post(
-  "/manage/create",
+  "/create_shelf",
   validateShelf("create"),
   appWrapper(async (req) => {
     return {
       success: true,
-      data: await shelfManager.createShelf(req.validatedData),
+      shelf: await shelfManager.createShelf(req.validatedData),
       message: "Shelf created successfully"
     };
   }, [ACCESS_ROLES.ALL])
 );
 
 router.get(
-  "/manage/:id",
+  "/get_shelf/:id",
   validateShelf("id"),
   appWrapper(async (req) => {
     const shelf = await shelfManager.getShelfById(req.validatedData.id);
     return shelf
-      ? { success: true, data: shelf }
+      ? { success: true, shelf: shelf }
       : { success: false, message: "Shelf not found or already deleted" };
   }, [ACCESS_ROLES.ALL])
 );
 
 router.put(
-  "/manage/update/:id",
+  "/update_shelf/:id",
   validateShelf("id"),
   validateShelf("update"),
   appWrapper(async (req) => {
     const shelf = await shelfManager.updateShelf(req.validatedData.id, req.validatedData.updateBody);
     return shelf
-      ? { success: true, data: shelf, message: "Shelf updated successfully" }
+      ? { success: true, shelf: shelf, message: "Shelf updated successfully" }
       : { success: false, message: "Shelf not found or nothing to update" };
   }, [ACCESS_ROLES.ALL])
 );
 
 router.post(
-  "/manage/delete/:id",
+  "/delete_shelf/:id",
   validateShelf("id"),
   appWrapper(async (req) => {
     const deleted = await shelfManager.deleteShelf(req.validatedData.id);
     return deleted
-      ? { success: true, message: "Shelf deleted successfully" }
+      ? { success: true, shelf: deleted ,message: "Shelf deleted successfully" }
       : { success: false, message: "Shelf not found or already deleted" };
   }, [ACCESS_ROLES.ALL])
 );

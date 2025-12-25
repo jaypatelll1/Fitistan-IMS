@@ -33,8 +33,7 @@ class BaseModel {
 
         return {
             ...insertObj,
-            [TABLE_DEFAULTS.COLUMNS.CREATED_BY.KEY]: userId,
-            [TABLE_DEFAULTS.COLUMNS.LAST_MODIFIED_BY.KEY]: userId
+           
         };
     }
 
@@ -53,8 +52,7 @@ class BaseModel {
 
         return {
             ...updateObj,
-            [TABLE_DEFAULTS.COLUMNS.UPDATED_AT.KEY]: queryBuilder.raw("CURRENT_TIMESTAMP"),
-            [TABLE_DEFAULTS.COLUMNS.LAST_MODIFIED_BY.KEY]: userId
+           
         };
     }
 

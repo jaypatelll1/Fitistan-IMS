@@ -1,4 +1,4 @@
-const { ACCESS_ROLES } = require("./roleConstants");
+const  ACCESS_ROLES  = require("../accessmanagement/RoleConstants");
 const USER_ROLES_INFO = require("../../models/libs/seedConstants");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
 
@@ -14,7 +14,7 @@ class AccessManagement {
       .filter(Boolean);
 
     // Grant access if allowedRoles includes ALL or ACCOUNT_SELF_MEMBER
-    if (allowedRoles.includes(ACCESS_ROLES.ALL) || allowedRoles.includes(ACCESS_ROLES.ACCOUNT_SELF_MEMBER)) {
+    if (allowedRoles.includes(ACCESS_ROLES.ALL) ) {
       return true;
     }
 

@@ -3,27 +3,39 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const AuthModel = require("../../models/AuthModel");
 const AuthenticationError = require("../../errorhandlers/AuthenticationError");
+const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
+
+const {
+  registerSchema,
+  loginSchema
+} = require("../../validators/AuthValidator");
 
 class AuthenticationManager {
 
   static async register(payload) {
-    const userModel = new AuthModel();
+    // ✅ Joi validation here
+    const { error, value } = registerSchema.validate(payload, {
+      abortEarly: false,
+      stripUnknown: true
+    });
 
-    payload.password_hash = await bcrypt.hash(payload.password, 10);
-    delete payload.password;
-
-    if (!payload.role_id) {
-      throw new AuthenticationError("role_id is required");
+    if (error) {
+      throw new JoiValidatorError(error);
     }
 
+    const userModel = new AuthModel();
+
+    value.password_hash = await bcrypt.hash(value.password, 10);
+    delete value.password;
+
     const user = await userModel.createUser({
-      email: payload.email,
-      password_hash: payload.password_hash,
-      name: payload.name,
-      phone: payload.phone,
-      gender: payload.gender,
-      profile_picture_url: payload.profile_picture_url,
-      role_id: payload.role_id
+      email: value.email,
+      password_hash: value.password_hash,
+      name: value.name,
+      phone: value.phone,
+      gender: value.gender,
+      profile_picture_url: value.profile_picture_url,
+      role_id: value.role_id
     });
 
     delete user.password_hash;
@@ -31,14 +43,20 @@ class AuthenticationManager {
   }
 
   static async login(email, password) {
+    // ✅ Joi validation here
+    const { error } = loginSchema.validate(
+      { email, password },
+      { abortEarly: false }
+    );
+
+    if (error) {
+      throw new JoiValidatorError(error);
+    }
+
     const userModel = new AuthModel();
 
     const user = await userModel.getUserForLogin(email);
     if (!user) throw new AuthenticationError("Invalid email or password");
-
-    if (!user.password_hash) {
-      throw new AuthenticationError("User password not set");
-    }
 
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) throw new AuthenticationError("Invalid email or password");
@@ -49,7 +67,7 @@ class AuthenticationManager {
         email: user.email,
         role: user.role_name
       },
-      process.env.JWT_SECRET_KEY, // must be defined
+      process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
 
