@@ -1,5 +1,6 @@
 const express = require("express");
 const { expressjwt: jwt } = require("express-jwt");
+
 const AuthModel = require("../../models/AuthModel");
 const AuthenticationError = require("../../errorhandlers/AuthenticationError");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
@@ -14,15 +15,16 @@ const ShelfRouter = require("../../routes/controllers/shelfRouter");
 const WarehouseRouter = require("../../routes/controllers/warehouseRouter");
 const Authrouter = require("../../routes/controllers/Authrouter");
 const vendorRouter = require("../../routes/controllers/vendorRouter")
-
-
-
+const ShopifyRouter = require("../controllers/open/shopifyRouter");
 
 class RouteMap {
   static setupRoutesAndAuth(app) {
 
-    //  OPEN ROUTES
-    app.use("/open/api", openrouter);
+    // 🔓 OPEN ROUTES
+    app.use("/open/api/", openrouter);
+
+    openrouter.use("/auth",Authrouter);
+    openrouter.use("/shopify",ShopifyRouter);
 
     openrouter.use("/auth", Authloginrouter);
 
@@ -122,11 +124,5 @@ class RouteMap {
     }
   }
 }
-
-
-
-
-
-
 
 module.exports = RouteMap;
