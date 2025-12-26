@@ -76,15 +76,15 @@ static async removeItemStock(product_id, quantity) {
     }
 }
 
-// static async getItemCount(product_id) {
-//     try {
-//         const itemModel = new ItemModel();
-//         const count = await itemModel.countByProductId(product_id);
-//         return count;
-//     } catch (error) {
-//         throw new Error(`Failed to get item count: ${error.message}`);
-//     }
-// }
+static async getItemCount(product_id) {
+    try {
+        const itemModel = new ItemModel();
+        const count = await itemModel.countByProductId(product_id);
+        return count;
+    } catch (error) {
+        throw new Error(`Failed to get item count: ${error.message}`);
+    }
+}
 
 
 }
