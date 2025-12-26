@@ -1,11 +1,11 @@
 const express = require("express");
 const { expressjwt: jwt } = require("express-jwt");
-const Router = express.Router();
 const AuthModel = require("../../models/AuthModel");
 const AuthenticationError = require("../../errorhandlers/AuthenticationError");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
 const { RES_LOCALS } = require("./constant");
 
+const Router = express.Router();
 const openrouter = express.Router();
 
 const Authloginrouter = require("../../routes/controllers/open/authloginrouter");
@@ -21,13 +21,13 @@ const vendorRouter = require("../../routes/controllers/vendorRouter")
 class RouteMap {
   static setupRoutesAndAuth(app) {
 
-    // 🔓 OPEN ROUTES
+    //  OPEN ROUTES
     app.use("/open/api", openrouter);
 
     openrouter.use("/auth", Authloginrouter);
 
 
-    // 🔐 PROTECTED ROUTES
+    //  PROTECTED ROUTES
     app.use(
       "/api",
       ...RouteMap._setupAuth(),

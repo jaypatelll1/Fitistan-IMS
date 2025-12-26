@@ -2,14 +2,20 @@ const Joi = require("joi");
 
 const vendorSchema = {
   create: Joi.object({
-    vendor_name: Joi.string().trim().min(2).max(255).required(),
+    vendor_name: Joi.string().trim().min(2).max(255).required().messages({ 
+      "string.base": "Vendor name must be a string",
+      "string.empty": "Vendor name cannot be empty",
+     }),
     email: Joi.string().email().optional(),
     phone: Joi.string().min(10).max(15).optional(),
     address: Joi.string().max(500).optional()
   }),
 
   update: Joi.object({
-    vendor_name: Joi.string().trim().min(2).max(255),
+    vendor_name: Joi.string().trim().min(2).max(255).messages({
+      "string.base": "Vendor name must be a string",
+      "string.empty": "Vendor name cannot be empty",
+    }),
     email: Joi.string().email(),
     phone: Joi.string().min(10).max(15),
     address: Joi.string().max(500)
