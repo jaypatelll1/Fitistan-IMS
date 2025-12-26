@@ -11,16 +11,31 @@ class VendorModel extends BaseModel {
     return ["vendor_id", "vendor_name", "email", "phone", "address"];
   }
 
-  async getAllVendors() {
-    try {
-      const qb = await this.getQueryBuilder();
-      return await qb("vendors")
-        .select(this.getPublicColumns())
-        .where({ is_deleted: false });
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
+  async getAllVendorsPaginated(page = 1, limit = 10) {
+  try {
+    const qb = await this.getQueryBuilder();
+    const offset = (page - 1) * limit;
+
+    const data = await qb("vendors")
+      .select(this.getPublicColumns())
+      .where({ is_deleted: false })
+      .orderBy("vendor_id", "asc")
+      .limit(limit)
+      .offset(offset);
+
+    const [{ count }] = await qb("vendors")
+      .where({ is_deleted: false })
+      .count("* as count");
+
+    return {
+      data,
+      total: Number(count)
+    };
+  } catch (e) {
+    throw new DatabaseError(e);
   }
+}
+
 
   async getVendorById(vendor_id) {
     try {

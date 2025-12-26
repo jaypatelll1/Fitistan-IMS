@@ -12,17 +12,31 @@ class RoomModel extends BaseModel {
     return ["room_id", "room_name", "warehouse_id"];
   }
 
-  async getAllRooms() {
-    try {
-      const qb = await this.getQueryBuilder();
-      return qb("rooms")
-        .select(this.getPublicColumns())
-        .where(this.whereStatement())
-        .orderBy("room_id", "asc");
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
+ async getAllRoomsPaginated(page = 1, limit = 10) {
+  try {
+    const qb = await this.getQueryBuilder();
+    const offset = (page - 1) * limit;
+
+    const data = await qb("rooms")
+      .select(this.getPublicColumns())
+      .where(this.whereStatement())
+      .orderBy("room_id", "asc")
+      .limit(limit)
+      .offset(offset);
+
+    const [{ count }] = await qb("rooms")
+      .where(this.whereStatement())
+      .count("* as count");
+
+    return {
+      data,
+      total: Number(count)
+    };
+  } catch (e) {
+    throw new DatabaseError(e);
   }
+}
+
 
   async getRoomById(room_id) {
     try {

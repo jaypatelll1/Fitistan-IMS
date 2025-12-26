@@ -12,11 +12,35 @@ router.get(
   appWrapper(
     async (req, res) => {
       const userId = res.locals[RES_LOCALS.USER_INFO.KEY].user.user_id;
-      const rooms = await roomManager.getAllRooms(userId);
+
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      const result = await roomManager.getAllRoomsPaginated(
+        userId,
+        page,
+        limit
+      );
+
+      if (!result.rooms || result.rooms.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No rooms found"
+        });
+      }
 
       return {
-        
-        rooms:rooms,
+        success: true,
+        rooms: result.rooms,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          totalPages: result.totalPages,
+          offset: result.offset,
+          previous: result.previous,
+          next: result.next
+        },
         message: "Rooms fetched successfully"
       };
     },

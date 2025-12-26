@@ -7,11 +7,38 @@ const router = express.Router({ mergeParams: true });
 
 router.get(
   "/get_all_vendors",
-  appWrapper(async () => ({
-    success: true,
-    vendors: await VendorManager.getAllVendors()
-  }), [ACCESS_ROLES.ALL])
+  appWrapper(
+    async (req, res) => {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      const result = await VendorManager.getAllVendorsPaginated(page, limit);
+
+      if (!result.vendors || result.vendors.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No vendors found"
+        });
+      }
+
+      return {
+        success: true,
+        vendors: result.vendors,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          totalPages: result.totalPages,
+          offset: result.offset,
+          previous: result.previous,
+          next: result.next
+        }
+      };
+    },
+    [ACCESS_ROLES.ALL]
+  )
 );
+
 
 router.post(
   "/create_vendor",

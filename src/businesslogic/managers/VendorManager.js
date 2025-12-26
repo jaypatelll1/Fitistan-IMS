@@ -39,10 +39,29 @@ class VendorManager {
      CRUD
      ------------------------------------------------- */
 
-  static async getAllVendors() {
+static async getAllVendorsPaginated(page, limit) {
+  try {
     const vendorModel = new VendorModel();
-    return await vendorModel.getAllVendors();
+    const result = await vendorModel.getAllVendorsPaginated(page, limit);
+
+    const totalPages = Math.ceil(result.total / limit);
+    const offset = (page - 1) * limit;
+
+    return {
+      vendors: result.data,
+      total: result.total,
+      page,
+      limit,
+      offset,
+      totalPages,
+      previous: page > 1 ? page - 1 : null,
+      next: page < totalPages ? page + 1 : null
+    };
+  } catch (err) {
+    throw new Error(`Failed to fetch vendors: ${err.message}`);
   }
+}
+
 
   static async getVendorById(params) {
     const { id } = this.validate(vendorSchema.id, params);

@@ -35,14 +35,31 @@ class ShelfManager {
     return value;
   }
 
-  /* -------------------------------------------------
-     Shelf operations
-     ------------------------------------------------- */
+  
 
-  static async getAllShelf() {
+ static async getAllShelfPaginated(page, limit) {
+  try {
     const shelfModel = new ShelfModel();
-    return await shelfModel.getAllShelf();
+    const result = await shelfModel.getAllShelfPaginated(page, limit);
+
+    const totalPages = Math.ceil(result.total / limit);
+    const offset = (page - 1) * limit;
+
+    return {
+      shelfs: result.data,
+      total: result.total,
+      page,
+      limit,
+      offset,
+      totalPages,
+      previous: page > 1 ? page - 1 : null,
+      next: page < totalPages ? page + 1 : null
+    };
+  } catch (err) {
+    throw new Error(`Failed to fetch shelves: ${err.message}`);
   }
+}
+
 
   static async createShelf(payload) {
     const data = this.validate(shelfSchema.create, payload);

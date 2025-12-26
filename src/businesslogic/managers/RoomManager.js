@@ -9,10 +9,28 @@ const {
 
 class RoomManager {
 
-  static async getAllRooms(userId) {
+ static async getAllRoomsPaginated(userId, page, limit) {
+  try {
     const roomModel = new RoomModel(userId);
-    return roomModel.getAllRooms();
+    const result = await roomModel.getAllRoomsPaginated(page, limit);
+
+    const totalPages = Math.ceil(result.total / limit);
+    const offset = (page - 1) * limit;
+
+    return {
+      rooms: result.data,
+      total: result.total,
+      page,
+      limit,
+      offset,
+      totalPages,
+      previous: page > 1 ? page - 1 : null,
+      next: page < totalPages ? page + 1 : null
+    };
+  } catch (err) {
+    throw new Error(`Failed to fetch rooms: ${err.message}`);
   }
+}
 
   static async getRoomById(id, userId) {
     const { error, value } = roomIdSchema.validate(

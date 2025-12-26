@@ -3,20 +3,34 @@ const DatabaseError = require("../errorhandlers/DatabaseError");
 
 class AuthModel extends BaseModel {
 
+  getPublicColumns() {
+  return [
+    "user_id",
+    "name",
+    "gender",
+    "phone",
+    "profile_picture_url",
+    "email",
+    "role_id"
+  ];
+}
+
+
   async createUser(payload) {
-    try {
-      const qb = await this.getQueryBuilder();
-      const insertData = await this.insertStatement(payload);
+  try {
+    const qb = await this.getQueryBuilder();
+    const insertData = await this.insertStatement(payload);
 
-      const [user] = await qb("users")
-        .insert(insertData)
-        .returning("*");
+    const [user] = await qb("users")
+      .insert(insertData)
+      .returning(this.getPublicColumns());
 
-      return user;
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
+    return user || null;
+  } catch (e) {
+    throw new DatabaseError(e);
   }
+}
+
 
   // 🔐 USED ONLY FOR LOGIN
   async getUserForLogin(email) {

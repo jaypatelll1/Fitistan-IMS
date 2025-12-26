@@ -16,6 +16,10 @@ const WarehouseRouter = require("../../routes/controllers/warehouseRouter");
 const Authrouter = require("../../routes/controllers/Authrouter");
 const vendorRouter = require("../../routes/controllers/vendorRouter")
 const ShopifyRouter = require("../controllers/open/shopifyRouter");
+const ItemRouter = require("../../routes/controllers/ItemRouter");
+const ProductRouter = require("../../routes/controllers/ProductRouter");
+
+
 
 class RouteMap {
   static setupRoutesAndAuth(app) {
@@ -25,7 +29,6 @@ class RouteMap {
 
     openrouter.use("/auth",Authrouter);
     openrouter.use("/shopify",ShopifyRouter);
-
     openrouter.use("/auth", Authloginrouter);
 
 
@@ -42,6 +45,12 @@ class RouteMap {
     Router.use("/shelfs", ShelfRouter);
     Router.use("/warehouses", WarehouseRouter);
     Router.use("/vendors", vendorRouter );
+    Router.use("/items", ItemRouter);
+    Router.use("/products", ProductRouter);
+
+    
+
+
 
 
     //  404 HANDLER
