@@ -1,4 +1,3 @@
-
 const express = require("express");
 const { expressjwt: jwt } = require("express-jwt");
 const Router = express.Router();
@@ -7,18 +6,21 @@ const AuthenticationError = require("../../errorhandlers/AuthenticationError");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
 const JwtUtilities = require("../utilities/JwtUtilities");
 const { RES_LOCALS } = require("./constant");
+
 const Authrouter =  require("../../routes/auth.routes")
 const RoomRouter = require("../../routes/room.routes");
 const ProductRouter = require("../../routes/controllers/productRouter");
 const itemRouter = require("../../routes/controllers/itemRouter");
+const vendorRouter = require("../../routes/controllers/vendorRouter");
+const shelfRouter = require("../../routes/controllers/shelfRouter");
 
 
 class RouteMap {
   static setupRoutesAndAuth(app) {
 
     // 🔓 OPEN ROUTES (NO JWT)
-    app.use("/open/api/auth", require("../../routes/auth.routes"));
-    app.use("/open/api/barcode", require("../../routes/controllers/productRouter"));
+    app.use("/open/api/auth",Authrouter);
+    app.use("/open/api/barcode",ProductRouter);
 
 
     // 🔐 PROTECTED ROUTES
@@ -32,8 +34,9 @@ class RouteMap {
     Router.use("/api/v1/auth", Authrouter);
     Router.use("/api/v1/rooms", RoomRouter);
     Router.use("/products", ProductRouter);
-    Router.use("/shelf", require("../controllers/shelfRouter"));
+    Router.use("/shelf", shelfRouter);
     Router.use("/items", itemRouter);
+    Router.use("/vendors", vendorRouter);
 
     
 
