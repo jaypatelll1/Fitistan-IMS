@@ -1,6 +1,9 @@
 const express = require("express");
 const { expressjwt: jwt } = require("express-jwt");
+
 const Router = express.Router();
+const openRouter = express.Router();
+
 const AuthModel = require("../../models/AuthModel");
 const AuthenticationError = require("../../errorhandlers/AuthenticationError");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
@@ -16,10 +19,10 @@ class RouteMap {
   static setupRoutesAndAuth(app) {
 
     // 🔓 OPEN ROUTES
-    app.use("/open/api/auth", Authrouter);
+    app.use("/open/api/", openRouter);
 
-
-    app.use("/open/api/shopify",ShopifyRouter);
+    openRouter.use("/open/api/auth",Authrouter);
+    openRouter.use("/open/api/shopify",ShopifyRouter);
 
     // 🔐 PROTECTED ROUTES
     app.use(
