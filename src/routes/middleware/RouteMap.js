@@ -21,10 +21,10 @@ class RouteMap {
   static setupRoutesAndAuth(app) {
 
     // 🔓 OPEN ROUTES
-    app.use("/open/api/", openRouter);
+    app.use("/open/api/", openrouter);
 
-    openRouter.use("/open/api/auth",Authrouter);
-    openRouter.use("/open/api/shopify",ShopifyRouter);
+    openrouter.use("/auth",Authrouter);
+    openrouter.use("/shopify",ShopifyRouter);
 
     openrouter.use("/auth", Authloginrouter);
 
