@@ -1,6 +1,6 @@
 const userModel = require("../../models/usermodel");
 const JoiValidationError = require("../../errorhandlers/JoiValidationError");
-const { profileUpdateSchema } = require("../../validators/userValidator");
+const { profileUpdateSchema, idSchema } = require("../../validators/userValidator");
 
 class UserManager {
 
@@ -30,6 +30,22 @@ class UserManager {
       throw new Error(`Failed to update user profile: ${err.message}`);
     }
   }
+
+
+
+static async getUserById(userId) {
+  const { error } = idSchema.validate(userId);
+  if (error) {
+    throw new JoiValidationError(error);
+  }
+
+  const user = await userModel.findById(userId);
+  if (!user) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  return user;
+}
 }
 
 

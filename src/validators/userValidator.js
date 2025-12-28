@@ -97,7 +97,9 @@ const profileUpdateSchema = Joi.object({
   }) .optional()
 
 
-  })
+  });
+
+  const idSchema = Joi.number().integer().positive().required()
  
 
     
@@ -107,4 +109,5 @@ module.exports = {
   updateRoleSchema,
   updateStatusSchema,
   profileUpdateSchema,
+  idSchema
 };

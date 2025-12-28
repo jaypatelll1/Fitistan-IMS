@@ -31,5 +31,32 @@ router.put (
   }));
 
 
+router.get("/profile/:id",
+  appWrapper(async (req, res) => {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    const user = await UserManager.getUserById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: user,
+      message: "User profile retrieved successfully",
+    });
+  }));
+
 
 module.exports = router;
