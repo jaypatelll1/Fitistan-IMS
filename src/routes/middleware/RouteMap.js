@@ -11,7 +11,7 @@ const { RES_LOCALS } = require("./constant");
 const Authrouter = require("../../routes/controllers/Authrouter");
 const RoomRouter = require("../../routes/controllers/RoomRouter");
 const shelfRouter = require("../controllers/shelfRouter")
-const authenticationRouter = require("../controllers/authenticationRouter");
+const UserRouter = require('../../routes/controllers/userRouter')
 
 class RouteMap {
   static setupRoutesAndAuth(app) {
@@ -28,7 +28,7 @@ class RouteMap {
     );
 
 
-
+    Router.use("/users", UserRouter);
     Router.use("/rooms", RoomRouter);
     Router.use("/shelf",shelfRouter);
 
