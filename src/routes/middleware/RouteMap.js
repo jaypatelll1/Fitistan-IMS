@@ -17,6 +17,7 @@ const Authrouter = require("../../routes/controllers/Authrouter");
 const vendorRouter = require("../../routes/controllers/vendorRouter")
 const ShopifyRouter = require("../controllers/open/shopifyRouter");
 const ItemRouter = require("../../routes/controllers/ItemRouter");
+const OrderRouter = require("../../routes/controllers/OrderRouter");
 const ProductRouter = require("../../routes/controllers/ProductRouter");
 
 
@@ -51,6 +52,7 @@ class RouteMap {
     Router.use("/vendors", vendorRouter );
     Router.use("/items", ItemRouter);
     Router.use("/products", ProductRouter);
+    Router.use("/orders", OrderRouter);
 
     
 
