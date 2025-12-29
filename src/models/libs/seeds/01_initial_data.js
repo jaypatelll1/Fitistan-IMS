@@ -128,7 +128,7 @@ exports.seed = async function (knex) {
   await knex("vendors").insert({
     vendor_id: vendorId,
     vendor_name: "Premium Supplies Co.",
-    contact_person: "Amit Shah",
+    // contact_person: "Amit Shah",
     email: "amit@premiumsupplies.com",
     phone: "+91 98765 12345",
     status: "active",

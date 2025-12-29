@@ -7,6 +7,7 @@ const { appWrapper } = require("../routeWrapper");
 const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
 const { ITEM_STATUS } = require("../../models/libs/dbConstants");
 
+// POST /items/addStock - Add stock for a product
 router.post(
   "/addStock",
   // validate(validators.createProductSchema),

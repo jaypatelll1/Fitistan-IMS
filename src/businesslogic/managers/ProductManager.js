@@ -7,8 +7,9 @@ const {
   updateProductSchema
 } = require("../../validators/productValidator");
 
-const productModel = new ProductModel();
 
+
+const productModel = new ProductModel(); // no userId for now
 class ProductManager {
 
   static async getAllProductsPaginated(page, limit) {
