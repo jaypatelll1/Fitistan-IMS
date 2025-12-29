@@ -16,23 +16,49 @@ class OrderModel extends BaseModel {
             const qb = await this.getQueryBuilder();
             const offset = (page - 1) * limit;
 
+            // Select columns with joins to get all related details
+            const selectColumns = [
+                // Order columns
+                "orders.order_id",
+                "orders.product_id",
+                "orders.shelf_id",
+                "orders.quantity",
+                "orders.status",
+                "orders.created_at",
+                "orders.updated_at",
+                // Product columns
+                "products.name as product_name",
+                "products.description as product_description",
+                "products.sku as product_sku",
+                "products.barcode as product_barcode",
+                "products.vendor_id as product_vendor_id",
+                // Shelf columns
+                "shelf.shelf_name",
+                "shelf.warehouse_id",
+                "shelf.room_id",
+                "shelf.capacity as shelf_capacity"
+            ];
+
             let query = qb("orders")
-                .select(this.getPublicColumns())
-                .where(this.whereStatement({}));
+                .select(selectColumns)
+                .leftJoin("products", "orders.product_id", "products.product_id")
+                .leftJoin("shelf", "orders.shelf_id", "shelf.shelf_id")
+                .where("orders.is_deleted", false
+                );
 
             // Apply filters
             if (filters.product_id) {
-                query = query.where("product_id", filters.product_id);
+                query = query.where("orders.product_id", filters.product_id);
             }
             if (filters.shelf_id) {
-                query = query.where("shelf_id", filters.shelf_id);
+                query = query.where("orders.shelf_id", filters.shelf_id);
             }
             if (filters.status) {
-                query = query.where("status", filters.status);
+                query = query.where("orders.status", filters.status);
             }
 
             const data = await query
-                .orderBy("created_at", "desc")
+                .orderBy("orders.created_at", "desc")
                 .limit(limit)
                 .offset(offset);
 
@@ -41,13 +67,13 @@ class OrderModel extends BaseModel {
                 .where(this.whereStatement({}));
 
             if (filters.product_id) {
-                countQuery = countQuery.where("product_id", filters.product_id);
+                countQuery = countQuery.where("orders.product_id", filters.product_id);
             }
             if (filters.shelf_id) {
-                countQuery = countQuery.where("shelf_id", filters.shelf_id);
+                countQuery = countQuery.where("orders.shelf_id", filters.shelf_id);
             }
             if (filters.status) {
-                countQuery = countQuery.where("status", filters.status);
+                countQuery = countQuery.where("orders.status", filters.status);
             }
 
             const [{ count }] = await countQuery.count("* as count");
@@ -80,9 +106,36 @@ class OrderModel extends BaseModel {
     async findById(order_id) {
         try {
             const qb = await this.getQueryBuilder();
+
+            // Select columns with joins to get all related details
+            const selectColumns = [
+                // Order columns
+                "orders.order_id",
+                "orders.product_id",
+                "orders.shelf_id",
+                "orders.quantity",
+                "orders.status",
+                "orders.created_at",
+                "orders.updated_at",
+                // Product columns
+                "products.name as product_name",
+                "products.description as product_description",
+                "products.sku as product_sku",
+                "products.barcode as product_barcode",
+                "products.vendor_id as product_vendor_id",
+                // Shelf columns
+                "shelf.shelf_name",
+                "shelf.warehouse_id",
+                "shelf.room_id",
+                "shelf.capacity as shelf_capacity"
+            ];
+
             const order = await qb("orders")
-                .select(this.getPublicColumns())
-                .where(this.whereStatement({ order_id }))
+                .select(selectColumns)
+                .leftJoin("products", "orders.product_id", "products.product_id")
+                .leftJoin("shelf", "orders.shelf_id", "shelf.shelf_id")
+                .where("orders.order_id", order_id)
+                .where("orders.is_deleted", false)
                 .first();
 
             return order || null;

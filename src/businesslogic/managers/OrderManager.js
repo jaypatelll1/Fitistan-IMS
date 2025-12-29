@@ -59,6 +59,20 @@ class OrderManager {
         }
     }
 
+    static async getOrderById(order_id) {
+        if (!order_id || isNaN(order_id)) {
+            throw new Error("Invalid order ID");
+        }
+
+        try {
+            const orderModel = new OrderModel();
+            const order = await orderModel.findById(parseInt(order_id));
+            return order;
+        } catch (error) {
+            throw new Error(`Failed to fetch order: ${error.message}`);
+        }
+    }
+
     static async getOrdersPaginated(page, limit, filters = {}) {
         const { error, value } = paginationSchema.validate(
             { page, limit, ...filters },
@@ -73,7 +87,7 @@ class OrderManager {
             const result = await orderModel.findAllPaginated(
                 {
                     product_id: value.product_id,
-                   shelf_id: value.shelf_id,
+                    shelf_id: value.shelf_id,
                     status: value.status
                 },
                 value.page,

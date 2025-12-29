@@ -11,7 +11,7 @@ router.get(
     appWrapper(async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const { product_id,shelf_id, status } = req.query;
+        const { product_id, shelf_id, status } = req.query;
 
         const filters = {};
         if (product_id) filters.product_id = parseInt(product_id);
@@ -39,6 +39,29 @@ router.get(
                 previous: result.previous,
                 next: result.next
             }
+        });
+
+    }, [ACCESS_ROLES.ALL])
+);
+
+// GET /orders/:order_id - Get order by ID with all details
+router.get(
+    "/orderId/:order_id",
+    appWrapper(async (req, res) => {
+        const { order_id } = req.params;
+
+        const order = await OrderManager.getOrderById(parseInt(order_id));
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        return res.json({
+            success: true,
+            data: order
         });
 
     }, [ACCESS_ROLES.ALL])
