@@ -1,116 +1,145 @@
 const express = require("express");
 const router = express.Router({ mergeParams: true });
 
-
 const itemManager = require("../../businesslogic/managers/ItemManager");
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
 const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
+const { ITEM_STATUS } = require("../../models/libs/dbConstants");
 
 router.post(
-    "/addStock",
-    // validate(validators.createProductSchema),
-    appWrapper(async (req, res) => {
-        console.log("add item:", req.body);
+  "/addStock",
+  // validate(validators.createProductSchema),
+  appWrapper(
+    async (req, res) => {
+      console.log("add item:", req.body);
 
-        const { quantity, shelf_id, product_id } = req.body;
-        const item = await itemManager.createItem(product_id, shelf_id, quantity);
-        console.log("item", item);
-        if (!item) {
-            return res.status(404).json({
-                success: false,
-                message: "product doesnt exist",
-            });
-        }
-        console.log("Item(s) created:", item);
-        return res.json({
-            success: true,
-            data: item,
-            message: "Item(s) created successfully",
+      const { quantity, shelf_id, product_id } = req.body;
+      const item = await itemManager.createItem(product_id, shelf_id, quantity);
+      console.log("item", item);
+      if (!item) {
+        return res.status(404).json({
+          success: false,
+          message: "product doesnt exist",
         });
-    }, [ACCESS_ROLES.ALL])
-
-)
-
-router.post("/removeStock",
-    appWrapper(async (req, res) => {
-        const { product_id, quantity } = req.body;
-        const item = await itemManager.removeItemStock(product_id, quantity);
-        if (!item) {
-            return res.status(404).json({
-                success: false,
-                message: "Item not found or insufficient stock",
-            });
-        }
-        console.log("Item(s) removed:", item);
-        return res.json({
-            success: true,
-            data: item,
-            message: "Item(s) removed successfully",
-        });
-
-    }, [ACCESS_ROLES.ALL]));
-
-router.get("/count/:product_id",
-    appWrapper(async (req, res) => {
-        const { product_id } = req.params;
-        const count = await itemManager.getItemCount(product_id);
-        console.log("Item count:", count);
-        return res.json({
-            success: true,
-            data: { product_id, count },
-            message: "Item count retrieved successfully",
-        });
-    }, [ACCESS_ROLES.ALL]));
-
-
-
-router.get(
-    "/all",
-    appWrapper(async (req, res) => {
-
-        const { product_id } = req.query;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-
-        if (!product_id) {
-            return res.status(400).json({
-                success: false,
-                message: "product_id is required"
-            });
-        }
-
-        const result = await itemManager.getItemsPaginated(
-            product_id,
-            page,
-            limit
-        );
-
-        if (!result.items || result.items.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No items found"
-            });
-        }
-
-        return res.json({
-            success: true,
-            data: result.items,
-            pagination: {
-                page: result.page,
-                limit: result.limit,
-                offset: result.offset,
-                total: result.total,
-                totalPages: result.totalPages,
-                previous: result.previous,
-                next: result.next
-            }
-        });
-
-    })
+      }
+      console.log("Item(s) created:", item);
+      return res.json({
+        success: true,
+        data: item,
+        message: "Item(s) created successfully",
+      });
+    },
+    [ACCESS_ROLES.ALL]
+  )
 );
 
+router.post(
+  "/removeStock",
+  appWrapper(
+    async (req, res) => {
+      const { product_id, quantity } = req.body;
+      const item = await itemManager.removeItemStock(product_id, quantity);
+      if (!item) {
+        return res.status(404).json({
+          success: false,
+          message: "Item not found or insufficient stock",
+        });
+      }
+      console.log("Item(s) removed:", item);
+      return res.json({
+        success: true,
+        data: item,
+        message: "Item(s) removed successfully",
+      });
+    },
+    [ACCESS_ROLES.ALL]
+  )
+);
 
+router.post(
+  "/outward-scan",
+  appWrapper(async (req, res) => {
+    const { item_id, status } = req.body;
 
+    if (!item_id || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "item_id and status are required",
+      });
+    }
+
+    if (!Object.values(ITEM_STATUS).includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    const updatedItem = await itemManager.updateItemStatus(item_id, status);
+
+    return res.json({
+      success: true,
+      data: updatedItem,
+      message: `Item marked as ${status}`,
+    });
+  })
+);
+
+router.get(
+  "/count/:product_id",
+  appWrapper(
+    async (req, res) => {
+      const { product_id } = req.params;
+      const count = await itemManager.getItemCount(product_id);
+      console.log("Item count:", count);
+      return res.json({
+        success: true,
+        data: { product_id, count },
+        message: "Item count retrieved successfully",
+      });
+    },
+    [ACCESS_ROLES.ALL]
+  )
+);
+
+router.get(
+  "/all",
+  appWrapper(async (req, res) => {
+    const { product_id } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    if (!product_id) {
+      return res.status(400).json({
+        success: false,
+        message: "product_id is required",
+      });
+    }
+
+    const result = await itemManager.getItemsPaginated(product_id, page, limit);
+
+    if (!result.items || result.items.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No items found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: result.items,
+      pagination: {
+        page: result.page,
+        limit: result.limit,
+        offset: result.offset,
+        total: result.total,
+        totalPages: result.totalPages,
+        previous: result.previous,
+        next: result.next,
+      },
+    });
+  })
+);
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const BaseModel = require("./libs/BaseModel");
 const DatabaseError = require("../errorhandlers/DatabaseError");
+const { ITEM_STATUS } = require("../models/libs/dbConstants");
 
 class ItemModel extends BaseModel {
   constructor(userId) {
@@ -28,9 +29,8 @@ class ItemModel extends BaseModel {
 
       return {
         data,
-        total: Number(count)
+        total: Number(count),
       };
-
     } catch (e) {
       throw new DatabaseError(e);
     }
@@ -59,6 +59,40 @@ class ItemModel extends BaseModel {
         .where(this.whereStatement({ product_id }));
 
       return items.length ? items : null;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  async updateStatus(item_id, status) {
+    try {
+      if (!Object.values(ITEM_STATUS).includes(status)) {
+        throw new Error("Invalid item status");
+      }
+
+      const qb = await this.getQueryBuilder();
+
+      let isDeleted = false;
+
+      
+      if (status === ITEM_STATUS.SOLD || status === ITEM_STATUS.DAMAGED) {
+        isDeleted = true;
+      }
+
+      if (status === ITEM_STATUS.RETURN) {
+        isDeleted = false;
+      }
+
+      const [updatedItem] = await qb("items")
+        .where({ id: item_id })
+        .update({
+          status,
+          is_deleted: isDeleted,
+          updated_at: qb.raw("CURRENT_TIMESTAMP"),
+        })
+        .returning("*");
+
+      return updatedItem || null;
     } catch (e) {
       throw new DatabaseError(e);
     }

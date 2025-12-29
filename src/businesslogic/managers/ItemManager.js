@@ -1,6 +1,7 @@
 const ItemModel = require("../../models/ItemModel");
 const ProductModel = require("../../models/ProductModel");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
+const { ITEM_STATUS } = require("../../models/libs/dbConstants");
 
 const {
   createItemSchema,
@@ -73,6 +74,16 @@ class itemManager {
       throw new Error(`Failed to remove stock: ${error.message}`);
     }
   }
+
+   static async updateItemStatus(item_id, status) {
+    if (!Object.values(ITEM_STATUS).includes(status)) {
+      throw new Error("Invalid item status");
+    }
+
+    const itemModel = new ItemModel();
+    return await itemModel.updateStatus(item_id, status);
+  }
+
 
   static async getItemsPaginated(product_id, page, limit) {
     const { error, value } = paginationSchema.validate(

@@ -41,6 +41,7 @@ const TABLE_DEFAULTS = {
 };
 
 const ITEM_STATUS = Object.freeze({
+  AVAILABLE: "available",
   SOLD: "sold",
   OUTWARD: "outward",
   DAMAGED: "damaged",
