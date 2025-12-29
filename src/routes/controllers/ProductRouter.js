@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 
 const ProductManager = require("../../businesslogic/managers/ProductManager");
-const itemManager = require("../../businesslogic/managers/itemManager");
+
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
 const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");

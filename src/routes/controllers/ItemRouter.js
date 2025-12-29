@@ -39,8 +39,8 @@ router.post(
   "/removeStock",
   appWrapper(
     async (req, res) => {
-      const { product_id, quantity } = req.body;
-      const item = await itemManager.removeItemStock(product_id, quantity);
+      const { product_id, shelf_id, quantity } = req.body;
+      const item = await itemManager.removeItemStock(product_id, shelf_id, quantity);
       if (!item) {
         return res.status(404).json({
           success: false,

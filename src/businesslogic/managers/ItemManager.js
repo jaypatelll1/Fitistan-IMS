@@ -1,5 +1,6 @@
 const ItemModel = require("../../models/ItemModel");
 const ProductModel = require("../../models/ProductModel");
+const OrderManager = require("./OrderManager");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 const { ITEM_STATUS } = require("../../models/libs/dbConstants");
 
@@ -49,7 +50,7 @@ class itemManager {
         }
     }
 
-    static async removeItemStock(product_id, quantity) {
+    static async removeItemStock(product_id, shelf_id, quantity) {
         try {
             const itemModel = new ItemModel();
 
@@ -64,9 +65,14 @@ class itemManager {
                 throw new Error("Insufficient stock");
             }
 
+            // 1. Soft delete the items
             const deleted = await itemModel.softDelete(product_id, quantity);
 
-            return { removed: quantity, deleted };
+            // 2. Create an order record for the removed items
+            const order = await OrderManager.createOrder(product_id, shelf_id, quantity);
+            console.log("Order created:", order);
+
+            return { removed: quantity, deleted, order };
         } catch (error) {
             throw new Error(`Failed to remove stock: ${error.message}`);
         }
