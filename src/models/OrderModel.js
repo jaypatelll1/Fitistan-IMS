@@ -36,13 +36,19 @@ class OrderModel extends BaseModel {
                 "shelf.shelf_name",
                 "shelf.warehouse_id",
                 "shelf.room_id",
-                "shelf.capacity as shelf_capacity"
+                "shelf.capacity as shelf_capacity",
+                // Warehouse columns
+                "warehouses.name as warehouse_name",
+                // Room columns
+                "rooms.room_name"
             ];
 
             let query = qb("orders")
                 .select(selectColumns)
                 .leftJoin("products", "orders.product_id", "products.product_id")
                 .leftJoin("shelf", "orders.shelf_id", "shelf.shelf_id")
+                .leftJoin("rooms", "shelf.room_id", "rooms.room_id")
+                .leftJoin("warehouses", "shelf.warehouse_id", "warehouses.warehouse_id")
                 .where("orders.is_deleted", false
                 );
 
@@ -127,13 +133,19 @@ class OrderModel extends BaseModel {
                 "shelf.shelf_name",
                 "shelf.warehouse_id",
                 "shelf.room_id",
-                "shelf.capacity as shelf_capacity"
+                "shelf.capacity as shelf_capacity",
+                // Warehouse columns
+                "warehouses.name as warehouse_name",
+                // Room columns
+                "rooms.room_name"
             ];
 
             const order = await qb("orders")
                 .select(selectColumns)
                 .leftJoin("products", "orders.product_id", "products.product_id")
                 .leftJoin("shelf", "orders.shelf_id", "shelf.shelf_id")
+                .leftJoin("rooms", "shelf.room_id", "rooms.room_id")
+                .leftJoin("warehouses", "shelf.warehouse_id", "warehouses.warehouse_id")
                 .where("orders.order_id", order_id)
                 .where("orders.is_deleted", false)
                 .first();
