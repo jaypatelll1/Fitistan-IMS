@@ -282,7 +282,7 @@ class ItemModel extends BaseModel {
   //     }
   // }
 
-   // async softDelete(product_id, quantity) {
+  // async softDelete(product_id, quantity) {
   //     try {
   //         const qb = await this.getQueryBuilder();
 

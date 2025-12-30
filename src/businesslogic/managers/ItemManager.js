@@ -76,6 +76,11 @@ class itemManager {
       // 1. Soft delete/restore the items and update their status
       const deleted = await itemModel.softDelete(product_id, quantity, normalizedStatus);
 
+      // For returns: check if any sold items were found to restore
+      if (isReturn && deleted === 0) {
+        throw new Error("No sold items found to return for this product");
+      }
+
       let order;
       if (isReturn && order_id) {
         // 2a. For returns: UPDATE existing order status
