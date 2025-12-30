@@ -44,27 +44,27 @@ const createProductSchema = Joi.object({
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
     }),
 
-  price: Joi.number()
-    .positive()
-    .required()
-    .label("Price")
-    .messages({
-      "number.base": COMMON_MESSAGES.NUMBER_BASE,
-      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
-      "any.required": COMMON_MESSAGES.ANY_REQUIRED
-    }),
+  // price: Joi.number()
+  //   .positive()
+  //   .required()
+  //   .label("Price")
+  //   .messages({
+  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
+  //     "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+  //     "any.required": COMMON_MESSAGES.ANY_REQUIRED
+  //   }),
 
-  quantity: Joi.number()
-    .integer()
-    .min(0)
-    .required()
-    .label("Quantity")
-    .messages({
-      "number.base": COMMON_MESSAGES.NUMBER_BASE,
-      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
-      "number.min": COMMON_MESSAGES.NUMBER_MIN,
-      "any.required": COMMON_MESSAGES.ANY_REQUIRED
-    }),
+  // quantity: Joi.number()
+  //   .integer()
+  //   .min(0)
+  //   .required()
+  //   .label("Quantity")
+  //   .messages({
+  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
+  //     "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+  //     "number.min": COMMON_MESSAGES.NUMBER_MIN,
+  //     "any.required": COMMON_MESSAGES.ANY_REQUIRED
+  //   }),
 
   description: Joi.string()
     .allow("", null)
