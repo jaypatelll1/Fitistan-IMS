@@ -6,27 +6,25 @@ const shelfSchema = require("../../validators/shelfValidator");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 
 class ShelfManager {
-
-  
   static validate(schema, data) {
     const { error, value } = schema.validate(data, {
       abortEarly: false,
-      stripUnknown: true
+      stripUnknown: true,
     });
 
     if (error) {
       // Patch object.min(1) error to show allowed keys
       const patchedError = {
         ...error,
-        details: error.details.map(detail => {
+        details: error.details.map((detail) => {
           if (detail.type === "object.min" && detail.path.length === 0) {
             return {
               ...detail,
-              path: Object.keys(schema.describe().keys)
+              path: Object.keys(schema.describe().keys),
             };
           }
           return detail;
-        })
+        }),
       };
 
       throw new JoiValidatorError(patchedError);
@@ -35,31 +33,30 @@ class ShelfManager {
     return value;
   }
 
-  
+  static async getAllShelfPaginated(page, limit) {
+    try {
+      const shelfModel = new ShelfModel();
 
- static async getAllShelfPaginated(page, limit) {
-  try {
-    const shelfModel = new ShelfModel();
-    const result = await shelfModel.getAllShelfPaginated(page, limit);
+      
+      const result = await shelfModel.getAllShelfPaginated({}, page, limit);
 
-    const totalPages = Math.ceil(result.total / limit);
-    const offset = (page - 1) * limit;
+      const totalPages = Math.ceil(result.total / limit);
+      const offset = (page - 1) * limit;
 
-    return {
-      shelfs: result.data,
-      total: result.total,
-      page,
-      limit,
-      offset,
-      totalPages,
-      previous: page > 1 ? page - 1 : null,
-      next: page < totalPages ? page + 1 : null
-    };
-  } catch (err) {
-    throw new Error(`Failed to fetch shelves: ${err.message}`);
+      return {
+        shelfs: result.data,
+        total: result.total,
+        page,
+        limit,
+        offset,
+        totalPages,
+        previous: page > 1 ? page - 1 : null,
+        next: page < totalPages ? page + 1 : null,
+      };
+    } catch (err) {
+      throw new Error(`Failed to fetch shelves: ${err.message}`);
+    }
   }
-}
-
 
   static async createShelf(payload) {
     const data = this.validate(shelfSchema.create, payload);
@@ -73,9 +70,9 @@ class ShelfManager {
         details: [
           {
             path: ["room_id"],
-            message: "Cannot create shelf in a deleted or non-existing room"
-          }
-        ]
+            message: "Cannot create shelf in a deleted or non-existing room",
+          },
+        ],
       });
     }
 

@@ -14,12 +14,12 @@ router.get(
 
     const result = await shelfManager.getAllShelfPaginated(page, limit);
 
-    if (!result.shelfs || result.shelfs.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No shelves found"
-      });
-    }
+    // if (!result.shelfs || result.shelfs.length === 0) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No shelves found"
+    //   });
+    // }
 
     return res.json({
       success: true,

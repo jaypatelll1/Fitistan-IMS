@@ -70,22 +70,22 @@ router.post(
       });
     }
 
-    if (!Object.values(ITEM_STATUS).includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid status",
-      });
-    }
+    // 🚀 Normalize status here OR in manager (both ok)
+    const normalizedStatus = status.toUpperCase();
 
-    const updatedItem = await itemManager.updateItemStatus(item_id, status);
+    const updatedItem = await itemManager.updateItemStatus({
+      item_id,
+      status: normalizedStatus,
+    });
 
     return res.json({
       success: true,
       data: updatedItem,
-      message: `Item marked as ${status}`,
+      message: `Item marked as ${normalizedStatus}`,
     });
   })
 );
+
 
 router.get(
   "/count/:product_id",
