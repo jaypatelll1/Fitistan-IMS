@@ -50,7 +50,7 @@ const ITEM_STATUS = Object.freeze({
 
 const ORDER_STATUS = Object.freeze({
   PROCESSING: "processing",
-
+  RETURNED: "returned",
   DELIVERED: "delivered",
   CANCELLED: "cancelled",
 });

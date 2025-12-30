@@ -69,7 +69,7 @@ router.get(
 
 // PUT /orders/:order_id/status - Update order status
 router.put(
-    "/:order_id/status",
+    "/status/:order_id",
     appWrapper(async (req, res) => {
         const { order_id } = req.params;
         const { status } = req.body;
