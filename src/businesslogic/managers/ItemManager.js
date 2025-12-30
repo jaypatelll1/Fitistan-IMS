@@ -36,10 +36,9 @@ class itemManager {
 
             for (let i = 0; i < quantity; i++) {
                 const item = await itemModel.create({
-                    product_id,
                     name: Product.name,
                     shelf_id: shelf_id,
-                });
+                }, product_id);
 
                 createdItems.push(item);
             }
