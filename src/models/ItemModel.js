@@ -225,22 +225,29 @@ class ItemModel extends BaseModel {
     }
   }
 
-  // async softDelete(product_id, quantity) {
-  //     try {
-  //         const qb = await this.getQueryBuilder();
+  async softDelete(product_id, quantity, status) {
+    try {
+      const qb = await this.getQueryBuilder();
 
-  //         return qb("items")
-  //             .whereIn("id", function () {
-  //                 this.select("id")
-  //                     .from("items")
-  //                     .where({ product_id, is_deleted: false })
-  //                     .limit(quantity);
-  //             })
-  //             .update({ is_deleted: true });
-  //     } catch (e) {
-  //         throw new DatabaseError(e);
-  //     }
-  // }
+      // If returned, item should NOT be deleted (it's back in stock)
+      const isDeleted = status !== ITEM_STATUS.RETURNED;
+
+      return qb("items")
+        .whereIn("id", function () {
+          this.select("id")
+            .from("items")
+            .where({ product_id, is_deleted: !isDeleted }) // Find deleted items if returning, non-deleted otherwise
+            .limit(quantity);
+        })
+        .update({
+          is_deleted: isDeleted,
+          status: status,
+          updated_at: qb.raw("CURRENT_TIMESTAMP")
+        });
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 
   // async updateStatus(item_id, status) {
   //     try {
@@ -270,6 +277,23 @@ class ItemModel extends BaseModel {
   //             .returning("*");
 
   //         return updatedItem || null;
+  //     } catch (e) {
+  //         throw new DatabaseError(e);
+  //     }
+  // }
+
+   // async softDelete(product_id, quantity) {
+  //     try {
+  //         const qb = await this.getQueryBuilder();
+
+  //         return qb("items")
+  //             .whereIn("id", function () {
+  //                 this.select("id")
+  //                     .from("items")
+  //                     .where({ product_id, is_deleted: false })
+  //                     .limit(quantity);
+  //             })
+  //             .update({ is_deleted: true });
   //     } catch (e) {
   //         throw new DatabaseError(e);
   //     }
