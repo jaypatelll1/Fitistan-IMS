@@ -7,7 +7,10 @@ class DatabaseError extends AppError {
             e = new Error(e);
         }
 
-        super(e, ERROR_STATUS_CODES.INTERNAL_SERVER_ERROR,"Database error occurred");
+        // Extract real message
+        const message = e?.message || "Database error occurred";
+
+        super(e, ERROR_STATUS_CODES.INTERNAL_SERVER_ERROR, message);
         if(e.message)console.log("err",e.message);
         
         this.name = this.constructor.name;

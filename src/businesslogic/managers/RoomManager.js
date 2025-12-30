@@ -1,91 +1,122 @@
-
-
 const RoomModel = require("../../models/RoomModel");
+const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 
-
+const {
+  createRoomSchema,
+  updateRoomSchema,
+  roomIdSchema
+} = require("../../validators/roomValidator");
 
 class RoomManager {
 
-  static async getAllRooms(userId) {
-    try {
-      console.log(userId);
-
-      const roomModel = new RoomModel();
-      const room = await roomModel.getAllRooms();
-
-      return room;
-    } catch (err) {
-      throw new Error(`Failed to fecth all rooms: ${err.message}`);
-    }
-  }
-
-  static async getRoomById(id, userId) {
-
-    try {
-      const roomModel = new RoomModel(userId);
-      const room = await roomModel.getRoomById(id);
-      if (!room) {
-        throw new Error(`Room not found or the room is deleted`);
-      }
-      return room;
-    } catch (error) {
-      throw new Error(`Failed to get room by ID: ${error.message}`);
-    }
-
-  }
-
-static async createRoom(data, userId) {
+ static async getAllRoomsPaginated(userId, page, limit) {
   try {
     const roomModel = new RoomModel(userId);
-    return await roomModel.createRoom(data);
-  } catch (error) {
-    throw new Error(error.message);
+    const result = await roomModel.getAllRoomsPaginated(page, limit);
+
+    const totalPages = Math.ceil(result.total / limit);
+    const offset = (page - 1) * limit;
+
+    return {
+      rooms: result.data,
+      total: result.total,
+      page,
+      limit,
+      offset,
+      totalPages,
+      previous: page > 1 ? page - 1 : null,
+      next: page < totalPages ? page + 1 : null
+    };
+  } catch (err) {
+    throw new Error(`Failed to fetch rooms: ${err.message}`);
+  }
+}
+
+  static async getRoomById(id, userId) {
+    const { error, value } = roomIdSchema.validate(
+      { id },
+      { abortEarly: false }
+    );
+
+    if (error) throw new JoiValidatorError(error);
+
+    const roomModel = new RoomModel(userId);
+    const room = await roomModel.getRoomById(value.id);
+
+    if (!room) {
+      return { success: false, message: "Room not found" };
+    }
+
+    return room;
+  }
+
+static async createRoom(payload, userId) {
+  const { error, value } = createRoomSchema.validate(payload, {
+      abortEarly: false,
+      stripUnknown: true
+  });
+  if (error) throw new JoiValidatorError(error);
+
+  const roomModel = new RoomModel(userId);
+
+  try {
+      const room = await roomModel.createRoom(value);
+      return room;
+  } catch (e) {
+      // Logical errors about room already existing
+      if (e.message.includes("Room exists")) {
+          throw new JoiValidatorError({
+              details: [
+                  { path: ["room_name"], message: e.message }
+              ]
+          });
+      }
+
+      // Unexpected database errors
+      throw e;
   }
 }
 
 
-  static async updateRoom(id, data, userId) {
 
-    try {
-      const roomModel = new RoomModel(userId);
-      const room = await roomModel.updateRoom(id, data);
 
-      if (!room) {
-        throw new Error(`Room does not exist or no fields to update`);
-      }
+  static async updateRoom(id, payload, userId) {
+    const idCheck = roomIdSchema.validate({ id }, { abortEarly: false });
+    if (idCheck.error) throw new JoiValidatorError(idCheck.error);
 
-      if(room.is_deleted){
-        throw new Error(`Room is already deleted`);
-      }
+    const { error, value } = updateRoomSchema.validate(payload, {
+      abortEarly: false,
+      stripUnknown: true
+    });
 
-      return room;
+    if (error) throw new JoiValidatorError(error);
 
-    } catch (error) {
-      throw new Error(`Failed to update room: ${error.message}`);
+    const roomModel = new RoomModel(userId);
+    const room = await roomModel.updateRoom(id, value);
+
+    if (!room) {
+      return { success: false, message: "Room not found or no update data" };
     }
-    
+
+    return room;
   }
 
   static async deleteRoom(id, userId) {
-    try {
-      const roomModel = new RoomModel(userId);
-    const room = await roomModel.getRoomById(id);
+    const { error, value } = roomIdSchema.validate(
+      { id },
+      { abortEarly: false }
+    );
 
-    if (!room) {
-      throw new Error(`Room not found`);
+    if (error) throw new JoiValidatorError(error);
+
+    const roomModel = new RoomModel(userId);
+    const deleted = await roomModel.deleteRoom(value.id);
+
+    if (!deleted) {
+      return { success: false, message: "Room not found or already deleted" };
     }
 
-    if (room.is_deleted) {
-      throw new Error(`Room is already deleted`);
-    }
-
-    return roomModel.deleteRoom(id);
-      
-    } catch (error) {
-     
-      throw new Error(`Failed to delete room: ${error.message}`);
-    }
-    
+    return true;
   }
 }
 

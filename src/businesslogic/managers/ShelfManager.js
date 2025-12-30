@@ -1,72 +1,109 @@
-require('dotenv').config();
-const ShelfModel = require("../../models/shelfModel"); // ✅ Class name
+require("dotenv").config();
+
+const ShelfModel = require("../../models/shelfModel");
+const RoomModel = require("../../models/RoomModel");
+const shelfSchema = require("../../validators/shelfValidator");
+const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 
 class ShelfManager {
 
-  static async getAllShelf(data) {
-    try {
-      console.log(data);
+  
+  static validate(schema, data) {
+    const { error, value } = schema.validate(data, {
+      abortEarly: false,
+      stripUnknown: true
+    });
 
-      const shelfModel = new ShelfModel(); 
-      const shelf = await shelfModel.findAll();
+    if (error) {
+      // Patch object.min(1) error to show allowed keys
+      const patchedError = {
+        ...error,
+        details: error.details.map(detail => {
+          if (detail.type === "object.min" && detail.path.length === 0) {
+            return {
+              ...detail,
+              path: Object.keys(schema.describe().keys)
+            };
+          }
+          return detail;
+        })
+      };
 
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to fetch all shelfs: ${err.message}`);
+      throw new JoiValidatorError(patchedError);
     }
-  };
 
-  static async createShelf(data) {
-    try {
-      console.log(data);
+    return value;
+  }
 
-      const shelfModel = new ShelfModel();
-      const shelf = await shelfModel.create(data);
+  
 
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to create shelf: ${err.message}`);
+ static async getAllShelfPaginated(page, limit) {
+  try {
+    const shelfModel = new ShelfModel();
+    const result = await shelfModel.getAllShelfPaginated(page, limit);
+
+    const totalPages = Math.ceil(result.total / limit);
+    const offset = (page - 1) * limit;
+
+    return {
+      shelfs: result.data,
+      total: result.total,
+      page,
+      limit,
+      offset,
+      totalPages,
+      previous: page > 1 ? page - 1 : null,
+      next: page < totalPages ? page + 1 : null
+    };
+  } catch (err) {
+    throw new Error(`Failed to fetch shelves: ${err.message}`);
+  }
+}
+
+
+  static async createShelf(payload) {
+    const data = this.validate(shelfSchema.create, payload);
+
+    // Business rule: room must exist and not be deleted
+    const roomModel = new RoomModel();
+    const room = await roomModel.getRoomById(data.room_id);
+
+    if (!room) {
+      throw new JoiValidatorError({
+        details: [
+          {
+            path: ["room_id"],
+            message: "Cannot create shelf in a deleted or non-existing room"
+          }
+        ]
+      });
     }
-  };  
-  static async getShelfById(id) {
-    try {
-      const shelfModel = new ShelfModel();
-      const shelf = await shelfModel.findById(id);
-      if (!shelf) {
-        return null;
-      }
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to get shelf by ID: ${err.message}`);
-    } 
-  };
 
-  static async updateShelf(id, data) {
-    try {
-      const shelfModel = new ShelfModel();
-      const shelf = await shelfModel.update(id, data);
-      if (!shelf) {
-       return null;
-      }
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to update shelf: ${err.message}`);
-    }
-  };
+    const shelfModel = new ShelfModel();
+    return await shelfModel.createShelf(data);
+  }
 
-  static async deleteShelf(id) {
-    try {
-      const shelfModel = new ShelfModel();
-      const shelf = await shelfModel.softDelete(id);
-      if (!shelf) {
-       return null;
-      }
-      return shelf;
-    } catch (err) {
-      throw new Error(`Failed to delete shelf: ${err.message}`);
-    }
-  };
+  static async getShelfById(params) {
+    const { id } = this.validate(shelfSchema.id, params);
 
+    const shelfModel = new ShelfModel();
+    return await shelfModel.getShelfById(id);
+  }
+
+  static async updateShelf(params, body) {
+    const { id } = this.validate(shelfSchema.id, params);
+    const updateBody = this.validate(shelfSchema.update, body);
+
+    const shelfModel = new ShelfModel();
+    return await shelfModel.updateShelf(id, updateBody);
+  }
+
+  static async deleteShelf(params) {
+    const { id } = this.validate(shelfSchema.id, params);
+
+    const shelfModel = new ShelfModel();
+    return await shelfModel.deleteShelf(id);
+  }
 }
 
 module.exports = ShelfManager;

@@ -1,85 +1,133 @@
 const express = require("express");
-const router = express.Router({ mergeParams: true });
 const { appWrapper } = require("../routeWrapper");
-const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
+const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
 const roomManager = require("../../businesslogic/managers/RoomManager");
-const validateRoom = require("../../validators/RoomValidator");
+const { RES_LOCALS } = require("../middleware/constant");
 
-// GET ALL ROOMS
+const router = express.Router({ mergeParams: true });
+
+
 router.get(
-  "/manage/all",
-  appWrapper(async (req, res) => {
-    const rooms = await roomManager.getAllRooms();
-    return { success: true, data: rooms };
-  }, [ACCESS_ROLES.ALL])
+  "/get_all_rooms",
+  appWrapper(
+    async (req, res) => {
+      const userId = res.locals[RES_LOCALS.USER_INFO.KEY].user.user_id;
+
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      const result = await roomManager.getAllRoomsPaginated(
+        userId,
+        page,
+        limit
+      );
+
+      if (!result.rooms || result.rooms.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No rooms found"
+        });
+      }
+
+      return {
+        success: true,
+        rooms: result.rooms,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          totalPages: result.totalPages,
+          offset: result.offset,
+          previous: result.previous,
+          next: result.next
+        },
+        message: "Rooms fetched successfully"
+      };
+    },
+    [ACCESS_ROLES.ALL]
+  )
 );
 
-// CREATE ROOM
+
 router.post(
-  "/manage/create",
-  validateRoom("create"),
-  appWrapper(async (req, res) => {
-    const room = await roomManager.createRoom(req.validatedData);
-    return { success: true, data: room, message: "Room created successfully" };
-  }, [ACCESS_ROLES.ACCOUNT_ADMIN])
+  "/create_room",
+  appWrapper(
+    async (req, res) => {
+      const userId = res.locals[RES_LOCALS.USER_INFO.KEY].user.user_id;
+      const room = await roomManager.createRoom(req.body, userId);
+
+      return {
+        
+        room:room
+        
+      };
+    },
+    [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
+  )
 );
 
-// GET ROOM BY ID
+
 router.get(
-  "/manage/:id",
-  validateRoom("id"),
-  appWrapper(async (req, res) => {
-    const { id } = req.validatedData;
-    const room = await roomManager.getRoomById(id);
+  "/get_room/:id",
+  appWrapper(
+    async (req, res) => {
+      const userId = res.locals[RES_LOCALS.USER_INFO.KEY].user.user_id;
+      const { id } = req.params;
 
-    if (!room) {
-      return { success: false, message: "Room not found" };
-    }
+      const room = await roomManager.getRoomById(id, userId);
 
-    return { success: true, data: room };
-  }, [ACCESS_ROLES.ALL])
+      return {
+        
+        room:room
+        
+      };
+    },
+    [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
+  )
 );
 
-// UPDATE ROOM
+
 router.put(
-  "/manage/update/:id",
-  validateRoom("update"),
-  appWrapper(async (req, res) => {
-    const { id } = req.params;
-    const room = await roomManager.updateRoom(id, req.validatedData.updateBody);
+  "/update_room/:id",
+  appWrapper(
+    async (req, res) => {
+      const userId = res.locals[RES_LOCALS.USER_INFO.KEY].user.user_id;
+      const { id } = req.params;
 
-    if (!room) {
-      return res.status(404).json({
-        success: false,
-        message: "Room does not exist or no fields to update",
-      });
-    }
+      const updatedRoom = await roomManager.updateRoom(
+        id,
+        req.body,
+        userId
+      );
 
-    return res.json({
-      success: true,
-      data: room,
-      message: "Room updated successfully",
-    });
-  }, [ACCESS_ROLES.ACCOUNT_ADMIN])
+      return {
+       
+        updated_room: updatedRoom
+        
+      };
+    },
+    [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
+  )
 );
 
 
-
-
-// DELETE ROOM
 router.delete(
-  "/manage/delete/:id",
-  validateRoom("id"),
-  appWrapper(async (req, _res) => {
-    const { id } = req.validatedData;
-    const result = await roomManager.deleteRoom(id);
+  "/delete_room/:id",
+  appWrapper(
+    async (req, res) => {
+      const userId = res.locals[RES_LOCALS.USER_INFO.KEY].user.user_id;
+      const { id } = req.params;
 
-    if (!result) {
-      return { success: false, message: "Room not found" };
-    }
+      const result = await roomManager.deleteRoom(id, userId);
 
-    return { success: true, data: result, message: "Room deleted successfully" };
-  }, [ACCESS_ROLES.ACCOUNT_ADMIN])
+      return {
+        
+        deleted_room: result,
+        message: "Room deleted successfully"
+      };
+    },
+    [ACCESS_ROLES.ACCOUNT_ADMIN]
+  )
 );
 
 module.exports = router;

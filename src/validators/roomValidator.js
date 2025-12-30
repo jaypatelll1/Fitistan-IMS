@@ -1,52 +1,74 @@
 const Joi = require("joi");
-const ValidationError = require("../errorhandlers/ValidationError");
+const COMMON_MESSAGES  = require("../validators/validationConstants/commanMessages");
 
-const roomSchema = {
-  create: Joi.object({
-    room_name: Joi.string().trim().min(2).max(255).required(),
-    warehouse_id: Joi.number().integer().positive().required()
-  }),
-  update: Joi.object({
-    room_name: Joi.string().trim().min(2).max(255),
-    warehouse_id: Joi.number().integer().positive()
-  }).min(1),
-  id: Joi.object({
-    id: Joi.number().integer().positive().required()
-  })
+const createRoomSchema = Joi.object({
+  room_name: Joi.string()
+    .trim()
+    .min(2)
+    .max(255)
+    .required()
+    .label("Room name")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.empty": COMMON_MESSAGES.STRING_EMPTY,
+      "string.min": COMMON_MESSAGES.STRING_MIN,
+      "string.max": COMMON_MESSAGES.STRING_MAX,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
+
+  warehouse_id: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .label("Warehouse ID")
+    .messages({
+      "number.base": COMMON_MESSAGES.NUMBER_BASE,
+      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    })
+});
+
+const updateRoomSchema = Joi.object({
+  room_name: Joi.string()
+    .trim()
+    .min(2)
+    .max(255)
+    .label("Room name")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.empty": COMMON_MESSAGES.STRING_EMPTY,
+      "string.min": COMMON_MESSAGES.STRING_MIN,
+      "string.max": COMMON_MESSAGES.STRING_MAX
+    }),
+
+  warehouse_id: Joi.number()
+    .integer()
+    .positive()
+    .label("Warehouse ID")
+    .messages({
+      "number.base": COMMON_MESSAGES.NUMBER_BASE,
+      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+    })
+}).min(1);
+
+const roomIdSchema = Joi.object({
+  id: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .label("Room ID")
+    .messages({
+      "number.base": COMMON_MESSAGES.NUMBER_BASE,
+      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    })
+});
+
+module.exports = {
+  createRoomSchema,
+  updateRoomSchema,
+  roomIdSchema
 };
-
-const validateRoom = (schema) => {
-  return (req, res, next) => {
-    const data = schema === "id" ? req.params : req.body;
-
-    const { error, value } = roomSchema[schema].validate(data, {
-      abortEarly: false,
-      stripUnknown: true
-    });
-
-    // if (error) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Validation error",
-    //     errors: error.details.map(d => ({
-    //       field: d.path[0],
-    //       message: d.message
-    //     }))
-    //   });
-    // }
-
-    if (error) {
-      const vError = new ValidationError(error);
-      return res.status(vError.status).json(vError.response);
-    }
-
-    if (!req.validatedData) req.validatedData = {};
-    if (schema === "update") req.validatedData.updateBody = value;
-    if (schema === "id") req.validatedData.id = value.id;
-    if (schema === "create") req.validatedData = value;
-
-    next();
-  };
-};
-
-module.exports = validateRoom;

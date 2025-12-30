@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 
 const ProductManager = require("../../businesslogic/managers/ProductManager");
-const itemManager = require("../../businesslogic/managers/ItemManager");
+
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
-const ACCESS_ROLES = require("../../businesslogic/accessmanagement/roleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
@@ -13,58 +13,22 @@ const ACCESS_ROLES = require("../../businesslogic/accessmanagement/roleConstants
 // ==========================
 // GET ALL PRODUCTS
 // ==========================
-
 router.get(
   "/all",
   appWrapper(async (req, res) => {
-
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-
-    const result = await ProductManager.getAllProductsPaginated(page, limit);
-
-    if (!result.products || result.products.length === 0) {
+    const products = await ProductManager.getAllProducts();
+    if (!products || products.length === 0) {
       return res.status(404).json({
         success: false,
         message: "No products found",
       });
     }
-
     return res.json({
       success: true,
-      data: result.products,
-      pagination: {
-        page: result.page,
-        limit: result.limit,
-        total: result.total,
-        totalPages: result.totalPages,
-        offset: result.offset,
-        previous: result.previous,
-        next: result.next
-      }
+      data: products,
     });
-
-
-  })
+  }, [ACCESS_ROLES.ALL])
 );
-
-
-// router.get(
-//   "/all",
-//   appWrapper(async (req, res) => {
-//     const products = await ProductManager.getAllProducts();
-//     if (!products || products.length === 0) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "No products found",
-//       });
-//     }
-//     return res.json({
-//       success: true,
-//       data: products,
-//     });
-//   }, [ACCESS_ROLES.ALL])
-// );
 
 // ==========================
 // CREATE PRODUCT
@@ -73,25 +37,25 @@ router.post(
   "/create",
   // validate(validators.createProductSchema),
   appWrapper(async (req, res) => {
-
+  
     // const{quantity,shelf_id, ...productData} = req.body;
     const productData = req.body;
-
+ 
     const product = await ProductManager.createProduct(productData);
-
+   
     // const item = await itemManager.createItem({ product_id: product.product_id, shelf_id, name : productData.name},quantity);
-
+    
     console.log("Product created:", product);
+     
 
-
-
+    
     return res.json({
       success: true,
       data: product,
       message: "Product created successfully",
     })
-
-      ;
+    
+    ;
   }, [ACCESS_ROLES.ALL])
 );
 

@@ -1,31 +1,93 @@
 const Joi = require("joi");
+const  COMMON_MESSAGES  = require("../validators/validationConstants/commanMessages");
 
-const registerSchema = (req, res, next) => {
-  const schema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().min(8).required(),
-    name: Joi.string().min(2).max(50).required(),
-    phone: Joi.string().pattern(/^[0-9]{10}$/).optional(),
-    gender: Joi.string().valid("male", "female", "other").optional(),
-    profile_picture_url: Joi.string().uri().optional(),
-    role_id: Joi.number().integer().positive().required()
+const registerSchema = Joi.object({
+  email: Joi.string()
+    .email()
+    .required()
+    .label("Email")
+    .messages({
+      "string.email": COMMON_MESSAGES.STRING_EMAIL,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
 
-  });
+  password: Joi.string()
+    .min(8)
+    .required()
+    .label("Password")
+    .messages({
+      "string.min": COMMON_MESSAGES.STRING_MIN,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
 
-  const { error } = schema.validate(req.body);
-  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
-  next();
+  name: Joi.string()
+    .min(2)
+    .max(50)
+    .required()
+    .label("Name")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.min": COMMON_MESSAGES.STRING_MIN,
+      "string.max": COMMON_MESSAGES.STRING_MAX,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
+
+  phone: Joi.string()
+    .pattern(/^[0-9]{10}$/)
+    .label("Phone number")
+    .messages({
+      "string.pattern.base": "Phone number must be 10 digits"
+    })
+    .optional(),
+
+  gender: Joi.string()
+    .valid("male", "female", "other")
+    .label("Gender")
+    .messages({
+      "any.only": "{#label} must be male, female or other"
+    })
+    .optional(),
+
+  profile_picture_url: Joi.string()
+    .uri()
+    .label("Profile picture URL")
+    .messages({
+      "string.uri": "{#label} must be a valid URL"
+    })
+    .optional(),
+
+  role_id: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .label("Role ID")
+    .messages({
+      "number.base": COMMON_MESSAGES.NUMBER_BASE,
+      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    })
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string()
+    .email()
+    .required()
+    .label("Email")
+    .messages({
+      "string.email": COMMON_MESSAGES.STRING_EMAIL,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
+
+  password: Joi.string()
+    .required()
+    .label("Password")
+    .messages({
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    })
+});
+
+module.exports = {
+  registerSchema,
+  loginSchema
 };
-
-const loginSchema = (req, res, next) => {
-  const schema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-  });
-
-  const { error } = schema.validate(req.body);
-  if (error) return res.status(400).json({ success: false, message: error.details[0].message });
-  next();
-};
-
-module.exports = { registerSchema, loginSchema };

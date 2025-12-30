@@ -1,89 +1,115 @@
-const Joi = require('joi');
-const ValidationError = require('../errorhandlers/ValidationError');
+const Joi = require("joi");
+const  COMMON_MESSAGES  = require("../validators/validationConstants/commanMessages");
 
-const createShelfSchema = Joi.object({
-  shelf_name: Joi.string().min(2).max(255).required().messages({
-    'string.empty': 'Shelf name is required',
-   
+const shelfSchema = {
+  create: Joi.object({
+    shelf_name: Joi.string()
+      .trim()
+      .min(2)
+      .max(255)
+      .required()
+      .label("Shelf name")
+      .messages({
+        "string.base": COMMON_MESSAGES.STRING_BASE,
+        "string.empty": COMMON_MESSAGES.STRING_EMPTY,
+        "string.min": COMMON_MESSAGES.STRING_MIN,
+        "string.max": COMMON_MESSAGES.STRING_MAX,
+        "any.required": COMMON_MESSAGES.ANY_REQUIRED
+      }),
+
+    warehouse_id: Joi.number()
+      .integer()
+      .positive()
+      .required()
+      .label("Warehouse ID")
+      .messages({
+        "number.base": COMMON_MESSAGES.NUMBER_BASE,
+        "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+        "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+        "any.required": COMMON_MESSAGES.ANY_REQUIRED
+      }),
+
+    room_id: Joi.number()
+      .integer()
+      .positive()
+      .required()
+      .label("Room ID")
+      .messages({
+        "number.base": COMMON_MESSAGES.NUMBER_BASE,
+        "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+        "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+        "any.required": COMMON_MESSAGES.ANY_REQUIRED
+      }),
+
+    capacity: Joi.number()
+      .integer()
+      .positive()
+      .label("Capacity")
+      .messages({
+        "number.base": COMMON_MESSAGES.NUMBER_BASE,
+        "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+        "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+      })
+      .optional()
   }),
-   warehouse_id: Joi.number().integer().required().messages({
-      'integer.empty': 'Warehouse ID is required'
-   }),
-   room_id: Joi.number().integer().required().messages({
-      'integer.empty': 'Room ID is required'
-   }),
-   capacity: Joi.number().integer().optional().messages({
-      'integer.empty': 'Capacity is required'
-   })
-})
 
-const updateShelfSchema = Joi.object({
-    shelf_name: Joi.string().min(2).max(255).messages({
-      'string.empty': 'Shelf name is required'
-     }),  
-       warehouse_id: Joi.number().integer().messages({
-          'integer.empty': 'Warehouse ID is required'
-         
-       }),
-         room_id: Joi.number().integer().messages({
-          'integer.empty': 'Room ID is required'
-          
-       })
-         ,   capacity: Joi.number().integer().optional().messages({
-          'integer.empty': 'Capacity is required'
-          
-       })
-});
+  update: Joi.object({
+    shelf_name: Joi.string()
+      .trim()
+      .min(2)
+      .max(255)
+      .label("Shelf name")
+      .messages({
+        "string.base": COMMON_MESSAGES.STRING_BASE,
+        "string.empty": COMMON_MESSAGES.STRING_EMPTY,
+        "string.min": COMMON_MESSAGES.STRING_MIN,
+        "string.max": COMMON_MESSAGES.STRING_MAX
+      }),
 
+    warehouse_id: Joi.number()
+      .integer()
+      .positive()
+      .label("Warehouse ID")
+      .messages({
+        "number.base": COMMON_MESSAGES.NUMBER_BASE,
+        "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+        "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+      }),
 
-const validateShelf = (type) => {
-  return (req, res, next) => {
-    let schema;
-    let data;
+    room_id: Joi.number()
+      .integer()
+      .positive()
+      .label("Room ID")
+      .messages({
+        "number.base": COMMON_MESSAGES.NUMBER_BASE,
+        "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+        "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+      }),
 
-    if (type === "create") {
-      schema = createShelfSchema;
-      data = req.body;
-    }
+    capacity: Joi.number()
+      .integer()
+      .positive()
+      .label("Capacity")
+      .messages({
+        "number.base": COMMON_MESSAGES.NUMBER_BASE,
+        "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+        "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+      })
+  }).min(1),
 
-    if (type === "update") {
-      schema = updateShelfSchema;
-      data = req.body;
-    }
-
-    if (type === "id") {
-      schema = Joi.object({
-        id: Joi.number().integer().required()
-      });
-      data = req.params;
-    }
-
-    const { error, value } = schema.validate(data, {
-      abortEarly: false,
-      stripUnknown: true
-    });
-
-    if (error) {
-      const vError = new ValidationError(error);
-      return res.status(vError.status).json(vError.response);
-    }
-
-    if (!req.validatedData) req.validatedData = {};
-
-    if (type === "create") req.validatedData.createBody = value;
-    if (type === "update") req.validatedData.updateBody = value;
-    if (type === "id") req.validatedData.id = value.id;
-
-    next();
-  };
+  id: Joi.object({
+    id: Joi.number()
+      .integer()
+      .positive()
+      .required()
+      .label("Shelf ID")
+      .messages({
+        "number.base": COMMON_MESSAGES.NUMBER_BASE,
+        "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+        "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+        "any.required": COMMON_MESSAGES.ANY_REQUIRED
+      })
+  })
 };
 
-
-
-module.exports = {
-    createShelfSchema,
-    updateShelfSchema,
-      validateShelf
-}
-
-
+module.exports = shelfSchema;

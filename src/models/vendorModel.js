@@ -6,62 +6,19 @@ class VendorModel extends BaseModel {
     super(userId);
   }
 
-  // 👇 Only expose these fields in responses
-  getPublicColumns() {
-    return ["vendor_id", "vendor_name", "email", "phone", "address"];
-  }
-
-  async getAllVendorsPaginated(page = 1, limit = 10) {
-  try {
-    const qb = await this.getQueryBuilder();
-    const offset = (page - 1) * limit;
-
-    const data = await qb("vendors")
-      .select(this.getPublicColumns())
-      .where({ is_deleted: false })
-      .orderBy("vendor_id", "asc")
-      .limit(limit)
-      .offset(offset);
-
-    const [{ count }] = await qb("vendors")
-      .where({ is_deleted: false })
-      .count("* as count");
-
-    return {
-      data,
-      total: Number(count)
-    };
-  } catch (e) {
-    throw new DatabaseError(e);
-  }
-}
-
-
-  async getVendorById(vendor_id) {
-    try {
-      const qb = await this.getQueryBuilder();
-      const vendor = await qb("vendors")
-        .select(this.getPublicColumns())
-        .where({ vendor_id, is_deleted: false })
-        .first();
-      return vendor || null;
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
-  }
-
   async createVendor(data) {
     try {
       const qb = await this.getQueryBuilder();
+
       const [vendor] = await qb("vendors")
         .insert({
           vendor_name: data.vendor_name,
-          email: data.email || null,
+          email: data.email,
           phone: data.phone || null,
-          address: data.address || null,
+          address: data.address,
           is_deleted: false
         })
-        .returning(this.getPublicColumns());
+        .returning("*");
 
       return vendor;
     } catch (e) {
@@ -69,21 +26,38 @@ class VendorModel extends BaseModel {
     }
   }
 
-  async updateVendor(vendor_id, data) {
+  async getAllVendors() {
     try {
       const qb = await this.getQueryBuilder();
+      return qb("vendors").where(
+        this.whereStatement({ is_deleted: false })
+      );
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 
-      const exists = await qb("vendors")
-        .select("vendor_id")
-        .where({ vendor_id, is_deleted: false })
+  async getVendorById(id) {
+    try {
+      const qb = await this.getQueryBuilder();
+      return qb("vendors")
+        .where(this.whereStatement({ vendor_id: id, is_deleted: false }))
         .first();
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 
-      if (!exists) return null;
+  // UPDATE ✅
+  async updateVendor(id, data) {
+    try {
+      if (!data || Object.keys(data).length === 0) return null;
 
+      const qb = await this.getQueryBuilder();
       const [vendor] = await qb("vendors")
-        .where({ vendor_id, is_deleted: false })
+        .where({ vendor_id: id, is_deleted: false })
         .update(data)
-        .returning(this.getPublicColumns());
+        .returning("*");
 
       return vendor;
     } catch (e) {
@@ -91,23 +65,12 @@ class VendorModel extends BaseModel {
     }
   }
 
-  async deleteVendor(vendor_id) {
+  async deleteVendor(id) {
     try {
       const qb = await this.getQueryBuilder();
-
-      const exists = await qb("vendors")
-        .select("vendor_id")
-        .where({ vendor_id, is_deleted: false })
-        .first();
-
-      if (!exists) return null;
-
-      const [vendor] = await qb("vendors")
-        .where({ vendor_id, is_deleted: false })
-        .update({ is_deleted: true })
-        .returning(this.getPublicColumns());
-
-      return vendor;
+      return qb("vendors")
+        .where({ vendor_id: id })
+        .update({ is_deleted: true });
     } catch (e) {
       throw new DatabaseError(e);
     }
