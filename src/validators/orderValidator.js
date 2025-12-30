@@ -17,7 +17,7 @@ const createOrderSchema = Joi.object({
             "any.required": COMMON_MESSAGES.ANY_REQUIRED
         }),
 
-   shelf_id: Joi.number()
+    shelf_id: Joi.number()
         .integer()
         .positive()
         .required()
@@ -39,6 +39,14 @@ const createOrderSchema = Joi.object({
             "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
             "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
             "any.required": COMMON_MESSAGES.ANY_REQUIRED
+        }),
+
+    status: Joi.string()
+        .valid(...validStatuses)
+        .optional()
+        .label("Status")
+        .messages({
+            "any.only": `{#label} must be one of: ${validStatuses.join(", ")}`
         })
 });
 
@@ -95,7 +103,7 @@ const paginationSchema = Joi.object({
         .optional()
         .label("Product ID"),
 
-   shelf_id: Joi.number()
+    shelf_id: Joi.number()
         .integer()
         .positive()
         .optional()

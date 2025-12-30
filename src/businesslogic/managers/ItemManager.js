@@ -49,7 +49,7 @@ class itemManager {
         }
     }
 
-    static async removeItemStock(product_id, shelf_id, quantity) {
+    static async removeItemStock(product_id, shelf_id, quantity, status) {
         try {
             const itemModel = new ItemModel();
 
@@ -67,8 +67,8 @@ class itemManager {
             // 1. Soft delete the items
             const deleted = await itemModel.softDelete(product_id, quantity);
 
-            // 2. Create an order record for the removed items
-            const order = await OrderManager.createOrder(product_id, shelf_id, quantity);
+            // 2. Create an order record for the removed items (status from request)
+            const order = await OrderManager.createOrder(product_id, shelf_id, quantity, status);
             console.log("Order created:", order);
 
             return { removed: quantity, deleted, order };

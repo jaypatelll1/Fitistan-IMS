@@ -10,9 +10,9 @@ const {
 
 class OrderManager {
 
-    static async createOrder(product_id, shelf_id, quantity) {
+    static async createOrder(product_id, shelf_id, quantity, status) {
         const { error, value } = createOrderSchema.validate(
-            { product_id, shelf_id, quantity },
+            { product_id, shelf_id, quantity, status },
             { abortEarly: false, stripUnknown: true }
         );
 
@@ -25,7 +25,7 @@ class OrderManager {
                 product_id: value.product_id,
                 shelf_id: value.shelf_id,
                 quantity: value.quantity,
-                status: ORDER_STATUS.PROCESSING
+                status: value.status || ORDER_STATUS.PROCESSING
             });
 
             return order;
