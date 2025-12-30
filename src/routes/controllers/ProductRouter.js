@@ -16,8 +16,10 @@ const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConst
 router.get(
   "/all",
   appWrapper(async (req, res) => {
-    const products = await ProductManager.getAllProducts();
-    if (!products || products.length === 0) {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const result = await ProductManager.getAllProductsPaginated(page, limit);
+    if (!result.products || result.products.length === 0) {
       return res.status(404).json({
         success: false,
         message: "No products found",
@@ -25,7 +27,15 @@ router.get(
     }
     return res.json({
       success: true,
-      data: products,
+      data: result.products,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+        previous: result.previous,
+        next: result.next,
+      },
     });
   }, [ACCESS_ROLES.ALL])
 );
@@ -37,25 +47,25 @@ router.post(
   "/create",
   // validate(validators.createProductSchema),
   appWrapper(async (req, res) => {
-  
+
     // const{quantity,shelf_id, ...productData} = req.body;
     const productData = req.body;
- 
-    const product = await ProductManager.createProduct(productData);
-   
-    // const item = await itemManager.createItem({ product_id: product.product_id, shelf_id, name : productData.name},quantity);
-    
-    console.log("Product created:", product);
-     
 
-    
+    const product = await ProductManager.createProduct(productData);
+
+    // const item = await itemManager.createItem({ product_id: product.product_id, shelf_id, name : productData.name},quantity);
+
+    console.log("Product created:", product);
+
+
+
     return res.json({
       success: true,
       data: product,
       message: "Product created successfully",
     })
-    
-    ;
+
+      ;
   }, [ACCESS_ROLES.ALL])
 );
 
