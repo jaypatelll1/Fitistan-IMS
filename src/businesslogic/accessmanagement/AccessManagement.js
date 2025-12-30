@@ -1,4 +1,4 @@
-const  {ACCESS_ROLES}  = require("../accessmanagement/RoleConstants");
+const  {ACCESS_ROLES}  = require("../accessmanagement/roleConstants");
 const USER_ROLES_INFO = require("../../models/libs/seedConstants");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
 

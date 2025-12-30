@@ -4,7 +4,7 @@ const router = express.Router({ mergeParams: true });
 const itemManager = require("../../businesslogic/managers/ItemManager");
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
-const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
+const {ACCESS_ROLES} = require("../../businesslogic/accessmanagement/roleConstants");
 const { ITEM_STATUS } = require("../../models/libs/dbConstants");
 
 // POST /items/addStock - Add stock for a product
