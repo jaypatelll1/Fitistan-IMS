@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 
 const ProductManager = require("../../businesslogic/managers/ProductManager");
-
+const { generatePresignedUploadUrl } = require("../../services/presignedUploadServices");
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
-const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/RoleConstants");
 
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
@@ -152,6 +152,17 @@ router.get(
 );
 
 
+// ==========================
+// PRESIGNED URL FOR UPLOAD
+// ==========================
+router.post(
+  "/presigned-url",
+  appWrapper(async (req, res) => {
+    const { fileName, functionality, subFunctionality } = req.body;
+    const result = await generatePresignedUploadUrl({ fileName, functionality, subFunctionality });
+    res.json(result);
+  }, [ACCESS_ROLES.ALL])
+);
 
 
 // generate BARCODE BY barcode id
