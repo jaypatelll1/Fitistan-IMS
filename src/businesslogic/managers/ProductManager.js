@@ -1,6 +1,7 @@
 const ProductModel = require("../../models/ProductModel");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 
+const { generateAndUploadBarcode } = require("../../services/barcodeServices");
 const {
   productIdSchema,
   createProductSchema,
@@ -68,6 +69,11 @@ class ProductManager {
       }
 
       value.barcode = value.sku;
+
+
+      const barcodeResult = await generateAndUploadBarcode(value.sku);
+      value.barcode_image = barcodeResult.cdnUrl;
+
       const product = await productModel.create(value);
       return product;
 

@@ -51,6 +51,17 @@ router.post(
     // const{quantity,shelf_id, ...productData} = req.body;
     const productData = req.body;
 
+    // Handle Image Upload
+    if (req.files && req.files.image) {
+      const { uploadToS3 } = require("../../services/s3Services");
+      const file = req.files.image;
+
+      const fileName = `products/${productData.sku}-${Date.now()}.png`;
+      const imageUrl = await uploadToS3(file.data, fileName, file.mimetype);
+
+      productData.product_image = imageUrl;
+    }
+
     const product = await ProductManager.createProduct(productData);
 
     // const item = await itemManager.createItem({ product_id: product.product_id, shelf_id, name : productData.name},quantity);
