@@ -3,7 +3,7 @@ const router = express.Router({ mergeParams: true });
 
 const OrderManager = require("../../businesslogic/managers/OrderManager");
 const { appWrapper } = require("../routeWrapper");
-const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 
 // GET /orders/all - Get all orders with pagination and filters
 router.get(

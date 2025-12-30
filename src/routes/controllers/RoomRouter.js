@@ -1,6 +1,6 @@
 const express = require("express");
 const { appWrapper } = require("../routeWrapper");
-const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 const roomManager = require("../../businesslogic/managers/RoomManager");
 const { RES_LOCALS } = require("../middleware/constant");
 
@@ -57,9 +57,9 @@ router.post(
       const room = await roomManager.createRoom(req.body, userId);
 
       return {
-        
-        room:room
-        
+
+        room: room
+
       };
     },
     [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
@@ -77,9 +77,9 @@ router.get(
       const room = await roomManager.getRoomById(id, userId);
 
       return {
-        
-        room:room
-        
+
+        room: room
+
       };
     },
     [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
@@ -101,9 +101,9 @@ router.put(
       );
 
       return {
-       
+
         updated_room: updatedRoom
-        
+
       };
     },
     [ACCESS_ROLES.ACCOUNT_ADMIN, ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
@@ -121,7 +121,7 @@ router.delete(
       const result = await roomManager.deleteRoom(id, userId);
 
       return {
-        
+
         deleted_room: result,
         message: "Room deleted successfully"
       };
