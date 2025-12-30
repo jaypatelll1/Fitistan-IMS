@@ -17,11 +17,37 @@ class ProductManager {
     try {
       const result = await productModel.findAllPaginated(page, limit);
 
+      // Fetch aggregated stock details for these products
+      const products = result.data;
+      const productIds = products.map(p => p.product_id);
+
+      const ItemModel = require("../../models/ItemModel");
+      const itemModel = new ItemModel();
+      const stockDetails = await itemModel.getAggregateStockForProducts(productIds);
+
+      // Merge details
+      const productsWithStock = products.map(product => {
+        const details = stockDetails.filter(d => d.product_id === product.product_id);
+
+        const totalQty = details.reduce((sum, d) => sum + parseInt(d.qty), 0);
+
+        // Format locations: "Warehouse A - Room B - Shelf C (5)"
+        const locationStrings = details.map(d =>
+          `${d.warehouse_name} > ${d.room_name} > ${d.shelf_name} (${d.qty})`
+        );
+
+        return {
+          ...product,
+          stock_quantity: totalQty, // Override with actual count
+          location: locationStrings.length > 0 ? locationStrings.join(", ") : "N/A"
+        };
+      });
+
       const totalPages = Math.ceil(result.total / limit);
       const offset = (page - 1) * limit;
 
       return {
-        products: result.data,
+        products: productsWithStock,
         total: result.total,
         page,
         limit,
@@ -45,7 +71,26 @@ class ProductManager {
     try {
       const product = await productModel.findById(value.id);
       if (!product) return null;
-      return product;
+
+      // Fetch aggregated stock details
+      const ItemModel = require("../../models/ItemModel");
+      const itemModel = new ItemModel();
+      const stockDetails = await itemModel.getAggregateStockForProducts([value.id]);
+
+      // Calculate totals and formatted location string
+      const totalQty = stockDetails.reduce((sum, d) => sum + parseInt(d.qty), 0);
+
+      // Format locations: "Warehouse A > Room B > Shelf C (5)"
+      const locationStrings = stockDetails.map(d =>
+        `${d.warehouse_name} > ${d.room_name} > ${d.shelf_name} (${d.qty})`
+      );
+
+      return {
+        ...product,
+        stock_quantity: totalQty,
+        location: locationStrings.length > 0 ? locationStrings.join(", ") : "N/A"
+      };
+
     } catch (err) {
       throw new Error(`Failed to get product by ID: ${err.message}`);
     }

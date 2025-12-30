@@ -298,6 +298,33 @@ class ItemModel extends BaseModel {
   //         throw new DatabaseError(e);
   //     }
   // }
+
+  /**
+   * Get aggregated stock details (qty + location) for a list of product IDs
+   */
+  async getAggregateStockForProducts(productIds) {
+    try {
+      if (!productIds || productIds.length === 0) return [];
+
+      const qb = await this.getQueryBuilder();
+      return await qb("items")
+        .select(
+          "items.product_id",
+          "w.name as warehouse_name",
+          "r.room_name",
+          "s.shelf_name"
+        )
+        .count("items.id as qty")
+        .join("shelf as s", "items.shelf_id", "s.shelf_id")
+        .join("rooms as r", "s.room_id", "r.room_id")
+        .join("warehouses as w", "s.warehouse_id", "w.warehouse_id")
+        .whereIn("items.product_id", productIds)
+        .where("items.is_deleted", false)
+        .groupBy("items.product_id", "w.name", "r.room_name", "s.shelf_name");
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 }
 
 module.exports = ItemModel;

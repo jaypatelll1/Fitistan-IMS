@@ -157,6 +157,7 @@ class ProductModel extends BaseModel {
             throw new DatabaseError(e);
         }
     }
+
 }
 
 module.exports = ProductModel;
