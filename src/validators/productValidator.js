@@ -106,23 +106,23 @@ const updateProductSchema = Joi.object({
       "string.max": COMMON_MESSAGES.STRING_MAX
     }),
 
-  price: Joi.number()
-    .positive()
-    .label("Price")
-    .messages({
-      "number.base": COMMON_MESSAGES.NUMBER_BASE,
-      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
-    }),
+  // price: Joi.number()
+  //   .positive()
+  //   .label("Price")
+  //   .messages({
+  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
+  //     "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+  //   }),
 
-  quantity: Joi.number()
-    .integer()
-    .min(0)
-    .label("Quantity")
-    .messages({
-      "number.base": COMMON_MESSAGES.NUMBER_BASE,
-      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
-      "number.min": COMMON_MESSAGES.NUMBER_MIN
-    }),
+  // quantity: Joi.number()
+  //   .integer()
+  //   .min(0)
+  //   .label("Quantity")
+  //   .messages({
+  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
+  //     "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+  //     "number.min": COMMON_MESSAGES.NUMBER_MIN
+  //   }),
 
   description: Joi.string()
     .allow("", null)
