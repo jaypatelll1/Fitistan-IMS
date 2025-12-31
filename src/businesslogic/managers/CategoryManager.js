@@ -1,7 +1,8 @@
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 const CategoryModel = require("../../models/CategoryModel");
 const ProductModel = require("../../models/ProductModel");
-const validationError= require("../../errorhandlers/ValidationError")
+const validationError= require("../../errorhandlers/ValidationError");
+const { createCategorySchema } = require("../../validators/categoryValidator");
 
 
 class CategoryManager {
@@ -30,7 +31,7 @@ class CategoryManager {
       const offset = (page - 1) * limit;
 
       return {
-        products: result.items,
+        products: result.data,
         total: result.total,
         page,
         limit,
@@ -43,9 +44,59 @@ class CategoryManager {
       throw new Error(`Failed to fetch category products: ${err.message}`);
     }
   }
+
+  static async createCategory(payload){
+    const{error,value} =createCategorySchema.validate(payload,{
+      abortEarly:false,
+     stripUnknown:true
+
+    })
+    if (error){
+      throw new JoiValidatorError (error);
+    
+    }
+    const existingCategory= await CategoryModel.findByName(value.category_name);
+
+  if (existingCategory){
+    throw new validationError ("Category with this name already exists");
+
+  }
+  return CategoryModel.create(
+    {category_name:value.category_name},
+  
+  );
 }
 
 
+static async deleteCategoryById(categoryId, userId) {
+  // 1️⃣ Check category exists
+  const category = await CategoryModel.findById(categoryId);
+
+  if (!category || category.is_deleted) {
+    throw new Error("Category not found");
+  }
+
+  // 2️⃣ Check if products exist
+  const productModel = new ProductModel(userId);
+  const productCount = await productModel.countByCategoryId(categoryId);
+
+  if (productCount > 0) {
+    throw new Error("Category cannot be deleted because products exist");
+  }
+
+  // 3️⃣ Soft delete
+  await CategoryModel.categoryDelete(categoryId);
+
+  return {
+    category_id: categoryId,
+    deleted: true,
+    message: "Category deleted successfully"
+  };
+}
+
+
+
+}
 
 
 module.exports = CategoryManager;

@@ -5,6 +5,51 @@ const { appWrapper } = require("../routeWrapper");
 const {ACCESS_ROLES}  =require("../../businesslogic/accessmanagement/roleConstants");
 const CategoryModel = require("../../models/CategoryModel");
 
+
+
+
+router.post("/create",
+  appWrapper(async(req,res)=> {
+    const category = await CategoryManager.createCategory(req.body);
+
+
+    return res.json({
+      success:true,
+      data:category,
+      message:"Category created successfully"
+    });
+
+  },[ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
+)
+)
+
+router.post(
+  "/delete/:id",
+  appWrapper(async (req, res) => {
+    try {
+      const categoryId = Number(req.params.id);
+
+      const result = await CategoryManager.deleteCategoryById(
+        categoryId,
+        res.locals.user?.user_id
+      );
+
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message
+      });
+    }
+  }, [ACCESS_ROLES.ALL])
+);
+
+
+
 router.get(
   "/category_name/:categoryName",
   appWrapper(async (req, res) => {
