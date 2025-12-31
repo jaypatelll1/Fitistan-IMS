@@ -10,9 +10,9 @@ const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConst
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
 
-// ==========================
+// 
 // GET ALL PRODUCTS
-// ==========================
+// 
 router.get(
   "/all",
   appWrapper(async (req, res) => {
@@ -30,9 +30,9 @@ router.get(
   }, [ACCESS_ROLES.ALL])
 );
 
-// ==========================
+// 
 // CREATE PRODUCT
-// ==========================
+// 
 router.post(
   "/create",
   // validate(validators.createProductSchema),
@@ -59,9 +59,9 @@ router.post(
   }, [ACCESS_ROLES.ALL])
 );
 
-// ==========================
+//
 // GET PRODUCT BY ID
-// ==========================
+// 
 router.get(
   "/:id",
   appWrapper(async (req, res) => {
@@ -82,9 +82,9 @@ router.get(
   }, [ACCESS_ROLES.ALL])
 );
 
-// ==========================
+// 
 // UPDATE PRODUCT
-// ==========================
+// 
 router.put(
   "/update/:id",
   // validate(validators.updateProductSchema),
@@ -107,9 +107,9 @@ router.put(
   }, [ACCESS_ROLES.ALL])
 );
 
-// ==========================
+// 
 // DELETE PRODUCT
-// ==========================
+// 
 router.post(
   "/delete/:id",
   appWrapper(async (req, res) => {
@@ -180,6 +180,8 @@ router.get(
     // });
   })
 );
+
+
 
 
 module.exports = router;

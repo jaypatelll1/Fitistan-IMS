@@ -1,4 +1,4 @@
-const  ACCESS_ROLES  = require("../accessmanagement/RoleConstants");
+const  {ACCESS_ROLES}  = require("../accessmanagement/RoleConstants");
 const USER_ROLES_INFO = require("../../models/libs/seedConstants");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
 
@@ -25,7 +25,7 @@ class AccessManagement {
     ) {
       return true;
     }
-
+    
     // Super Admin check (case-insensitive)
     if (
       allowedRoles.includes(ACCESS_ROLES.ACCOUNT_SUPER_ADMIN) &&
