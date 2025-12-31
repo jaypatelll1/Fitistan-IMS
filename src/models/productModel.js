@@ -18,7 +18,9 @@ class ProductModel extends BaseModel {
             "description",
             "vendor_id",
             "sku",
-            "barcode"
+            "barcode",
+            "product_image",
+            "barcode_image"
         ];
     }
 
@@ -155,6 +157,7 @@ class ProductModel extends BaseModel {
             throw new DatabaseError(e);
         }
     }
+
 }
 
 module.exports = ProductModel;

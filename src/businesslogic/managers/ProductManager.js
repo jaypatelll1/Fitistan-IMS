@@ -1,6 +1,8 @@
 const ProductModel = require("../../models/ProductModel");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
+const ItemModel = require("../../models/ItemModel");
 
+const { generateAndUploadBarcode } = require("../../services/barcodeServices");
 const {
   productIdSchema,
   createProductSchema,
@@ -16,11 +18,33 @@ class ProductManager {
     try {
       const result = await productModel.findAllPaginated(page, limit);
 
+      // Fetch aggregated stock details for these products
+      const products = result.data;
+      const productIds = products.map(p => p.product_id);
+
+      const itemModel = new ItemModel();
+      const stockRows = await itemModel.findByProductIds(productIds);
+
+      // Group items by product_id
+      const stockMap = {};
+      for (const row of stockRows) {
+        if (!stockMap[row.product_id]) {
+          stockMap[row.product_id] = [];
+        }
+        stockMap[row.product_id].push(row);
+      }
+
+      // Merge details
+      const productsWithStock = products.map(product => ({
+        ...product,
+        stock_details: stockMap[product.product_id] || []
+      }));
+
       const totalPages = Math.ceil(result.total / limit);
       const offset = (page - 1) * limit;
 
       return {
-        products: result.data,
+        products: productsWithStock,
         total: result.total,
         page,
         limit,
@@ -44,7 +68,17 @@ class ProductManager {
     try {
       const product = await productModel.findById(value.id);
       if (!product) return null;
-      return product;
+
+      // Fetch aggregated stock details
+      const ItemModel = require("../../models/ItemModel");
+      const itemModel = new ItemModel();
+      const stockDetails = await itemModel.findByProductId(value.id);
+
+      return {
+        ...product,
+        stock_details: stockDetails || [] // Pass raw data to frontend
+      };
+
     } catch (err) {
       throw new Error(`Failed to get product by ID: ${err.message}`);
     }
@@ -68,6 +102,11 @@ class ProductManager {
       }
 
       value.barcode = value.sku;
+
+
+      const barcodeResult = await generateAndUploadBarcode(value.sku);
+      value.barcode_image = barcodeResult.cdnUrl;
+
       const product = await productModel.create(value);
       return product;
 

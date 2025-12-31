@@ -1,9 +1,14 @@
-const  {ACCESS_ROLES}  = require("../accessmanagement/RoleConstants");
+const { ACCESS_ROLES } = require("../accessmanagement/roleConstants");
 const USER_ROLES_INFO = require("../../models/libs/seedConstants");
 const AccessPermissionError = require("../../errorhandlers/AccessPermissionError");
 
 class AccessManagement {
   static checkIfAccessGrantedOrThrowError = (allowedRoles = [], { roles }) => {
+    // Grant access immediately if allowedRoles includes ALL (no role check needed)
+    if (allowedRoles.includes(ACCESS_ROLES.ALL)) {
+      return true;
+    }
+
     if (!roles || !Array.isArray(roles) || roles.length === 0) {
       throw new AccessPermissionError();
     }
@@ -12,11 +17,6 @@ class AccessManagement {
     const roleNames = roles
       .map(r => r?.role_name?.trim().toLowerCase())
       .filter(Boolean);
-
-    // Grant access if allowedRoles includes ALL or ACCOUNT_SELF_MEMBER
-    if (allowedRoles.includes(ACCESS_ROLES.ALL) ) {
-      return true;
-    }
 
     // Admin check (case-insensitive)
     if (

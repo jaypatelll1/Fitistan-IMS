@@ -50,10 +50,13 @@ const ITEM_STATUS = Object.freeze({
 
 const ORDER_STATUS = Object.freeze({
   PROCESSING: "processing",
+  SOLD: "sold",
+  OUTWARD: "outward",
+  DAMAGED: "damaged",
   RETURNED: "returned",
-  DELIVERED: "delivered",
-  CANCELLED: "cancelled",
 });
 
-module.exports = { PUBLIC_SCHEMA, TABLE_DEFAULTS, ITEM_STATUS, ORDER_STATUS };
+
+
+module.exports = { PUBLIC_SCHEMA, TABLE_DEFAULTS, ITEM_STATUS, ORDER_STATUS};
 
