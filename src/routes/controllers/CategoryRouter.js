@@ -3,9 +3,10 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 const { appWrapper } = require("../routeWrapper");
 const {ACCESS_ROLES}  =require("../../businesslogic/accessmanagement/roleConstants");
+const CategoryModel = require("../../models/CategoryModel");
 
 router.get(
-  "/:categoryName",
+  "/category_name/:categoryName",
   appWrapper(async (req, res) => {
     const { categoryName } = req.params;
 
@@ -29,6 +30,26 @@ router.get(
     });
   }, [ACCESS_ROLES.ALL])
 );
+
+router.get(
+  "/list",
+  appWrapper(async (req, res) => {
+    const categories = await CategoryModel.findAll();
+
+    if (!categories || categories.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No categories found"
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: categories
+    });
+  }, [ACCESS_ROLES.ALL])
+);
+
 
 
 

@@ -36,12 +36,12 @@ class CategoryModel {
   }
 }
 
-  static async findAllActive() {
+  static async findAll() {
     return this.qb()
       .select("category_id", "category_name")
-      .from("categories")               // ✅ SAME HERE
+      .from("category")               // ✅ SAME HERE
       .where("is_deleted", false)
-      .orderBy("category_name", "asc");
+      .orderBy("category_name", "desc");
   }
 }
 
