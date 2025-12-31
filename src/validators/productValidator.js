@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const  COMMON_MESSAGES  = require("../validators/validationConstants/commanMessages");
+const COMMON_MESSAGES = require("../validators/validationConstants/commanMessages");
 
 const productIdSchema = Joi.object({
   id: Joi.number()
@@ -78,6 +78,13 @@ const createProductSchema = Joi.object({
     .label("Barcode")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
+    }),
+
+  product_image: Joi.string()
+    .allow("", null)
+    .label("Product Image")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE
     })
 });
 
@@ -136,8 +143,16 @@ const updateProductSchema = Joi.object({
     .label("Barcode")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
-    })
+    }),
+
+  product_image: Joi.string()
+    .allow("", null)
+    .label("Product Image")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE
+    })  
 }).min(1);
+ 
 
 module.exports = {
   productIdSchema,

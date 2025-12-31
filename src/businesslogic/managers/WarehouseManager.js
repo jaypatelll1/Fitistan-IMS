@@ -68,6 +68,18 @@ class WarehouseManager {
     // 4️⃣ Fetch joined data
     return await model.getWarehouseDetailsByIds(ids);
   }
+  static async getAllWarehousesPaginated(page, limit, userId) {
+    const model = new WarehouseModel(userId);
+    const result = await model.getAllWarehousesPaginated(page, limit);
+
+    return {
+      warehouses: result.data,
+      total: result.total,
+      page,
+      limit,
+      totalPages: Math.ceil(result.total / limit)
+    };
+  }
 }
 
 module.exports = WarehouseManager;

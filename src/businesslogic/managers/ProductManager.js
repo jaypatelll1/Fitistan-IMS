@@ -1,5 +1,6 @@
 const ProductModel = require("../../models/ProductModel");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
+const ItemModel = require("../../models/ItemModel");
 
 const { generateAndUploadBarcode } = require("../../services/barcodeServices");
 const {
@@ -21,27 +22,23 @@ class ProductManager {
       const products = result.data;
       const productIds = products.map(p => p.product_id);
 
-      const ItemModel = require("../../models/ItemModel");
       const itemModel = new ItemModel();
-      const stockDetails = await itemModel.getAggregateStockForProducts(productIds);
+      const stockRows = await itemModel.findByProductIds(productIds);
+
+      // Group items by product_id
+      const stockMap = {};
+      for (const row of stockRows) {
+        if (!stockMap[row.product_id]) {
+          stockMap[row.product_id] = [];
+        }
+        stockMap[row.product_id].push(row);
+      }
 
       // Merge details
-      const productsWithStock = products.map(product => {
-        const details = stockDetails.filter(d => d.product_id === product.product_id);
-
-        const totalQty = details.reduce((sum, d) => sum + parseInt(d.qty), 0);
-
-        // Format locations: "Warehouse A - Room B - Shelf C (5)"
-        const locationStrings = details.map(d =>
-          `${d.warehouse_name} > ${d.room_name} > ${d.shelf_name} (${d.qty})`
-        );
-
-        return {
-          ...product,
-          stock_quantity: totalQty, // Override with actual count
-          location: locationStrings.length > 0 ? locationStrings.join(", ") : "N/A"
-        };
-      });
+      const productsWithStock = products.map(product => ({
+        ...product,
+        stock_details: stockMap[product.product_id] || []
+      }));
 
       const totalPages = Math.ceil(result.total / limit);
       const offset = (page - 1) * limit;
@@ -75,20 +72,11 @@ class ProductManager {
       // Fetch aggregated stock details
       const ItemModel = require("../../models/ItemModel");
       const itemModel = new ItemModel();
-      const stockDetails = await itemModel.getAggregateStockForProducts([value.id]);
-
-      // Calculate totals and formatted location string
-      const totalQty = stockDetails.reduce((sum, d) => sum + parseInt(d.qty), 0);
-
-      // Format locations: "Warehouse A > Room B > Shelf C (5)"
-      const locationStrings = stockDetails.map(d =>
-        `${d.warehouse_name} > ${d.room_name} > ${d.shelf_name} (${d.qty})`
-      );
+      const stockDetails = await itemModel.findByProductId(value.id);
 
       return {
         ...product,
-        stock_quantity: totalQty,
-        location: locationStrings.length > 0 ? locationStrings.join(", ") : "N/A"
+        stock_details: stockDetails || [] // Pass raw data to frontend
       };
 
     } catch (err) {

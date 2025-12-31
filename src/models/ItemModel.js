@@ -114,7 +114,7 @@ class ItemModel extends BaseModel {
 
       const selectColumns = [
         // Item columns
-        "items.id as item_id", ,
+        "items.id as item_id",
         "items.product_id",
         "items.shelf_id",
         "items.status",
@@ -150,6 +150,53 @@ class ItemModel extends BaseModel {
         .where("items.is_deleted", false);
 
       return items.length ? items : null;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  async findByProductIds(productIds) {
+    try {
+      if (!productIds || productIds.length === 0) return [];
+
+      const qb = await this.getQueryBuilder();
+
+      const selectColumns = [
+        // Item columns
+        "items.id as item_id",
+        "items.product_id",
+        "items.shelf_id",
+        "items.status",
+        "items.is_deleted",
+        "items.created_at",
+        "items.updated_at",
+
+        // Product columns
+        "products.name as product_name",
+        "products.description as product_description",
+        "products.sku as product_sku",
+        "products.barcode as product_barcode",
+        "products.vendor_id as product_vendor_id",
+
+        // Shelf columns
+        "shelf.shelf_name",
+        "shelf.capacity as shelf_capacity",
+
+        // Room columns
+        "rooms.room_name",
+
+        // Warehouse columns
+        "warehouses.name as warehouse_name",
+      ];
+
+      return await qb("items")
+        .select(selectColumns)
+        .leftJoin("products", "items.product_id", "products.product_id")
+        .leftJoin("shelf", "items.shelf_id", "shelf.shelf_id")
+        .leftJoin("rooms", "shelf.room_id", "rooms.room_id")
+        .leftJoin("warehouses", "shelf.warehouse_id", "warehouses.warehouse_id")
+        .whereIn("items.product_id", productIds)
+        .where("items.is_deleted", false);
     } catch (e) {
       throw new DatabaseError(e);
     }
@@ -299,32 +346,7 @@ class ItemModel extends BaseModel {
   //     }
   // }
 
-  /**
-   * Get aggregated stock details (qty + location) for a list of product IDs
-   */
-  async getAggregateStockForProducts(productIds) {
-    try {
-      if (!productIds || productIds.length === 0) return [];
 
-      const qb = await this.getQueryBuilder();
-      return await qb("items")
-        .select(
-          "items.product_id",
-          "w.name as warehouse_name",
-          "r.room_name",
-          "s.shelf_name"
-        )
-        .count("items.id as qty")
-        .join("shelf as s", "items.shelf_id", "s.shelf_id")
-        .join("rooms as r", "s.room_id", "r.room_id")
-        .join("warehouses as w", "s.warehouse_id", "w.warehouse_id")
-        .whereIn("items.product_id", productIds)
-        .where("items.is_deleted", false)
-        .groupBy("items.product_id", "w.name", "r.room_name", "s.shelf_name");
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
-  }
 }
 
 module.exports = ItemModel;
