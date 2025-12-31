@@ -5,18 +5,18 @@ const ProductManager = require("../../businesslogic/managers/ProductManager");
 
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
-const  {ACCESS_ROLES}  = require("../../businesslogic/accessmanagement/roleConstants");
+const  {ACCESS_ROLES}  =require("../../businesslogic/accessmanagement/roleConstants");
 
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
 
 // ==========================
 // GET ALL PRODUCTS
-// ==========================
+// ========================== 
 router.get(
   "/all",
   appWrapper(async (req, res) => {
-    const products = await ProductManager.getAllProducts();
+    const products = await ProductManager.getAllProductsPaginated();
     if (!products || products.length === 0) {
       return res.status(404).json({
         success: false,

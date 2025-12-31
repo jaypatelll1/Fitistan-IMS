@@ -19,7 +19,10 @@ class ProductModel extends BaseModel {
             "vendor_id",
             "sku",
             "barcode",
-            "category"
+            "category_id",
+         
+           
+          
         ];
     }
 
@@ -50,6 +53,48 @@ class ProductModel extends BaseModel {
             throw new DatabaseError(e);
         }
     }
+
+    // Get products by category ID 
+/**
+ * Find products by category_id with pagination
+ */
+async findByCategoryIdPaginated(category_id, page = 1, limit = 10) {
+  try {
+    const qb = await this.getQueryBuilder();
+    const offset = (page - 1) * limit;
+
+    // 🔹 Data query
+    const data = await qb(this.tableName)
+      .select(this.getPublicColumns())
+      .where(
+        this.whereStatement({
+          category_id,
+          is_deleted: false
+        })
+      )
+      .orderBy("product_id", "asc")
+      .limit(limit)
+      .offset(offset);
+
+    // 🔹 Count query
+    const [{ count }] = await qb(this.tableName)
+      .where(
+        this.whereStatement({
+          category_id,
+          is_deleted: false
+        })
+      )
+      .count("* as count");
+
+    return {
+      items: data,
+      total: Number(count)
+    };
+  } catch (e) {
+    throw new DatabaseError(e);
+  }
+}
+
 
     /**
      * Get product by ID

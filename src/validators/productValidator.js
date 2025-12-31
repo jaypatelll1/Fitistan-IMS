@@ -81,7 +81,6 @@ const createProductSchema = Joi.object({
     }),
     category: Joi.string()
     .trim()
-
     .required()
     .label("Category")
     .messages({

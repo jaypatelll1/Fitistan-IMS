@@ -20,6 +20,7 @@ const ItemRouter = require("../../routes/controllers/ItemRouter");
 const OrderRouter = require("../../routes/controllers/OrderRouter");
 const ProductRouter = require("../../routes/controllers/ProductRouter");
 const UserRouter = require("../../routes/controllers/UserRouter");
+const CategoryRouter = require("../../routes/controllers/CategoryRouter");
 
 
 
@@ -55,6 +56,7 @@ class RouteMap {
     Router.use("/items", ItemRouter);
     Router.use("/products", ProductRouter);
     Router.use("/orders", OrderRouter);
+    Router.use("/category", CategoryRouter);  
 
     
 

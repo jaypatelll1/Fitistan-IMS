@@ -1,5 +1,6 @@
 const ProductModel = require("../../models/ProductModel");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
+const CategoryModel = require("../../models/CategoryModel");
 
 const {
   productIdSchema,
@@ -15,12 +16,16 @@ class ProductManager {
   static async getAllProductsPaginated(page, limit) {
     try {
       const result = await productModel.findAllPaginated(page, limit);
+ 
+            
 
       const totalPages = Math.ceil(result.total / limit);
       const offset = (page - 1) * limit;
 
       return {
+
         products: result.data,
+
         total: result.total,
         page,
         limit,
@@ -66,6 +71,19 @@ class ProductManager {
           ]
         });
       }
+
+          const category = await CategoryModel.findByName(value.category);
+    if (!category) {
+      throw new JoiValidatorError({
+        details: [
+          { path: ["category"], message: "Invalid category selected" }
+        ]
+      });
+    }
+
+    // 3️⃣ Mutate value safely
+    value.category_id = category.category_id;
+    delete value.category;
 
       value.barcode = value.sku;
       const product = await productModel.create(value);
