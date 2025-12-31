@@ -18,7 +18,8 @@ class ProductModel extends BaseModel {
             "description",
             "vendor_id",
             "sku",
-            "barcode"
+            "barcode",
+            "category"
         ];
     }
 
