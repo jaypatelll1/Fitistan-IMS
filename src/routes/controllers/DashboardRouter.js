@@ -31,4 +31,31 @@ router.get(
   },[ACCESS_ROLES.ACCOUNT_ADMIN])
 )
 
+router.get(
+"/total_order",
+appWrapper(async (req,res)=>{
+  const data =await DashboardManager.totalOrder();
+  res.json({
+    success: true,
+    data
+  })
+},[ACCESS_ROLES.ACCOUNT_SUPER_ADMIN])
+)
+
+router.get("/stock-status",appWrapper(async (req, res) => {
+
+    const lowStockLimit = Number(req.query.lowStock ?? 5);
+
+    const data = await DashboardManager.getLowAndOutOfStockCount(lowStockLimit);
+
+    return res.status(200).json({
+      success: true,
+      message: "Stock status fetched successfully",
+      data
+    });
+  
+},[ACCESS_ROLES.ACCOUNT_SUPER_ADMIN])
+);
+
+
 module.exports = router;

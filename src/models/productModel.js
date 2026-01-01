@@ -112,7 +112,8 @@ async countTotalProducts() {
 
     const [{ count }] = await qb(this.tableName)
       .where(this.whereStatement({ category_id }))
-      .count("* as count");
+      .count("* as count")
+      
 
     return Number(count);
   }
