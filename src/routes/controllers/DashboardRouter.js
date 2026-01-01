@@ -2,7 +2,7 @@ const DashboardManager = require('../../businesslogic/managers/DashboardManager'
 const { appWrapper } = require('../routeWrapper');
 const express = require('express');
 const router = express.Router();
-const { ACCESS_ROLES } = require('../../businesslogic/accessmanagement/RoleConstants');
+const { ACCESS_ROLES } = require('../../businesslogic/accessmanagement/roleConstants');
 
 router.get(
   '/top-selling',

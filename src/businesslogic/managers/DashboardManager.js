@@ -6,10 +6,10 @@ class DashboardManager {
     const qb = db.getQueryBuilder();
 
     return await qb('orders as o')
-      .join('products as p', 'p.product_id', 'o.product_id') // ✅ NO p.id
+      .join('products as p', 'p.product_id', 'o.product_id') //  NO p.id
       .where('o.status', 'sold')   
       .select(
-        'p.product_id as product_id', // ✅ correct PK
+        'p.product_id as product_id', //  correct PK
         'p.name',
         'p.product_image'
       )
@@ -27,7 +27,7 @@ class DashboardManager {
     const qb = db.getQueryBuilder();
 
     return await qb('orders as o')
-      .join('products as p', 'p.product_id', 'o.product_id') // ✅
+      .join('products as p', 'p.product_id', 'o.product_id') // 
       .where('o.status', 'sold')   
       .select(
         'p.product_id as product_id',

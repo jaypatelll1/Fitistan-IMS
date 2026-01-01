@@ -12,6 +12,12 @@ const PORT = process.env.PORT || 3000;
 
 const app = express();
 
+/*  START CRON HERE */
+
+const DashboardCronManager = require('./src/businesslogic/managers/DashboardCronManager');
+
+DashboardCronManager.start();
+
 // view engine setup
 app.set('views', path.join(__dirname, './src/views'));
 app.set('view engine', 'ejs');
