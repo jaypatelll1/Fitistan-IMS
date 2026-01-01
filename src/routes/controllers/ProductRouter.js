@@ -10,14 +10,25 @@ const  {ACCESS_ROLES}  =require("../../businesslogic/accessmanagement/roleConsta
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
 
-// ==========================
+// 
 // GET ALL PRODUCTS
+<<<<<<< HEAD
 // ========================== 
 router.get(
   "/all",
   appWrapper(async (req, res) => {
     const products = await ProductManager.getAllProductsPaginated();
     if (!products || products.length === 0) {
+=======
+// 
+router.get(
+  "/all",
+  appWrapper(async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 100;
+    const result = await ProductManager.getAllProductsPaginated(page, limit);
+    if (!result.products || result.products.length === 0) {
+>>>>>>> crud-wrs
       return res.status(404).json({
         success: false,
         message: "No products found",
@@ -25,43 +36,62 @@ router.get(
     }
     return res.json({
       success: true,
-      data: products,
+      data: result.products,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+        previous: result.previous,
+        next: result.next,
+      },
     });
   }, [ACCESS_ROLES.ALL])
 );
 
-// ==========================
+// 
 // CREATE PRODUCT
-// ==========================
+// 
 router.post(
   "/create",
   // validate(validators.createProductSchema),
   appWrapper(async (req, res) => {
-  
+
     // const{quantity,shelf_id, ...productData} = req.body;
     const productData = req.body;
- 
-    const product = await ProductManager.createProduct(productData);
-   
-    // const item = await itemManager.createItem({ product_id: product.product_id, shelf_id, name : productData.name},quantity);
-    
-    console.log("Product created:", product);
-     
 
-    
+    // Handle Image Upload
+    if (req.files && req.files.image) {
+      const { uploadToS3 } = require("../../services/s3Services");
+      const file = req.files.image;
+
+      const fileName = `products/${productData.sku}-${Date.now()}.png`;
+      const imageUrl = await uploadToS3(file.data, fileName, file.mimetype);
+
+      productData.product_image = imageUrl;
+    }
+
+    const product = await ProductManager.createProduct(productData);
+
+    // const item = await itemManager.createItem({ product_id: product.product_id, shelf_id, name : productData.name},quantity);
+
+    console.log("Product created:", product);
+
+
+
     return res.json({
       success: true,
       data: product,
       message: "Product created successfully",
     })
-    
-    ;
+
+      ;
   }, [ACCESS_ROLES.ALL])
 );
 
-// ==========================
+//
 // GET PRODUCT BY ID
-// ==========================
+// 
 router.get(
   "/:id",
   appWrapper(async (req, res) => {
@@ -82,9 +112,9 @@ router.get(
   }, [ACCESS_ROLES.ALL])
 );
 
-// ==========================
+// 
 // UPDATE PRODUCT
-// ==========================
+// 
 router.put(
   "/update/:id",
   // validate(validators.updateProductSchema),
@@ -107,9 +137,9 @@ router.put(
   }, [ACCESS_ROLES.ALL])
 );
 
-// ==========================
+// 
 // DELETE PRODUCT
-// ==========================
+// 
 router.post(
   "/delete/:id",
   appWrapper(async (req, res) => {
@@ -180,6 +210,8 @@ router.get(
     // });
   })
 );
+
+
 
 
 module.exports = router;

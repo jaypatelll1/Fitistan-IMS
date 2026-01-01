@@ -1,6 +1,6 @@
 const express = require("express");
 const { appWrapper } = require("../routeWrapper");
-const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 const shelfManager = require("../../businesslogic/managers/ShelfManager");
 
 const router = express.Router({ mergeParams: true });
@@ -14,12 +14,12 @@ router.get(
 
     const result = await shelfManager.getAllShelfPaginated(page, limit);
 
-    if (!result.shelfs || result.shelfs.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No shelves found"
-      });
-    }
+    // if (!result.shelfs || result.shelfs.length === 0) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No shelves found"
+    //   });
+    // }
 
     return res.json({
       success: true,
@@ -52,7 +52,7 @@ router.get(
   appWrapper(async (req) => {
     const shelf = await shelfManager.getShelfById(req.params);
     return shelf
-      ? { success: true, shelf:shelf }
+      ? { success: true, shelf: shelf }
       : { success: false, message: "Shelf not found or already deleted" };
   }, [ACCESS_ROLES.ALL])
 );
@@ -62,7 +62,7 @@ router.put(
   appWrapper(async (req) => {
     const shelf = await shelfManager.updateShelf(req.params, req.body);
     return shelf
-      ? { success: true, updated_shelf:shelf, message: "Shelf updated successfully" }
+      ? { success: true, updated_shelf: shelf, message: "Shelf updated successfully" }
       : { success: false, message: "Shelf not found or nothing to update" };
   }, [ACCESS_ROLES.ALL])
 );

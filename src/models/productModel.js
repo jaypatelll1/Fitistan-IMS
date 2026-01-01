@@ -210,7 +210,7 @@ async countTotalProducts() {
     } catch (e) {
       throw new DatabaseError(e);
     }
-  }
+}
 }
 
 module.exports = ProductModel;
