@@ -1,4 +1,5 @@
 const db = require('../../models/libs/Db');
+const ProductModel = require("../../models/productModel")
 
 class DashboardManager {
 
@@ -43,6 +44,15 @@ class DashboardManager {
       .orderBy('total_sold', 'asc')
       .limit(limit);
   }
+
+   static async totalProducts(){
+     const productModel = new ProductModel();
+  const totalProducts = await productModel.countTotalProducts();
+
+  return {
+    totalProducts
+  };
+   }
 
 }
 

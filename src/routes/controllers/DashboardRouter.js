@@ -20,4 +20,15 @@ router.get(
   })
 );
 
+router.get(
+  "/total_products",
+  appWrapper(async (req,res)=>{
+    const data = await DashboardManager.totalProducts();
+    res.json({
+      success:true,
+      data
+    })
+  },[ACCESS_ROLES.ACCOUNT_ADMIN])
+)
+
 module.exports = router;
