@@ -1,10 +1,7 @@
 const ProductModel = require("../../models/ProductModel");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
-<<<<<<< HEAD
 const CategoryModel = require("../../models/CategoryModel");
-=======
 const ItemModel = require("../../models/ItemModel");
->>>>>>> crud-wrs
 
 const { generateAndUploadBarcode } = require("../../services/barcodeServices");
 const {
@@ -50,13 +47,10 @@ class ProductManager {
       const offset = (page - 1) * limit;
 
       return {
-<<<<<<< HEAD
 
         products: result.data,
 
-=======
         products: productsWithStock,
->>>>>>> crud-wrs
         total: result.total,
         page,
         limit,

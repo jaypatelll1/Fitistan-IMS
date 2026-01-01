@@ -12,14 +12,6 @@ const  {ACCESS_ROLES}  =require("../../businesslogic/accessmanagement/roleConsta
 
 // 
 // GET ALL PRODUCTS
-<<<<<<< HEAD
-// ========================== 
-router.get(
-  "/all",
-  appWrapper(async (req, res) => {
-    const products = await ProductManager.getAllProductsPaginated();
-    if (!products || products.length === 0) {
-=======
 // 
 router.get(
   "/all",
@@ -28,7 +20,6 @@ router.get(
     const limit = parseInt(req.query.limit) || 100;
     const result = await ProductManager.getAllProductsPaginated(page, limit);
     if (!result.products || result.products.length === 0) {
->>>>>>> crud-wrs
       return res.status(404).json({
         success: false,
         message: "No products found",
