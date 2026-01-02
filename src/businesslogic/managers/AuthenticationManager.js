@@ -81,6 +81,54 @@ class AuthenticationManager {
       }
     };
   }
+
+  static async loginWithGoogle(googleProfile) {
+    if (!googleProfile?.emails?.length) {
+      throw new AuthenticationError("Invalid Google profile");
+    }
+
+    const email = googleProfile.emails[0].value;
+    const name = googleProfile.displayName;
+    const googleId = googleProfile.id;
+    const profilePicture = googleProfile.photos?.[0]?.value;
+
+    const userModel = new AuthModel();
+
+    // 1️⃣ Check if user already exists
+    let user = await userModel.getUserByEmail(email);
+
+    // 2️⃣ If not, create user
+    if (!user) {
+      user = await userModel.createGoogleUser({
+        email,
+        name,
+        google_id: googleId,
+        profile_picture_url: profilePicture,
+        role_id: 2 // default user role
+      });
+    }
+
+    // 3️⃣ Issue JWT (same format as normal login)
+    const token = jwt.sign(
+      {
+        user_id: user.user_id,
+        email: user.email,
+        role: user.role_name
+      },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "7d" }
+    );
+
+    return {
+      jwt_token: token,
+      user: {
+        user_id: user.user_id,
+        email: user.email,
+        name: user.name,
+        role: user.role_name
+      }
+    };
+  }
 }
 
 module.exports = AuthenticationManager;

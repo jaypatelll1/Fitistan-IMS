@@ -8,9 +8,43 @@ const logger = require('morgan');
 const fileUpload = require('express-fileupload');
 const RouteMap = require('./src/routes/middleware/RouteMap');
 const ErrorHandler = require('./src/errorhandlers/ErrorHandler');
+const session = require("express-session");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const PORT = process.env.PORT || 3000;
 
 const app = express();
+
+//Google Auth
+/* Session */
+app.use(
+  session({
+    secret: "secret123",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+/* Passport init */
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "http://localhost:3000/open/api/oauth/google/callback"
+    },
+    (accessToken, refreshToken, profile, done) => {
+      return done(null, profile);
+    }
+  )
+);
+
 
 // view engine setup
 app.set('views', path.join(__dirname, './src/views'));
@@ -37,6 +71,10 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.use(cors(corsOptions));
+
+app.get("/", (req, res) => {
+  res.send("Inventory Backend is running ✅");
+});
 
 logger.token('user-id', (req, res) => res.locals.userInfo ? res.locals.userInfo['user']['user_id'] : 'anonymous');
 logger.token('app-version', (req, res) => req.headers['x-fitistan-app-version'] || 'anonymous');

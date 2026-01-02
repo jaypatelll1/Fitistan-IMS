@@ -13,8 +13,58 @@ class AuthModel extends BaseModel {
     "email",
     "role_id"
   ];
-}
+  }
 
+  // 🆕 Create user via Google OAuth
+  async createGoogleUser(payload) {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      const insertData = await this.insertStatement({
+        email: payload.email,
+        name: payload.name,
+        profile_picture_url: payload.profile_picture_url,
+        role_id: payload.role_id,
+        google_id: payload.google_id, // ⚠️ DB column must exist
+        is_deleted: false
+      });
+
+      const [user] = await qb("users")
+        .insert(insertData)
+        .returning(this.getPublicColumns());
+
+      return user || null;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  // 🔍 Used by Google OAuth
+  async getUserByEmail(email) {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      const user = await qb("users as u")
+        .leftJoin("role as r", "u.role_id", "r.role_id")
+        .select(
+          "u.user_id",
+          "u.email",
+          "u.name",
+          "u.profile_picture_url",
+          "u.role_id",
+          "r.role_name"
+        )
+        .where({
+          "u.email": email,
+          "u.is_deleted": false
+        })
+        .first();
+
+      return user || null;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 
   async createUser(payload) {
   try {

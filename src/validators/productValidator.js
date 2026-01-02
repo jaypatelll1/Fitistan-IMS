@@ -62,7 +62,7 @@ const createProductSchema = Joi.object({
     .messages({
       "number.base": COMMON_MESSAGES.NUMBER_BASE,
       "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
-      "number.min": COMMON_MESSAGES.NUMBER_MIN,
+      "number.min": COMMON_MESSAGES.STRING_MIN,
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
     }),
 
@@ -121,7 +121,7 @@ const updateProductSchema = Joi.object({
     .messages({
       "number.base": COMMON_MESSAGES.NUMBER_BASE,
       "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
-      "number.min": COMMON_MESSAGES.NUMBER_MIN
+      "number.min": COMMON_MESSAGES.STRING_MIN
     }),
 
   description: Joi.string()

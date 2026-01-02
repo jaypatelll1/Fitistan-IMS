@@ -7,7 +7,8 @@ const COMMON_MESSAGES = {
   NUMBER_BASE: "{#label} must be a number",
   NUMBER_INTEGER: "{#label} must be an integer",
   NUMBER_POSITIVE: "{#label} must be a positive number",
-  STRING_EMAIL: "{#label} must be a valid email"
+  STRING_EMAIL: "{#label} must be a valid email",
+  // NUMBER_MIN:"{#label} should have atleast"
 };
 
 module.exports = {

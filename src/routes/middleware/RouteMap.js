@@ -19,6 +19,7 @@ const ShopifyRouter = require("../controllers/open/shopifyRouter");
 const ItemRouter = require("../../routes/controllers/ItemRouter");
 const ProductRouter = require("../../routes/controllers/ProductRouter");
 
+const GoogleAuthRouter = require("../controllers/GoogleAuthRouter");
 
 
 class RouteMap {
@@ -30,6 +31,7 @@ class RouteMap {
     openrouter.use("/auth",Authrouter);
     openrouter.use("/shopify",ShopifyRouter);
     openrouter.use("/auth", Authloginrouter);
+    openrouter.use("/oauth", GoogleAuthRouter);
 
 
     //  PROTECTED ROUTES
@@ -47,10 +49,6 @@ class RouteMap {
     Router.use("/vendors", vendorRouter );
     Router.use("/items", ItemRouter);
     Router.use("/products", ProductRouter);
-
-    
-
-
 
 
     //  404 HANDLER
