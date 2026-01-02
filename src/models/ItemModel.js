@@ -271,6 +271,25 @@ class ItemModel extends BaseModel {
       throw new DatabaseError(e);
     }
   }
+//conut avaialable
+async countAvailableItemsByProduct() {
+  try {
+    const qb = await this.getQueryBuilder();
+
+    return await qb("items")
+      .select("product_id", "name")
+      .select(
+        qb.raw(
+          "COUNT(*) FILTER (WHERE status = ?) AS available_count",
+          [ITEM_STATUS.AVAILABLE]
+        )
+      )
+      .groupBy("product_id", "name");
+  } catch (e) {
+    throw new DatabaseError(e);
+  }
+}
+
 
   async softDelete(product_id, quantity, status) {
     try {

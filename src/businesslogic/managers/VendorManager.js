@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const VendorModel = require("../../models/VendorModel");
+const VendorModel = require("../../models/vendorModel");
 const vendorSchema = require("../../validators/vendorValidator");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 

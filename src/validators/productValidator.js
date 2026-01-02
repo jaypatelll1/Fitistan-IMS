@@ -79,13 +79,24 @@ const createProductSchema = Joi.object({
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
     }),
-
+    category: Joi.string()
+    .trim()
+    .required()
+    .label("Category")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.empty": COMMON_MESSAGES.STRING_EMPTY,
+      "string.min": COMMON_MESSAGES.STRING_MIN,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
+    
   product_image: Joi.string()
     .allow("", null)
     .label("Product Image")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
     })
+  
 });
 
 const updateProductSchema = Joi.object({

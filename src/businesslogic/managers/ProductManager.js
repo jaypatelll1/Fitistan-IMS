@@ -1,5 +1,6 @@
 const ProductModel = require("../../models/ProductModel");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
+const CategoryModel = require("../../models/CategoryModel");
 const ItemModel = require("../../models/ItemModel");
 
 const { generateAndUploadBarcode } = require("../../services/barcodeServices");
@@ -17,6 +18,8 @@ class ProductManager {
   static async getAllProductsPaginated(page, limit) {
     try {
       const result = await productModel.findAllPaginated(page, limit);
+ 
+            
 
       // Fetch aggregated stock details for these products
       const products = result.data;
@@ -44,6 +47,9 @@ class ProductManager {
       const offset = (page - 1) * limit;
 
       return {
+
+        products: result.data,
+
         products: productsWithStock,
         total: result.total,
         page,
@@ -100,6 +106,19 @@ class ProductManager {
           ]
         });
       }
+
+          const category = await CategoryModel.findByName(value.category);
+    if (!category) {
+      throw new JoiValidatorError({
+        details: [
+          { path: ["category"], message: "Invalid category selected" }
+        ]
+      });
+    }
+
+    // 3️⃣ Mutate value safely
+    value.category_id = category.category_id;
+    delete value.category;
 
       value.barcode = value.sku;
 
