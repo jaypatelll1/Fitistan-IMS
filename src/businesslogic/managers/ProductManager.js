@@ -121,14 +121,14 @@ class ProductManager {
       const product = await productModel.findById(value.id);
       if (!product) return null;
 
-      // Fetch aggregated stock details
-      const ItemModel = require("../../models/ItemModel");
-      const itemModel = new ItemModel();
-      const stockDetails = await itemModel.findByProductId(value.id);
+      // // Fetch aggregated stock details
+      // const ItemModel = require("../../models/ItemModel");
+      // const itemModel = new ItemModel();
+      // const stockDetails = await itemModel.findByProductId(value.id);
 
       return {
         ...product,
-        stock_details: stockDetails || [] // Pass raw data to frontend
+        // stock_details: stockDetails || [] // Pass raw data to frontend
       };
 
     } catch (err) {

@@ -104,7 +104,9 @@ class ProductModel extends BaseModel {
       return (
         qb(this.tableName)
           .select(this.getPublicColumns())
-          .where(this.whereStatement({ product_id }))
+          .leftJoin("category", "products.category_id", "category.category_id")
+          .where("products.is_deleted", false)
+          .where({ "products.product_id": product_id })
           .first() || null
       );
     } catch (e) {
