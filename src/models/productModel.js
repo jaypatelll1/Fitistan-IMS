@@ -155,15 +155,18 @@ class ProductModel extends BaseModel {
         return null;
       }
 
-      const [updatedProduct] = await qb(this.tableName)
+      const updatedRows = await qb(this.tableName)
         .where(this.whereStatement({ product_id }))
         .update({
           ...data,
           [TABLE_DEFAULTS.COLUMNS.UPDATED_AT.KEY]: qb.raw("CURRENT_TIMESTAMP"),
-        })
-        .returning(this.getPublicColumns());
+        });
 
-      return updatedProduct || null;
+      if (!updatedRows) {
+        return null;
+      }
+
+      return this.findById(product_id);
     } catch (e) {
       throw new DatabaseError(e);
     }
