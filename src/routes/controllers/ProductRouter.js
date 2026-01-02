@@ -5,7 +5,7 @@ const ProductManager = require("../../businesslogic/managers/ProductManager");
 const { generatePresignedUploadUrl } = require("../../services/presignedUploadServices");
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
-const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/RoleConstants");
+const  ACCESS_ROLES  = require("../../businesslogic/accessmanagement/RoleConstants");
 
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
