@@ -16,10 +16,10 @@ const productModel = new ProductModel(); // no userId for now
 class ProductManager {
 
 
-    static async getAllProductsPaginated(page, limit) {
+  static async getAllProductsPaginated(page, limit) {
     try {
       const result = await productModel.findAllPaginated(page, limit);
- 
+
       const totalPages = Math.ceil(result.total / limit);
       const offset = (page - 1) * limit;
 
@@ -127,24 +127,24 @@ class ProductManager {
         });
       }
 
-          const category = await CategoryModel.findByName(value.category);
-    if (!category) {
-      throw new JoiValidatorError({
-        details: [
-          { path: ["category"], message: "Invalid category selected" }
-        ]
-      });
-    }
+      const category = await CategoryModel.findByName(value.category);
+      if (!category) {
+        throw new JoiValidatorError({
+          details: [
+            { path: ["category"], message: "Invalid category selected" }
+          ]
+        });
+      }
 
-    // 3️⃣ Mutate value safely
-    value.category_id = category.category_id;
-    delete value.category;
+      // 3️⃣ Mutate value safely
+      value.category_id = category.category_id;
+      delete value.category;
 
       value.barcode = value.sku;
 
 
       const barcodeResult = await generateAndUploadBarcode(value.sku);
-      value.barcode_image = barcodeResult.cdnUrl;
+      value.barcode_image = JSON.stringify(barcodeResult.cdnUrl);
 
       const product = await productModel.create(value);
       return product;
