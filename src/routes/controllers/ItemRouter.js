@@ -2,10 +2,9 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 
 const itemManager = require("../../businesslogic/managers/ItemManager");
-const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
 const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
-const { ITEM_STATUS } = require("../../models/libs/dbConstants");
+
 
 // POST /items/addStock - Add stock for a product
 router.post(
@@ -39,15 +38,29 @@ router.post(
   "/removeStock",
   appWrapper(
     async (req, res) => {
-      const { product_id, shelf_id, quantity, status, order_id } = req.body;
-      const item = await itemManager.removeItemStock(product_id, shelf_id, quantity, status, order_id);
+      const {
+        product_id,
+        quantity,
+        status,
+        order_id,
+        shelf_id
+      } = req.body;
+
+      const item = await itemManager.removeItemStock(
+        product_id,
+        quantity,
+        status,
+        order_id,
+        shelf_id
+      );
+
       if (!item) {
         return res.status(404).json({
           success: false,
           message: "Item not found or insufficient stock",
         });
       }
-      console.log("Item(s) removed:", item);
+
       return res.json({
         success: true,
         data: item,
@@ -57,6 +70,7 @@ router.post(
     [ACCESS_ROLES.ALL]
   )
 );
+
 
 router.post(
   "/outward-scan",

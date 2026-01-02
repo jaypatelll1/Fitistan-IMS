@@ -1,4 +1,4 @@
-const ProductModel = require("../../models/ProductModel");
+const ProductModel = require("../../models/productModel");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 const CategoryModel = require("../../models/CategoryModel");
 const ItemModel = require("../../models/ItemModel");

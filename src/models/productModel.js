@@ -9,7 +9,7 @@ class ProductModel extends BaseModel {
   }
 
   /**
-   * Fields exposed to API responses
+   * ✅ ONLY product table columns here
    */
   getPublicColumns() {
     return [
@@ -22,29 +22,39 @@ class ProductModel extends BaseModel {
       "product_image",
       "barcode_image",
       "size",
-      "category_name",
-      "products.category_id"
+      "category_id",
     ];
   }
 
   /**
-   * Get all products with pagination
+   * ✅ Get all products with category name
    */
   async findAllPaginated(page = 1, limit = 10) {
     try {
       const qb = await this.getQueryBuilder();
       const offset = (page - 1) * limit;
 
-      const data = await qb(this.tableName)
-        .select(this.getPublicColumns())
-        .join("category", "products.category_id", "category.category_id")
+      const data = await qb("products")
+        .select([
+          "products.product_id",
+          "products.name",
+          "products.description",
+          "products.vendor_id",
+          "products.sku",
+          "products.barcode",
+          "products.product_image",
+          "products.barcode_image",
+          "products.size",
+          "products.category_id",
+          "category.category_name as category_name",
+        ])
+        .leftJoin("category", "products.category_id", "category.category_id")
         .where("products.is_deleted", false)
-        .orderBy("product_id", "asc")
+        .orderBy("products.product_id", "asc")
         .limit(limit)
         .offset(offset);
 
-      const [{ count }] = await qb(this.tableName)
-        .join("category", "products.category_id", "category.category_id")
+      const [{ count }] = await qb("products")
         .where("products.is_deleted", false)
         .count("* as count");
 
@@ -57,36 +67,59 @@ class ProductModel extends BaseModel {
     }
   }
 
-  // Get products by category ID with pagination
+  /**
+   * ✅ Products by category
+   */
   async findByCategoryIdPaginated(category_id, page = 1, limit = 10) {
-    const qb = await this.getQueryBuilder();
-    const offset = (page - 1) * limit;
+    try {
+      const qb = await this.getQueryBuilder();
+      const offset = (page - 1) * limit;
 
-    const data = await qb(this.tableName)
-      .select(this.getPublicColumns())
-      .where(this.whereStatement({ category_id }))
-      .orderBy("product_id", "asc")
-      .limit(limit)
-      .offset(offset);
+      const data = await qb("products")
+        .select([
+          "products.product_id",
+          "products.name",
+          "products.description",
+          "products.vendor_id",
+          "products.sku",
+          "products.barcode",
+          "products.product_image",
+          "products.barcode_image",
+          "products.size",
+          "products.category_id",
+          "category.category_name as category_name",
+        ])
+        .leftJoin("category", "products.category_id", "category.category_id")
+        .where({
+          "products.category_id": category_id,
+          "products.is_deleted": false,
+        })
+        .orderBy("products.product_id", "asc")
+        .limit(limit)
+        .offset(offset);
 
-    const [{ count }] = await qb(this.tableName)
-      .where(this.whereStatement({ category_id }))
-      .count("* as count");
+      const [{ count }] = await qb("products")
+        .where({
+          category_id,
+          is_deleted: false,
+        })
+        .count("* as count");
 
-    return {
-      data,
-      total: Number(count)
-    };
+      return {
+        data,
+        total: Number(count),
+      };
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
   }
 
-
-  // Count total products
   async countTotalProducts() {
     try {
       const qb = await this.getQueryBuilder();
 
-      const [{ count }] = await qb(this.tableName)
-        .where(this.whereStatement()) // respects is_deleted
+      const [{ count }] = await qb("products")
+        .where("is_deleted", false)
         .count("* as count");
 
       return Number(count);
@@ -96,42 +129,65 @@ class ProductModel extends BaseModel {
   }
 
   /**
-   * Get product by ID
+   * ✅ Get product by ID (with category name)
    */
   async findById(product_id) {
     try {
       const qb = await this.getQueryBuilder();
+
       return (
-        qb(this.tableName)
-          .select(this.getPublicColumns())
-          .where(this.whereStatement({ product_id }))
-          .first() || null
+        (await qb("products")
+          .select([
+            "products.product_id",
+            "products.name",
+            "products.description",
+            "products.vendor_id",
+            "products.sku",
+            "products.barcode",
+            "products.product_image",
+            "products.barcode_image",
+            "products.size",
+            "products.category_id",
+            "category.category_name as category_name",
+          ])
+          .leftJoin("category", "products.category_id", "category.category_id")
+          .where({
+            "products.product_id": product_id,
+            "products.is_deleted": false,
+          })
+          .first()) || null
       );
     } catch (e) {
       throw new DatabaseError(e);
     }
   }
-  // count products by category id
+
   async countByCategoryId(category_id) {
-    const qb = await this.getQueryBuilder();
+    try {
+      const qb = await this.getQueryBuilder();
 
-    const [{ count }] = await qb(this.tableName)
-      .where(this.whereStatement({ category_id }))
-      .count("* as count")
+      const [{ count }] = await qb("products")
+        .where({
+          category_id,
+          is_deleted: false,
+        })
+        .count("* as count");
 
-
-    return Number(count);
+      return Number(count);
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
   }
 
   /**
-   * Create product
+   * ✅ Create product
    */
   async create(productData) {
     try {
       const qb = await this.getQueryBuilder();
       const data = this.insertStatement(productData);
 
-      const [product] = await qb(this.tableName)
+      const [product] = await qb("products")
         .insert(data)
         .returning(this.getPublicColumns());
 
@@ -142,7 +198,7 @@ class ProductModel extends BaseModel {
   }
 
   /**
-   * Update product
+   * ✅ Update product
    */
   async update(product_id, productData) {
     try {
@@ -153,8 +209,8 @@ class ProductModel extends BaseModel {
         return null;
       }
 
-      const [updatedProduct] = await qb(this.tableName)
-        .where(this.whereStatement({ product_id }))
+      const [updatedProduct] = await qb("products")
+        .where({ product_id })
         .update({
           ...data,
           [TABLE_DEFAULTS.COLUMNS.UPDATED_AT.KEY]: qb.raw("CURRENT_TIMESTAMP"),
@@ -168,15 +224,16 @@ class ProductModel extends BaseModel {
   }
 
   /**
-   * Soft delete product
+   * ✅ Soft delete
    */
   async softDelete(product_id) {
     try {
       const qb = await this.getQueryBuilder();
-      return await qb(this.tableName)
-        .where(this.whereStatement({ product_id }))
+
+      return qb("products")
+        .where({ product_id })
         .update({
-          [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: true,
+          is_deleted: true,
           [TABLE_DEFAULTS.COLUMNS.UPDATED_AT.KEY]: qb.raw("CURRENT_TIMESTAMP"),
         });
     } catch (e) {
@@ -184,34 +241,30 @@ class ProductModel extends BaseModel {
     }
   }
 
-  /**
-   * Find product by SKU
-   */
   async findBySkuId(sku) {
     try {
       const qb = await this.getQueryBuilder();
+
       return (
-        qb(this.tableName)
+        (await qb("products")
           .select(this.getPublicColumns())
-          .where(this.whereStatement({ sku }))
-          .first() || null
+          .where({ sku, is_deleted: false })
+          .first()) || null
       );
     } catch (e) {
       throw new DatabaseError(e);
     }
   }
 
-  /**
-   * Find product by barcode
-   */
-  async generateBarcode(barcode) {
+  async findByBarcode(barcode) {
     try {
       const qb = await this.getQueryBuilder();
+
       return (
-        qb(this.tableName)
+        (await qb("products")
           .select(this.getPublicColumns())
-          .where(this.whereStatement({ barcode }))
-          .first() || null
+          .where({ barcode, is_deleted: false })
+          .first()) || null
       );
     } catch (e) {
       throw new DatabaseError(e);

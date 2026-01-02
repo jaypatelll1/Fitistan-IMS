@@ -1,8 +1,10 @@
 const ItemModel = require("../../models/ItemModel");
-const ProductModel = require("../../models/ProductModel");
+const ProductModel = require("../../models/productModel");
 const OrderManager = require("./OrderManager");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 const { ITEM_STATUS } = require("../../models/libs/dbConstants");
+const { ORDER_STATUS } = require("../../models/libs/dbConstants");
+const OrderModel = require("../../models/OrderModel");
 
 const {
   createItemSchema,
@@ -51,17 +53,25 @@ class itemManager {
     }
   }
 
-static async removeItemStock(product_id, shelf_id, quantity, status, order_id = null) {
+static async removeItemStock(
+  product_id,
+  quantity,
+  status = ITEM_STATUS.SOLD,
+  order_id = null,
+  shelf_id = null // 🆕 you need to know which shelf the product is coming from
+) {
   try {
     const itemModel = new ItemModel();
+    const orderModel = new OrderModel();
 
-    // safety
     product_id = Number(product_id);
     quantity = Number(quantity);
 
-    const status = status
-      ? String(status).trim().toLowerCase()
-      : ITEM_STATUS.SOLD;
+    const normalizedStatus = String(status).trim().toLowerCase();
+
+    if (!Object.values(ITEM_STATUS).includes(normalizedStatus)) {
+      throw new Error(`Invalid item status: ${normalizedStatus}`);
+    }
 
     const isReturn = normalizedStatus === ITEM_STATUS.RETURNED;
 
@@ -69,53 +79,54 @@ static async removeItemStock(product_id, shelf_id, quantity, status, order_id = 
       throw new Error("Quantity must be greater than 0");
     }
 
+    // Check stock only for sell/outward
     if (!isReturn) {
-      const items = await itemModel.countByProductId(product_id);
-      console.log("items", items);
-
-      if (items < quantity) {
+      const available = await itemModel.countByProductId(product_id);
+      if (available < quantity) {
         throw new Error("Insufficient stock");
       }
     }
 
-    const deleted = await itemModel.softDelete(
+    // Remove/return stock
+    const affected = await itemModel.softDelete(
       product_id,
-      shelf_id ?? null,
       quantity,
-      status
+      normalizedStatus
     );
 
-    if (isReturn && deleted === 0) {
-      throw new Error("No sold items found to return for this product");
+    if (isReturn && affected === 0) {
+      throw new Error("No sold items found to return");
     }
 
-    let order;
-    if (isReturn && order_id) {
-      order = await OrderManager.updateOrderStatus(order_id, normalizedStatus);
-      console.log("Order updated:", order);
-    } else {
-      // ✅ FIX: map ITEM status → ORDER status
-      const orderStatus =
-        normalizedStatus === ITEM_STATUS.RETURNED
-          ? ORDER_STATUS.CANCELLED
-          : ORDER_STATUS.PROCESSING;
+    // ✅ Create order if selling and no existing order_id provided
+    let createdOrderId = order_id;
+    if (!isReturn && affected > 0) {
+      if (!shelf_id) {
+        throw new Error("Shelf ID is required to create an order");
+      }
 
-      order = await OrderManager.createOrder(
+      const orderData = {
         product_id,
-        shelf_id ?? null,
+        shelf_id,
         quantity,
-        orderStatus
-      );
+        status: ORDER_STATUS.SOLD
+      };
 
-      console.log("Order created:", order);
+      const createdOrder = await orderModel.create(orderData);
+      createdOrderId = createdOrder.order_id;
     }
 
-    return { removed: quantity, deleted, order };
+    return {
+      product_id,
+      quantity,
+      status: normalizedStatus,
+      affected,
+      order_id: createdOrderId,
+    };
   } catch (error) {
     throw new Error(`Failed to remove stock: ${error.message}`);
   }
 }
-
 
   static async updateItemStatus(payload) {
 
