@@ -18,4 +18,8 @@ router.get(
   }
 );
 
+router.get("/test", (req, res) => {
+  res.send("Google OAuth router working");
+});
+
 module.exports = router;

@@ -19,7 +19,7 @@ const app = express();
 /* Session */
 app.use(
   session({
-    secret: "secret123",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
   })
@@ -37,7 +37,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/open/api/oauth/google/callback"
+      callbackURL: process.env.GOOGLE_CALL_BACK_URL
     },
     (accessToken, refreshToken, profile, done) => {
       return done(null, profile);

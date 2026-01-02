@@ -18,7 +18,6 @@ const vendorRouter = require("../../routes/controllers/vendorRouter")
 const ShopifyRouter = require("../controllers/open/shopifyRouter");
 const ItemRouter = require("../../routes/controllers/ItemRouter");
 const ProductRouter = require("../../routes/controllers/ProductRouter");
-
 const GoogleAuthRouter = require("../controllers/GoogleAuthRouter");
 
 
@@ -32,6 +31,7 @@ class RouteMap {
     openrouter.use("/shopify",ShopifyRouter);
     openrouter.use("/auth", Authloginrouter);
     openrouter.use("/oauth", GoogleAuthRouter);
+    
 
 
     //  PROTECTED ROUTES
