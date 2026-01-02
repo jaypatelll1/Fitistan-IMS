@@ -84,6 +84,58 @@ class ProductManager {
   // }
 
 
+  static async getProductFullDetails(id) {
+    const { error, value } = productIdSchema.validate(
+      { id },
+      { abortEarly: false }
+    );
+    if (error) throw new JoiValidatorError(error);
+    try {
+      const product = await productModel.findById(value.id);
+      if (!product) return null;
+
+      const itemModel = new ItemModel();
+      // Fetch all items using the NEW method
+      const items = await itemModel.getAllItemsByProductId(value.id);
+
+      // Aggregate items by location (Warehouse -> Room -> Shelf) and status
+      const stockMap = new Map();
+
+      items.forEach(item => {
+        // Handle unassigned/missing location data gracefully
+        const shelfName = item.shelf_name || "Unassigned";
+        const roomName = item.room_name || "-";
+        const warehouseName = item.warehouse_name || "-";
+        const status = item.status || "available";
+
+        const key = `${warehouseName}|${roomName}|${shelfName}|${status}`;
+
+        if (!stockMap.has(key)) {
+          stockMap.set(key, {
+            product_id: item.product_id,
+            warehouse_name: warehouseName,
+            room_name: roomName,
+            shelf_name: shelfName,
+            status: status,
+            item_count: 0
+          });
+        }
+        stockMap.get(key).item_count++;
+      });
+
+      const stockBreakdown = Array.from(stockMap.values());
+      const totalQuantity = items.length;
+
+      return {
+        ...product,
+        stock_quantity: totalQuantity, // Return actual count of items
+        stock_details: stockBreakdown
+      };
+    } catch (err) {
+      throw new Error(`Failed to get product full details: ${err.message}`);
+    }
+  }
+
   static async getProductById(id) {
     const { error, value } = productIdSchema.validate(
       { id },

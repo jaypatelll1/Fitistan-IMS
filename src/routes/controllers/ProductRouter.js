@@ -5,7 +5,7 @@ const ProductManager = require("../../businesslogic/managers/ProductManager");
 
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
-const  {ACCESS_ROLES}  =require("../../businesslogic/accessmanagement/roleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
@@ -200,6 +200,27 @@ router.get(
     //   data: product,
     // });
   })
+);
+
+// Get product full details (including stock breakdown)
+router.get(
+  "/productDetails/:id",
+  appWrapper(async (req, res) => {
+    const { id } = req.params;
+
+    const product = await ProductManager.getProductFullDetails(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: product,
+    });
+  }, [ACCESS_ROLES.ALL])
 );
 
 

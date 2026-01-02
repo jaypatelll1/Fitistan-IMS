@@ -11,7 +11,7 @@ async function generateAndUploadBarcode(barcodeValue) {
         paddingwidth: 10,
         paddingheight: 10,
 
-        includetext: true,
+        includetext: false,
         textsize: 8,
         textxalign: "center",
      
