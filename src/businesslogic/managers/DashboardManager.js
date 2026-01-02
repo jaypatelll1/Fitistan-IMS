@@ -110,7 +110,7 @@ class DashboardManager {
 //     out_of_stock_products: outOfStockCount
 //   };
 // }
-static async getDetailOfLowAndOutOfStock(lowStockLimit = 5) {
+static async getDetailOfLowAndOutOfStock(lowStockLimit = 10) {
   const itemModel = new ItemModel();
 
   const groupedItems = await itemModel.countAvailableItemsByProduct();

@@ -44,7 +44,7 @@ appWrapper(async (req,res)=>{
 
 router.get("/stock-status",appWrapper(async (req, res) => {
 
-    const lowStockLimit = Number(req.query.lowStock ?? 5);
+    const lowStockLimit = Number(req.query.lowStock ?? 10);
 
     const data = await DashboardManager.getDetailOfLowAndOutOfStock(lowStockLimit);
 
