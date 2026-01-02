@@ -98,6 +98,8 @@ class ProductManager {
       // Fetch all items using the NEW method
       const items = await itemModel.getAllItemsByProductId(value.id);
 
+      
+
       // Aggregate items by location (Warehouse -> Room -> Shelf) and status
       const stockMap = new Map();
 
@@ -108,11 +110,14 @@ class ProductManager {
         const warehouseName = item.warehouse_name || "-";
         const status = item.status || "available";
 
-        const key = `${warehouseName}|${roomName}|${shelfName}|${status}`;
+        const key = `${item.warehouse_id}|${item.room_id}|${item.shelf_id}|${status}`;
 
         if (!stockMap.has(key)) {
           stockMap.set(key, {
             product_id: item.product_id,
+            warehouse_id: item.warehouse_id,
+            room_id: item.room_id,
+            shelf_id: item.shelf_id,
             warehouse_name: warehouseName,
             room_name: roomName,
             shelf_name: shelfName,

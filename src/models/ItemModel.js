@@ -235,6 +235,8 @@ class ItemModel extends BaseModel {
 
         // Location info
         "shelf.shelf_name",
+        "shelf.room_id",
+        "shelf.warehouse_id",
         "rooms.room_name",
         "warehouses.name as warehouse_name",
 

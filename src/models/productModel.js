@@ -26,6 +26,22 @@ class ProductModel extends BaseModel {
     ];
   }
 
+  getPrivateColumns() {
+    return [
+      "product_id",
+      "name",
+      "description",
+      "vendor_id",
+      "sku",
+      "barcode",
+      "product_image",
+      "barcode_image",
+      "size",
+      "products.category_id",
+      "category_name",
+    ];
+  }
+
   /**
    * ✅ Get all products with category name
    */
@@ -248,10 +264,12 @@ class ProductModel extends BaseModel {
     try {
       const qb = await this.getQueryBuilder();
 
-      return (
-        (await qb("products")
-          .select(this.getPublicColumns())
-          .where({ sku, is_deleted: false })
+      return ((
+        await qb("products")
+          .select(this.getPrivateColumns())
+          .leftJoin("category", "products.category_id", "category.category_id")
+          .where("products.sku", sku)
+          .where("products.is_deleted", false)
           .first()) || null
       );
     } catch (e) {
