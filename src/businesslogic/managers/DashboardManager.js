@@ -2,6 +2,7 @@ const db = require('../../models/libs/Db');
 const ProductModel = require("../../models/productModel");
 const OrderModel = require("../../models/OrderModel")
 const  ItemModel = require("../../models/ItemModel")
+const CategoryModel = require("../../models/CategoryModel")
 
 class DashboardManager {
 
@@ -150,6 +151,16 @@ static async getDetailOfLowAndOutOfStock(lowStockLimit = 10) {
   };
 }
 
+  static async getProductCountByCategory() {
+    const data = await CategoryModel.countProductsByCategory();
+
+    // Normalize PostgreSQL count (string → number)
+    return data.map(row => ({
+      category_id: row.category_id,
+      category_name: row.category_name,
+      total_products: Number(row.total_products)
+    }));
+  }
 
 }
 

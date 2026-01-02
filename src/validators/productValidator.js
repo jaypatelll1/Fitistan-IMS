@@ -89,7 +89,18 @@ const createProductSchema = Joi.object({
       "string.min": COMMON_MESSAGES.STRING_MIN,
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
     }),
+    size: Joi .string()
+    .trim()
+    .min(1)
+    .label("Size")
+    .messages({
+      "string.base":COMMON_MESSAGES.STRING_BASE,
+      "string.empty":COMMON_MESSAGES.STRING_EMPTY,
+      "string.min": COMMON_MESSAGES.STRING_MIN,
     
+    })
+    .optional(),
+
   product_image: Joi.string()
     .allow("", null)
     .label("Product Image")

@@ -51,57 +51,71 @@ class itemManager {
     }
   }
 
-  static async removeItemStock(product_id, shelf_id, quantity, status, order_id = null) {
-    try {
-      const itemModel = new ItemModel();
-      const normalizedStatus = String(status).trim().toLowerCase();
+static async removeItemStock(product_id, shelf_id, quantity, status, order_id = null) {
+  try {
+    const itemModel = new ItemModel();
 
-      // For returns, we restore items (is_deleted: false)
-      // For other statuses, we remove items (is_deleted: true)
-      const isReturn = normalizedStatus === ITEM_STATUS.RETURNED;
+    // safety
+    product_id = Number(product_id);
+    quantity = Number(quantity);
 
-      if (!isReturn && quantity <= 0) {
-        throw new Error("Quantity must be greater than 0");
-      }
+    const status = status
+      ? String(status).trim().toLowerCase()
+      : ITEM_STATUS.SOLD;
 
-      if (!isReturn) {
-        const items = await itemModel.countByProductId(product_id);
-        console.log("items", items);
+    const isReturn = normalizedStatus === ITEM_STATUS.RETURNED;
 
-        if (items < quantity) {
-          throw new Error("Insufficient stock");
-        }
-      }
-
-      // 1. Soft delete/restore the items and update their status
-      const deleted = await itemModel.softDelete(product_id, quantity, normalizedStatus);
-
-      // For returns: check if any sold items were found to restore
-      if (isReturn && deleted === 0) {
-        throw new Error("No sold items found to return for this product");
-      }
-
-      let order;
-      if (isReturn && order_id) {
-        // 2a. For returns: UPDATE existing order status
-        order = await OrderManager.updateOrderStatus(order_id, normalizedStatus);
-        console.log("Order updated:", order);
-      } else {
-        // 2b. For new orders: CREATE new order record
-        order = await OrderManager.createOrder(
-          product_id,
-          shelf_id,
-          quantity,
-          normalizedStatus
-        );
-        console.log("Order created:", order);
-      }
-
-      return { removed: quantity, deleted, order };
-    } catch (error) {
-      throw new Error(`Failed to remove stock: ${error.message}`);
+    if (!isReturn && quantity <= 0) {
+      throw new Error("Quantity must be greater than 0");
     }
+
+    if (!isReturn) {
+      const items = await itemModel.countByProductId(product_id);
+      console.log("items", items);
+
+      if (items < quantity) {
+        throw new Error("Insufficient stock");
+      }
+    }
+
+    const deleted = await itemModel.softDelete(
+      product_id,
+      shelf_id ?? null,
+      quantity,
+      status
+    );
+
+    if (isReturn && deleted === 0) {
+      throw new Error("No sold items found to return for this product");
+    }
+
+    let order;
+    if (isReturn && order_id) {
+      order = await OrderManager.updateOrderStatus(order_id, normalizedStatus);
+      console.log("Order updated:", order);
+    } else {
+      // ✅ FIX: map ITEM status → ORDER status
+      const orderStatus =
+        normalizedStatus === ITEM_STATUS.RETURNED
+          ? ORDER_STATUS.CANCELLED
+          : ORDER_STATUS.PROCESSING;
+
+      order = await OrderManager.createOrder(
+        product_id,
+        shelf_id ?? null,
+        quantity,
+        orderStatus
+      );
+
+      console.log("Order created:", order);
+    }
+
+    return { removed: quantity, deleted, order };
+  } catch (error) {
+    throw new Error(`Failed to remove stock: ${error.message}`);
   }
+}
+
 
   static async updateItemStatus(payload) {
 

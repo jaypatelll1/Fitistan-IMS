@@ -21,6 +21,8 @@ class ProductModel extends BaseModel {
       "barcode",
       "product_image",
       "barcode_image",
+      "category_id",
+      "size"
     ];
   }
 

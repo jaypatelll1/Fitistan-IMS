@@ -9,7 +9,7 @@ router.get(
   appWrapper(async (req, res) => {
     const data = await DashboardManager.getTopSellingProducts();
     res.json({ success: true, data });
-  },[ACCESS_ROLES.ACCOUNT_ADMIN]
+  },[ACCESS_ROLES.ACCOUNT_SUPER_ADMIN]
 ));
 
 router.get(
@@ -17,7 +17,7 @@ router.get(
   appWrapper(async (req, res) => {
     const data = await DashboardManager.getLeastSellingProducts();
     res.json({ success: true, data });
-  })
+  },[ACCESS_ROLES.ACCOUNT_SUPER_ADMIN])
 );
 
 router.get(
@@ -28,7 +28,7 @@ router.get(
       success:true,
       data
     })
-  },[ACCESS_ROLES.ACCOUNT_ADMIN])
+  },[ACCESS_ROLES.ACCOUNT_SUPER_ADMIN])
 )
 
 router.get(
@@ -57,5 +57,18 @@ router.get("/stock-status",appWrapper(async (req, res) => {
 },[ACCESS_ROLES.ACCOUNT_SUPER_ADMIN])
 );
 
+
+router.get(
+  "/category_count",
+  appWrapper(async () => {
+    const data = await DashboardManager.getProductCountByCategory();
+
+    return {
+      success: true,
+      message: "Product count by category fetched successfully",
+      data
+    };
+  }, [ACCESS_ROLES.ACCOUNT_SUPER_ADMIN])
+);
 
 module.exports = router;

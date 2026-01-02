@@ -18,7 +18,30 @@ static async create(categoryData) {
   } catch (e) {
     throw new DatabaseError(e);
   }
-}
+}  
+
+static async countProductsByCategory() {
+    try {
+      const qb = this.qb();
+
+      return await qb("category as c")
+        .select(
+          "c.category_id",
+          "c.category_name"
+        )
+        .count("p.product_id as total_products")
+        .leftJoin("products as p", function () {
+          this.on("p.category_id", "c.category_id")
+            .andOn("p.is_deleted", qb.raw("false"));
+        })
+        .where("c.is_deleted", false)
+        .groupBy("c.category_id", "c.category_name")
+        .orderBy("c.category_id", "asc");
+
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 static async findById(category_id) {
   return this.qb()
     .select("category_id", "category_name", "is_deleted")
