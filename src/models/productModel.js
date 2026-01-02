@@ -209,7 +209,7 @@ class ProductModel extends BaseModel {
         return null;
       }
 
-      const [updatedProduct] = await qb("products")
+      const updatedRows = await qb("products")
         .where({ product_id })
         .update({
           ...data,

@@ -20,30 +20,6 @@ class ProductManager {
     try {
       const result = await productModel.findAllPaginated(page, limit);
  
-            
-
-      // Fetch aggregated stock details for these products
-      const products = result.data;
-      const productIds = products.map(p => p.product_id);
-
-      const itemModel = new ItemModel();
-      const stockRows = await itemModel.findByProductIds(productIds);
-
-      // Group items by product_id
-      const stockMap = {};
-      for (const row of stockRows) {
-        if (!stockMap[row.product_id]) {
-          stockMap[row.product_id] = [];
-        }
-        stockMap[row.product_id].push(row);
-      }
-
-      // Merge details
-      const productsWithStock = products.map(product => ({
-        ...product,
-        stock_details: stockMap[product.product_id] || []
-      }));
-
       const totalPages = Math.ceil(result.total / limit);
       const offset = (page - 1) * limit;
 
@@ -51,8 +27,6 @@ class ProductManager {
 
         products: result.data,
 
-        products: productsWithStock,
-        products: result.data,
         total: result.total,
         page,
         limit,
