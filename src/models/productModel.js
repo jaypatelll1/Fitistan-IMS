@@ -21,8 +21,9 @@ class ProductModel extends BaseModel {
       "barcode",
       "product_image",
       "barcode_image",
-      "category_id",
-      "size"
+      "size",
+      "category_name",
+      "products.category_id"
     ];
   }
 
@@ -36,13 +37,15 @@ class ProductModel extends BaseModel {
 
       const data = await qb(this.tableName)
         .select(this.getPublicColumns())
-        .where(this.whereStatement())
+        .join("category", "products.category_id", "category.category_id")
+        .where("products.is_deleted", false)
         .orderBy("product_id", "asc")
         .limit(limit)
         .offset(offset);
 
       const [{ count }] = await qb(this.tableName)
-        .where(this.whereStatement())
+        .join("category", "products.category_id", "category.category_id")
+        .where("products.is_deleted", false)
         .count("* as count");
 
       return {
@@ -56,41 +59,41 @@ class ProductModel extends BaseModel {
 
   // Get products by category ID with pagination
   async findByCategoryIdPaginated(category_id, page = 1, limit = 10) {
-  const qb = await this.getQueryBuilder();
-  const offset = (page - 1) * limit;
-
-  const data = await qb(this.tableName)
-    .select(this.getPublicColumns())
-    .where(this.whereStatement({ category_id }))
-    .orderBy("product_id", "asc")
-    .limit(limit)
-    .offset(offset);
-
-  const [{ count }] = await qb(this.tableName)
-    .where(this.whereStatement({ category_id }))
-    .count("* as count");
-
-  return {
-    data,
-    total: Number(count)
-  };
-}
-
-
-// Count total products
-async countTotalProducts() {
-  try {
     const qb = await this.getQueryBuilder();
+    const offset = (page - 1) * limit;
+
+    const data = await qb(this.tableName)
+      .select(this.getPublicColumns())
+      .where(this.whereStatement({ category_id }))
+      .orderBy("product_id", "asc")
+      .limit(limit)
+      .offset(offset);
 
     const [{ count }] = await qb(this.tableName)
-      .where(this.whereStatement()) // respects is_deleted
+      .where(this.whereStatement({ category_id }))
       .count("* as count");
 
-    return Number(count);
-  } catch (e) {
-    throw new DatabaseError(e);
+    return {
+      data,
+      total: Number(count)
+    };
   }
-}
+
+
+  // Count total products
+  async countTotalProducts() {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      const [{ count }] = await qb(this.tableName)
+        .where(this.whereStatement()) // respects is_deleted
+        .count("* as count");
+
+      return Number(count);
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 
   /**
    * Get product by ID
@@ -108,14 +111,14 @@ async countTotalProducts() {
       throw new DatabaseError(e);
     }
   }
-// count products by category id
+  // count products by category id
   async countByCategoryId(category_id) {
     const qb = await this.getQueryBuilder();
 
     const [{ count }] = await qb(this.tableName)
       .where(this.whereStatement({ category_id }))
       .count("* as count")
-      
+
 
     return Number(count);
   }
@@ -213,7 +216,7 @@ async countTotalProducts() {
     } catch (e) {
       throw new DatabaseError(e);
     }
-}
+  }
 }
 
 module.exports = ProductModel;

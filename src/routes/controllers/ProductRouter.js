@@ -52,15 +52,15 @@ router.post(
     const productData = req.body;
 
     // Handle Image Upload
-    if (req.files && req.files.image) {
-      const { uploadToS3 } = require("../../services/s3Services");
-      const file = req.files.image;
+    // if (req.files && req.files.image) {
+    //   const { uploadToS3 } = require("../../services/s3Services");
+    //   const file = req.files.image;
 
-      const fileName = `products/${productData.sku}-${Date.now()}.png`;
-      const imageUrl = await uploadToS3(file.data, fileName, file.mimetype);
+    //   const fileName = `products/${productData.sku}-${Date.now()}.png`;
+    //   const imageUrl = await uploadToS3(file.data, fileName, file.mimetype);
 
-      productData.product_image = imageUrl;
-    }
+    //   productData.product_image = imageUrl;
+    // }
 
     const product = await ProductManager.createProduct(productData);
 
