@@ -10,16 +10,13 @@ const {
   updateProductSchema
 } = require("../../validators/productValidator");
 
-
-
 const productModel = new ProductModel(); // no userId for now
+
 class ProductManager {
 
   static async getAllProductsPaginated(page, limit) {
     try {
       const result = await productModel.findAllPaginated(page, limit);
- 
-            
 
       // Fetch aggregated stock details for these products
       const products = result.data;
@@ -37,7 +34,7 @@ class ProductManager {
         stockMap[row.product_id].push(row);
       }
 
-      // Merge details
+      // Merge stock details
       const productsWithStock = products.map(product => ({
         ...product,
         stock_details: stockMap[product.product_id] || []
@@ -47,10 +44,7 @@ class ProductManager {
       const offset = (page - 1) * limit;
 
       return {
-
-        products: result.data,
-
-        products: productsWithStock,
+        products: productsWithStock, // ✅ return merged products
         total: result.total,
         page,
         limit,
@@ -65,26 +59,20 @@ class ProductManager {
   }
 
   static async getProductById(id) {
-    const { error, value } = productIdSchema.validate(
-      { id },
-      { abortEarly: false }
-    );
+    const { error, value } = productIdSchema.validate({ id }, { abortEarly: false });
     if (error) throw new JoiValidatorError(error);
 
     try {
       const product = await productModel.findById(value.id);
       if (!product) return null;
 
-      // Fetch aggregated stock details
-      const ItemModel = require("../../models/ItemModel");
       const itemModel = new ItemModel();
       const stockDetails = await itemModel.findByProductId(value.id);
 
       return {
         ...product,
-        stock_details: stockDetails || [] // Pass raw data to frontend
+        stock_details: stockDetails || []
       };
-
     } catch (err) {
       throw new Error(`Failed to get product by ID: ${err.message}`);
     }
@@ -101,33 +89,41 @@ class ProductManager {
       const verifyProduct = await productModel.findBySkuId(value.sku);
       if (verifyProduct) {
         throw new JoiValidatorError({
-          details: [
-            { path: ["sku"], message: "Product with this SKU already exists" }
-          ]
+          details: [{ path: ["sku"], message: "Product with this SKU already exists" }]
         });
       }
 
-          const category = await CategoryModel.findByName(value.category);
-    if (!category) {
-      throw new JoiValidatorError({
-        details: [
-          { path: ["category"], message: "Invalid category selected" }
-        ]
-      });
-    }
+      const category = await CategoryModel.findByName(value.category);
+      if (!category) {
+        throw new JoiValidatorError({
+          details: [{ path: ["category"], message: "Invalid category selected" }]
+        });
+      }
 
-    // 3️⃣ Mutate value safely
-    value.category_id = category.category_id;
-    delete value.category;
+      // ✅ Mutate safely
+      // category
+// category
+value.category_id = category.category_id;
+delete value.category;
 
-      value.barcode = value.sku;
+// barcode
+value.barcode = value.sku;
 
+// barcode image
+const barcodeResult = await generateAndUploadBarcode(value.sku);
+value.barcode_image = JSON.stringify({
+  file_path: barcodeResult.cdnUrl
+});
 
-      const barcodeResult = await generateAndUploadBarcode(value.sku);
-      value.barcode_image = barcodeResult.cdnUrl;
+// product images
+if (!Array.isArray(value.product_image)) {
+  value.product_image = [];
+}
+value.product_image = JSON.stringify(value.product_image);
 
-      const product = await productModel.create(value);
-      return product;
+const product = await productModel.create(value);
+return product;
+
 
     } catch (err) {
       throw err;
@@ -146,23 +142,27 @@ class ProductManager {
 
     try {
       const verifyProduct = await productModel.findById(id);
-      if (!verifyProduct) {
-        return null;
-      }
+      if (!verifyProduct) return null;
+
+      // ✅ Normalize product_image for JSONB array
+      if (value.product_image) {
+  value.product_image = JSON.stringify(value.product_image);
+}
+
+if (value.barcode_image) {
+  value.barcode_image = JSON.stringify(value.barcode_image);
+}
+
 
       const product = await productModel.update(id, value);
       return product || null;
-
     } catch (err) {
       throw new Error(`Failed to update product: ${err.message}`);
     }
   }
 
   static async deleteProduct(id) {
-    const { error, value } = productIdSchema.validate(
-      { id },
-      { abortEarly: false }
-    );
+    const { error, value } = productIdSchema.validate({ id }, { abortEarly: false });
     if (error) throw new JoiValidatorError(error);
 
     try {

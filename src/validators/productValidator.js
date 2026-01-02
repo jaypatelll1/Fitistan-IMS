@@ -1,6 +1,7 @@
 const Joi = require("joi");
 const COMMON_MESSAGES = require("../validators/validationConstants/commanMessages");
 
+// ✅ Product ID schema
 const productIdSchema = Joi.object({
   id: Joi.number()
     .integer()
@@ -15,6 +16,7 @@ const productIdSchema = Joi.object({
     })
 });
 
+// ✅ Schema for creating product
 const createProductSchema = Joi.object({
   name: Joi.string()
     .trim()
@@ -44,28 +46,6 @@ const createProductSchema = Joi.object({
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
     }),
 
-  // price: Joi.number()
-  //   .positive()
-  //   .required()
-  //   .label("Price")
-  //   .messages({
-  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
-  //     "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
-  //     "any.required": COMMON_MESSAGES.ANY_REQUIRED
-  //   }),
-
-  // quantity: Joi.number()
-  //   .integer()
-  //   .min(0)
-  //   .required()
-  //   .label("Quantity")
-  //   .messages({
-  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
-  //     "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
-  //     "number.min": COMMON_MESSAGES.NUMBER_MIN,
-  //     "any.required": COMMON_MESSAGES.ANY_REQUIRED
-  //   }),
-
   description: Joi.string()
     .allow("", null)
     .label("Description")
@@ -73,32 +53,43 @@ const createProductSchema = Joi.object({
       "string.base": COMMON_MESSAGES.STRING_BASE
     }),
 
-  barcode: Joi.string()
-    .optional()
-    .label("Barcode")
-    .messages({
-      "string.base": COMMON_MESSAGES.STRING_BASE
-    }),
-    category: Joi.string()
+  category: Joi.string()
     .trim()
     .required()
     .label("Category")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE,
       "string.empty": COMMON_MESSAGES.STRING_EMPTY,
-      "string.min": COMMON_MESSAGES.STRING_MIN,
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
     }),
-    
-  product_image: Joi.string()
-    .allow("", null)
-    .label("Product Image")
+
+  // ✅ Multiple product images (array of objects)
+  product_image: Joi.array()
+    .items(
+      Joi.object({
+        file_path: Joi.string().uri().required().label("Product Image Path"),
+        view: Joi.string().trim().required().label("Image View")
+      })
+    )
+    .optional()
+    .label("Product Images"),
+
+  // ✅ Barcode image (object with file_path)
+  barcode_image: Joi.object({
+    file_path: Joi.string().uri().required().label("Barcode Image Path")
+  })
+    .optional()
+    .label("Barcode Image"),
+
+  barcode: Joi.string()
+    .optional()
+    .label("Barcode")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
     })
-  
 });
 
+// ✅ Schema for updating product
 const updateProductSchema = Joi.object({
   name: Joi.string()
     .trim()
@@ -124,24 +115,6 @@ const updateProductSchema = Joi.object({
       "string.max": COMMON_MESSAGES.STRING_MAX
     }),
 
-  // price: Joi.number()
-  //   .positive()
-  //   .label("Price")
-  //   .messages({
-  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
-  //     "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
-  //   }),
-
-  // quantity: Joi.number()
-  //   .integer()
-  //   .min(0)
-  //   .label("Quantity")
-  //   .messages({
-  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
-  //     "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
-  //     "number.min": COMMON_MESSAGES.NUMBER_MIN
-  //   }),
-
   description: Joi.string()
     .allow("", null)
     .label("Description")
@@ -149,21 +122,33 @@ const updateProductSchema = Joi.object({
       "string.base": COMMON_MESSAGES.STRING_BASE
     }),
 
-  barcode: Joi.string()
-    .optional()
-    .label("Barcode")
+  category: Joi.string()
+    .trim()
+    .label("Category")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
     }),
 
-  product_image: Joi.string()
-    .allow("", null)
-    .label("Product Image")
-    .messages({
-      "string.base": COMMON_MESSAGES.STRING_BASE
-    })  
-}).min(1);
- 
+  product_image: Joi.array()
+    .items(
+      Joi.object({
+        file_path: Joi.string().uri().required().label("Product Image Path"),
+        view: Joi.string().trim().required().label("Image View")
+      })
+    )
+    .optional()
+    .label("Product Images"),
+
+  barcode_image: Joi.object({
+    file_path: Joi.string().uri().required().label("Barcode Image Path")
+  })
+    .optional()
+    .label("Barcode Image"),
+
+  barcode: Joi.string()
+    .optional()
+    .label("Barcode")
+}).min(1); // require at least one field when updating
 
 module.exports = {
   productIdSchema,
