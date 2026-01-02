@@ -2,7 +2,7 @@ const CategoryManager = require("../../businesslogic/managers/CategoryManager");
 const express = require("express");
 const router = express.Router({ mergeParams: true });
 const { appWrapper } = require("../routeWrapper");
-const {ACCESS_ROLES}  =require("../../businesslogic/accessmanagement/roleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 const CategoryModel = require("../../models/CategoryModel");
 
 
@@ -99,5 +99,24 @@ router.get(
 
 
 
+
+router.post(
+  "/list-with-counts",
+  appWrapper(async (req, res) => {
+    const categories = await CategoryManager.getCategoryListWithCounts();
+
+    if (!categories || categories.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No categories found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: categories,
+    });
+  }, [ACCESS_ROLES.ALL])
+);
 
 module.exports = router;

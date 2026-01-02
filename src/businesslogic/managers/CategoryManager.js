@@ -1,7 +1,7 @@
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 const CategoryModel = require("../../models/CategoryModel");
-const ProductModel = require("../../models/ProductModel");
-const validationError= require("../../errorhandlers/ValidationError");
+const ProductModel = require("../../models/productModel");
+const validationError = require("../../errorhandlers/ValidationError");
 const { createCategorySchema } = require("../../validators/categoryValidator");
 
 
@@ -95,6 +95,14 @@ static async deleteCategoryById(categoryId, userId) {
 }
 
 
+
+  static async getCategoryListWithCounts() {
+    try {
+      return await CategoryModel.countProductsByCategory();
+    } catch (err) {
+      throw new Error(`Failed to fetch category list with counts: ${err.message}`);
+    }
+  }
 
 }
 
