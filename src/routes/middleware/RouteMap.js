@@ -19,7 +19,10 @@ const ShopifyRouter = require("../controllers/open/shopifyRouter");
 const ItemRouter = require("../../routes/controllers/ItemRouter");
 const OrderRouter = require("../../routes/controllers/OrderRouter");
 const ProductRouter = require("../../routes/controllers/ProductRouter");
+const UserRouter = require("../../routes/controllers/UserRouter");
+const CategoryRouter = require("../../routes/controllers/CategoryRouter");
 
+const DashboardRouter = require("../../routes/controllers/DashboardRouter");
 
 
 class RouteMap {
@@ -46,6 +49,7 @@ class RouteMap {
     );
 
     Router.use("/auth", Authrouter);
+    Router.use("/users", UserRouter);
     Router.use("/rooms", RoomRouter);
     Router.use("/shelfs", ShelfRouter);
     Router.use("/warehouses", WarehouseRouter);
@@ -53,6 +57,8 @@ class RouteMap {
     Router.use("/items", ItemRouter);
     Router.use("/products", ProductRouter);
     Router.use("/orders", OrderRouter);
+    Router.use("/category", CategoryRouter);  
+    Router.use("/dashboard", DashboardRouter);
 
     
 

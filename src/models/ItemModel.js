@@ -114,7 +114,7 @@ class ItemModel extends BaseModel {
 
       const selectColumns = [
         // Item columns
-        "items.id as item_id", ,
+        "items.id as item_id",
         "items.product_id",
         "items.shelf_id",
         "items.status",
@@ -150,6 +150,53 @@ class ItemModel extends BaseModel {
         .where("items.is_deleted", false);
 
       return items.length ? items : null;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  async findByProductIds(productIds) {
+    try {
+      if (!productIds || productIds.length === 0) return [];
+
+      const qb = await this.getQueryBuilder();
+
+      const selectColumns = [
+        // Item columns
+        "items.id as item_id",
+        "items.product_id",
+        "items.shelf_id",
+        "items.status",
+        "items.is_deleted",
+        "items.created_at",
+        "items.updated_at",
+
+        // Product columns
+        "products.name as product_name",
+        "products.description as product_description",
+        "products.sku as product_sku",
+        "products.barcode as product_barcode",
+        "products.vendor_id as product_vendor_id",
+
+        // Shelf columns
+        "shelf.shelf_name",
+        "shelf.capacity as shelf_capacity",
+
+        // Room columns
+        "rooms.room_name",
+
+        // Warehouse columns
+        "warehouses.name as warehouse_name",
+      ];
+
+      return await qb("items")
+        .select(selectColumns)
+        .leftJoin("products", "items.product_id", "products.product_id")
+        .leftJoin("shelf", "items.shelf_id", "shelf.shelf_id")
+        .leftJoin("rooms", "shelf.room_id", "rooms.room_id")
+        .leftJoin("warehouses", "shelf.warehouse_id", "warehouses.warehouse_id")
+        .whereIn("items.product_id", productIds)
+        .where("items.is_deleted", false);
     } catch (e) {
       throw new DatabaseError(e);
     }
@@ -224,23 +271,49 @@ class ItemModel extends BaseModel {
       throw new DatabaseError(e);
     }
   }
+//conut avaialable
+async countAvailableItemsByProduct() {
+  try {
+    const qb = await this.getQueryBuilder();
 
-  // async softDelete(product_id, quantity) {
-  //     try {
-  //         const qb = await this.getQueryBuilder();
+    return await qb("items")
+      .select("product_id", "name")
+      .select(
+        qb.raw(
+          "COUNT(*) FILTER (WHERE status = ?) AS available_count",
+          [ITEM_STATUS.AVAILABLE]
+        )
+      )
+      .groupBy("product_id", "name");
+  } catch (e) {
+    throw new DatabaseError(e);
+  }
+}
 
-  //         return qb("items")
-  //             .whereIn("id", function () {
-  //                 this.select("id")
-  //                     .from("items")
-  //                     .where({ product_id, is_deleted: false })
-  //                     .limit(quantity);
-  //             })
-  //             .update({ is_deleted: true });
-  //     } catch (e) {
-  //         throw new DatabaseError(e);
-  //     }
-  // }
+
+  async softDelete(product_id, quantity, status) {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      // If returned, item should NOT be deleted (it's back in stock)
+      const isDeleted = status !== ITEM_STATUS.RETURNED;
+
+      return qb("items")
+        .whereIn("id", function () {
+          this.select("id")
+            .from("items")
+            .where({ product_id, is_deleted: !isDeleted }) // Find deleted items if returning, non-deleted otherwise
+            .limit(quantity);
+        })
+        .update({
+          is_deleted: isDeleted,
+          status: status,
+          updated_at: qb.raw("CURRENT_TIMESTAMP")
+        });
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 
   // async updateStatus(item_id, status) {
   //     try {
@@ -274,6 +347,25 @@ class ItemModel extends BaseModel {
   //         throw new DatabaseError(e);
   //     }
   // }
+
+  // async softDelete(product_id, quantity) {
+  //     try {
+  //         const qb = await this.getQueryBuilder();
+
+  //         return qb("items")
+  //             .whereIn("id", function () {
+  //                 this.select("id")
+  //                     .from("items")
+  //                     .where({ product_id, is_deleted: false })
+  //                     .limit(quantity);
+  //             })
+  //             .update({ is_deleted: true });
+  //     } catch (e) {
+  //         throw new DatabaseError(e);
+  //     }
+  // }
+
+
 }
 
 module.exports = ItemModel;

@@ -1,5 +1,6 @@
 const BaseModel = require("./libs/BaseModel");
 const DatabaseError = require("../errorhandlers/DatabaseError");
+const {ORDER_STATUS} = require("../models/libs/dbConstants")
 
 class OrderModel extends BaseModel {
     constructor(userId) {
@@ -155,6 +156,26 @@ class OrderModel extends BaseModel {
             throw new DatabaseError(e);
         }
     }
+
+    async totalOrder(){
+        try {
+            const qb= await this.getQueryBuilder();
+
+            const result = await qb("orders")
+            .where({status: ORDER_STATUS.SOLD})
+            .count("* as count")
+            .first()
+
+
+                return Number(result.count);
+            
+        } catch (e) {
+          throw new DatabaseError(e);         
+        }
+
+    }
+ 
+
 
     async updateStatus(order_id, status) {
         try {

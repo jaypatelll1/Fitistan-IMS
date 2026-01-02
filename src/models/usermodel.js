@@ -1,31 +1,44 @@
-const db = require("../config/database");
+const db = require("./libs/Db");
 
 class UserModel {
+  static qb() {
+    return db.getQueryBuilder(); // ✅ always use this
+  }
+
   static async findAll(filters = {}) {
-    let query = db("users").select("*");
-    if (filters.role) query = query.where({ role: filters.role });
-    if (filters.status) query = query.where({ status: filters.status });
+    let query = this.qb()("users").select("*");
+
+    if (filters.role) query.where({ role: filters.role });
+    if (filters.status) query.where({ status: filters.status });
+
     return query.orderBy("created_at", "desc");
   }
 
   static async findById(userId) {
-    return db("users").where({ user_id: userId }).first();
+    return this.qb()("users").where({ user_id: userId }).first();
   }
 
   static async findByEmail(email) {
-    return db("users").where({ email }).first();
+    return this.qb()("users").where({ email }).first();
   }
 
   static async create(userData) {
-    const [user] = await db("users").insert(userData).returning("*");
+    const [user] = await this.qb()("users")
+      .insert(userData)
+      .returning("*");
+
     return user;
   }
 
   static async update(userId, userData) {
-    const [user] = await db("users")
+    const [user] = await this.qb()("users")
       .where({ user_id: userId })
-      .update({ ...userData, updated_at: db.fn.now() })
+      .update({
+        ...userData,
+        updated_at: this.qb().fn.now()
+      })
       .returning("*");
+
     return user;
   }
 
@@ -42,18 +55,18 @@ class UserModel {
   }
 
   static async getActivityStats(userId) {
-    const movements = await db("stock_movements")
+    const movements = await this.qb()("stock_movements")
       .where({ performed_by: userId })
       .count("* as total_movements")
       .first();
 
-    const lastActivity = await db("stock_movements")
+    const lastActivity = await this.qb()("stock_movements")
       .where({ performed_by: userId })
       .orderBy("created_at", "desc")
       .first();
 
     return {
-      total_movements: parseInt(movements.total_movements),
+      total_movements: parseInt(movements.total_movements, 10),
       last_activity: lastActivity?.created_at || null,
     };
   }

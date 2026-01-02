@@ -86,6 +86,18 @@ class WarehouseManager {
       next: page < totalPages ? page + 1 : null
     };
   }
+  static async getAllWarehousesPaginated(page, limit, userId) {
+    const model = new WarehouseModel(userId);
+    const result = await model.getAllWarehousesPaginated(page, limit);
+
+    return {
+      warehouses: result.data,
+      total: result.total,
+      page,
+      limit,
+      totalPages: Math.ceil(result.total / limit)
+    };
+  }
 }
 
 module.exports = WarehouseManager;

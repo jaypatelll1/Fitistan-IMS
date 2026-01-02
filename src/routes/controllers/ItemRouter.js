@@ -4,7 +4,7 @@ const router = express.Router({ mergeParams: true });
 const itemManager = require("../../businesslogic/managers/ItemManager");
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
-const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 const { ITEM_STATUS } = require("../../models/libs/dbConstants");
 
 // POST /items/addStock - Add stock for a product
@@ -39,8 +39,8 @@ router.post(
   "/removeStock",
   appWrapper(
     async (req, res) => {
-      const { product_id, shelf_id, quantity, status } = req.body;
-      const item = await itemManager.removeItemStock(product_id, shelf_id, quantity, status);
+      const { product_id, shelf_id, quantity, status, order_id } = req.body;
+      const item = await itemManager.removeItemStock(product_id, shelf_id, quantity, status, order_id);
       if (!item) {
         return res.status(404).json({
           success: false,

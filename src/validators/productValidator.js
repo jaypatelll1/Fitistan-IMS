@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const  COMMON_MESSAGES  = require("../validators/validationConstants/commanMessages");
+const COMMON_MESSAGES = require("../validators/validationConstants/commanMessages");
 
 const productIdSchema = Joi.object({
   id: Joi.number()
@@ -44,27 +44,27 @@ const createProductSchema = Joi.object({
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
     }),
 
-  price: Joi.number()
-    .positive()
-    .required()
-    .label("Price")
-    .messages({
-      "number.base": COMMON_MESSAGES.NUMBER_BASE,
-      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
-      "any.required": COMMON_MESSAGES.ANY_REQUIRED
-    }),
+  // price: Joi.number()
+  //   .positive()
+  //   .required()
+  //   .label("Price")
+  //   .messages({
+  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
+  //     "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+  //     "any.required": COMMON_MESSAGES.ANY_REQUIRED
+  //   }),
 
-  quantity: Joi.number()
-    .integer()
-    .min(0)
-    .required()
-    .label("Quantity")
-    .messages({
-      "number.base": COMMON_MESSAGES.NUMBER_BASE,
-      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
-      "number.min": COMMON_MESSAGES.NUMBER_MIN,
-      "any.required": COMMON_MESSAGES.ANY_REQUIRED
-    }),
+  // quantity: Joi.number()
+  //   .integer()
+  //   .min(0)
+  //   .required()
+  //   .label("Quantity")
+  //   .messages({
+  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
+  //     "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+  //     "number.min": COMMON_MESSAGES.NUMBER_MIN,
+  //     "any.required": COMMON_MESSAGES.ANY_REQUIRED
+  //   }),
 
   description: Joi.string()
     .allow("", null)
@@ -78,7 +78,25 @@ const createProductSchema = Joi.object({
     .label("Barcode")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
+    }),
+    category: Joi.string()
+    .trim()
+    .required()
+    .label("Category")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.empty": COMMON_MESSAGES.STRING_EMPTY,
+      "string.min": COMMON_MESSAGES.STRING_MIN,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
+    
+  product_image: Joi.string()
+    .allow("", null)
+    .label("Product Image")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE
     })
+  
 });
 
 const updateProductSchema = Joi.object({
@@ -106,23 +124,23 @@ const updateProductSchema = Joi.object({
       "string.max": COMMON_MESSAGES.STRING_MAX
     }),
 
-  price: Joi.number()
-    .positive()
-    .label("Price")
-    .messages({
-      "number.base": COMMON_MESSAGES.NUMBER_BASE,
-      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
-    }),
+  // price: Joi.number()
+  //   .positive()
+  //   .label("Price")
+  //   .messages({
+  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
+  //     "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+  //   }),
 
-  quantity: Joi.number()
-    .integer()
-    .min(0)
-    .label("Quantity")
-    .messages({
-      "number.base": COMMON_MESSAGES.NUMBER_BASE,
-      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
-      "number.min": COMMON_MESSAGES.NUMBER_MIN
-    }),
+  // quantity: Joi.number()
+  //   .integer()
+  //   .min(0)
+  //   .label("Quantity")
+  //   .messages({
+  //     "number.base": COMMON_MESSAGES.NUMBER_BASE,
+  //     "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+  //     "number.min": COMMON_MESSAGES.NUMBER_MIN
+  //   }),
 
   description: Joi.string()
     .allow("", null)
@@ -136,8 +154,16 @@ const updateProductSchema = Joi.object({
     .label("Barcode")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
-    })
+    }),
+
+  product_image: Joi.string()
+    .allow("", null)
+    .label("Product Image")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE
+    })  
 }).min(1);
+ 
 
 module.exports = {
   productIdSchema,

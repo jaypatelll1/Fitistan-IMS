@@ -1,6 +1,6 @@
 const express = require("express");
 const { appWrapper } = require("../routeWrapper");
-const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 const VendorManager = require("../../businesslogic/managers/VendorManager");
 
 const router = express.Router({ mergeParams: true });
