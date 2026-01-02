@@ -269,7 +269,89 @@ class ProductManager {
     try {
       return await productModel.generateBarcode(barcode);
     } catch (err) {
-      throw new Error(`Failed to find product by barcode: ${err.message}`);
+      throw new DatabaseError(`Failed to find product by barcode: ${err.message}`);
+    }
+  }
+
+  static async getProductsByCategoryWithStock(categoryName, page = 1, limit = 10) {
+    try {
+      const category = await CategoryModel.findByName(categoryName);
+      if (!category) {
+        throw new JoiValidatorError({
+          details: [{ path: ["category"], message: "Invalid category" }]
+        });
+      }
+
+      const result = await productModel.findByCategoryIdWithStockPaginated(
+        category.category_id,
+        page,
+        limit
+      );
+
+      const products = result.data;
+      if (products.length > 0) {
+        const productIds = products.map(p => p.product_id);
+
+        // 2. Fetch items for these products to get location details
+        const itemModel = new ItemModel();
+        const items = await itemModel.findByProductIds(productIds);
+
+        // 3. Aggregate locations map
+        const productLocationMap = {}; // { productId: "Warehouse A (5), Room B (2)" }
+
+        // Re-using logic from getProductFullDetails but enabling it for the map
+        const productStockDetails = {}; // { productId: [ { warehouse_name... } ] }
+
+        items.forEach(item => {
+          if (!productStockDetails[item.product_id]) {
+            productStockDetails[item.product_id] = {};
+          }
+          // Key for uniqueness
+          const shelfName = item.shelf_name || "Unassigned";
+          const roomName = item.room_name || "-";
+          const warehouseName = item.warehouse_name || "-";
+          const status = item.status || "available";
+
+          const key = `${warehouseName}|${roomName}|${shelfName}|${status}`;
+
+          if (!productStockDetails[item.product_id][key]) {
+            productStockDetails[item.product_id][key] = {
+              warehouse_name: warehouseName,
+              room_name: roomName,
+              shelf_name: shelfName,
+              status: status,
+              item_count: 0
+            };
+          }
+          productStockDetails[item.product_id][key].item_count++;
+        });
+
+        // 4. Attach detail array to products
+        products.forEach(p => {
+          const detailMap = productStockDetails[p.product_id];
+          if (detailMap) {
+            p.stock_details = Object.values(detailMap);
+          } else {
+            p.stock_details = [];
+          }
+        });
+      }
+
+      const totalPages = Math.ceil(result.total / limit);
+      const offset = (page - 1) * limit;
+
+      return {
+        products: result.data,
+        total: result.total,
+        page,
+        limit,
+        offset,
+        totalPages,
+        previous: page > 1 ? page - 1 : null,
+        next: page < totalPages ? page + 1 : null
+      };
+    } catch (err) {
+      throw new Error(`Failed to fetch category products with stock: ${err.message}`);
     }
   }
 }

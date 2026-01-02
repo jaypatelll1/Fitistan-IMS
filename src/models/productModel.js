@@ -273,6 +273,52 @@ class ProductModel extends BaseModel {
       throw new DatabaseError(e);
     }
   }
+
+  /**
+   * ✅ NEW: Get products by Category with STOCK QUANTITY (subquery)
+   */
+  async findByCategoryIdWithStockPaginated(category_id, page = 1, limit = 10) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const offset = (page - 1) * limit;
+
+      const data = await qb("products")
+        .select([
+          "products.product_id",
+          "products.name",
+          "products.description",
+          "products.sku",
+          "products.product_image",
+          "products.category_id",
+          "category.category_name as category_name",
+          qb.raw(
+            "(SELECT count(*) FROM items WHERE items.product_id = products.product_id AND items.status = 'available') as stock_quantity"
+          ),
+        ])
+        .leftJoin("category", "products.category_id", "category.category_id")
+        .where({
+          "products.category_id": category_id,
+          "products.is_deleted": false,
+        })
+        .orderBy("products.product_id", "asc")
+        .limit(limit)
+        .offset(offset);
+
+      const [{ count }] = await qb("products")
+        .where({
+          category_id,
+          is_deleted: false,
+        })
+        .count("* as count");
+
+      return {
+        data,
+        total: Number(count),
+      };
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 }
 
 module.exports = ProductModel;

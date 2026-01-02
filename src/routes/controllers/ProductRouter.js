@@ -226,4 +226,32 @@ router.get(
 
 
 
+// Get category products with stock quantities
+router.get(
+  "/category/:categoryName/with-stock",
+  appWrapper(async (req, res) => {
+    const { categoryName } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await ProductManager.getProductsByCategoryWithStock(
+      categoryName,
+      page,
+      limit
+    );
+
+    if (!result.products || result.products.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No products found for category: ${categoryName}`,
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: result,
+    });
+  }, [ACCESS_ROLES.ALL])
+);
+
 module.exports = router;

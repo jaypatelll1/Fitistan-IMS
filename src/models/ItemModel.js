@@ -256,6 +256,34 @@ class ItemModel extends BaseModel {
       throw new DatabaseError(e);
     }
   }
+
+  async findByProductIds(productIds) {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      const selectColumns = [
+        "items.id as item_id",
+        "items.product_id",
+        "items.status",
+        "items.shelf_id", // Keep for reference
+        // Location info
+        "shelf.shelf_name",
+        "rooms.room_name",
+        "warehouses.name as warehouse_name",
+      ];
+
+      return await qb("items")
+        .select(selectColumns)
+        .leftJoin("shelf", "items.shelf_id", "shelf.shelf_id")
+        .leftJoin("rooms", "shelf.room_id", "rooms.room_id")
+        .leftJoin("warehouses", "shelf.warehouse_id", "warehouses.warehouse_id")
+        .whereIn("items.product_id", productIds)
+        .where("items.is_deleted", false);
+
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 }
 
 module.exports = ItemModel;
