@@ -79,7 +79,7 @@ const createProductSchema = Joi.object({
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
     }),
-    category: Joi.string()
+  category: Joi.string()
     .trim()
     .required()
     .label("Category")
@@ -89,15 +89,15 @@ const createProductSchema = Joi.object({
       "string.min": COMMON_MESSAGES.STRING_MIN,
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
     }),
-    size: Joi .string()
+  size: Joi.string()
     .trim()
     .min(1)
     .label("Size")
     .messages({
-      "string.base":COMMON_MESSAGES.STRING_BASE,
-      "string.empty":COMMON_MESSAGES.STRING_EMPTY,
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.empty": COMMON_MESSAGES.STRING_EMPTY,
       "string.min": COMMON_MESSAGES.STRING_MIN,
-    
+
     })
     .optional(),
 
@@ -107,7 +107,7 @@ const createProductSchema = Joi.object({
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
     })
-  
+
 });
 
 const updateProductSchema = Joi.object({
@@ -172,9 +172,27 @@ const updateProductSchema = Joi.object({
     .label("Product Image")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
-    })  
+    }),
+
+  category_id: Joi.number()
+    .integer()
+    .positive()
+    .label("Category ID")
+    .messages({
+      "number.base": COMMON_MESSAGES.NUMBER_BASE,
+      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+    }),
+
+  size: Joi.string()
+    .trim()
+    .allow("", null)
+    .label("Size")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE
+    })
 }).min(1);
- 
+
 
 module.exports = {
   productIdSchema,
