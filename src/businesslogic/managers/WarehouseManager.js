@@ -3,7 +3,7 @@ const ValidationError = require("../../errorhandlers/ValidationError");
 
 class WarehouseManager {
 
-  static async getWarehouseDetailsByIds(ids, userId) {
+  static async getWarehouseDetailsByIds(ids, userId, page, limit) {
     const { warehouse_id, room_id, shelf_id } = ids;
     const model = new WarehouseModel(userId);
 
@@ -65,8 +65,38 @@ class WarehouseManager {
       }
     }
 
-    // 4️⃣ Fetch joined data
-    return await model.getWarehouseDetailsByIds(ids);
+    // 4️⃣ Fetch paginated data
+    const result = await model.getWarehouseDetailsByIds(
+      ids,
+      page,
+      limit
+    );
+
+    const totalPages = Math.ceil(result.total / limit);
+    const offset = (page - 1) * limit;
+
+    return {
+      data: result.data,
+      total: result.total,
+      page,
+      limit,
+      offset,
+      totalPages,
+      previous: page > 1 ? page - 1 : null,
+      next: page < totalPages ? page + 1 : null
+    };
+  }
+  static async getAllWarehousesPaginated(page, limit, userId) {
+    const model = new WarehouseModel(userId);
+    const result = await model.getAllWarehousesPaginated(page, limit);
+
+    return {
+      warehouses: result.data,
+      total: result.total,
+      page,
+      limit,
+      totalPages: Math.ceil(result.total / limit)
+    };
   }
 }
 

@@ -27,8 +27,17 @@ const LOG_CONSTANTS = {
     }
 };
 
+const MIME_TYPES = {
+    jpeg: "image/jpeg",
+    jpg: "image/jpg",
+    png: "image/png",
+    webp: "image/webp",
+    gif: "image/gif"
+};
+
 
 module.exports = {
     RES_LOCALS,
-    LOG_CONSTANTS
+    LOG_CONSTANTS,
+    MIME_TYPES
  }

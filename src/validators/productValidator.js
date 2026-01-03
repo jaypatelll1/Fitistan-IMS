@@ -1,6 +1,7 @@
 const Joi = require("joi");
-const { COMMON_MESSAGES } = require("../validators/validationConstants/commanMessages");
+const COMMON_MESSAGES = require("../validators/validationConstants/commanMessages");
 
+// ✅ Product ID schema
 const productIdSchema = Joi.object({
   id: Joi.number()
     .integer()
@@ -15,6 +16,7 @@ const productIdSchema = Joi.object({
     })
 });
 
+// ✅ Schema for creating product
 const createProductSchema = Joi.object({
   name: Joi.string()
     .trim()
@@ -78,9 +80,63 @@ const createProductSchema = Joi.object({
     .label("Barcode")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
+    }),
+  category: Joi.string()
+    .trim()
+    .required()
+    .label("Category")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.empty": COMMON_MESSAGES.STRING_EMPTY,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
+  size: Joi.string()
+    .trim()
+    .min(1)
+    .label("Size")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.empty": COMMON_MESSAGES.STRING_EMPTY,
+      "string.min": COMMON_MESSAGES.STRING_MIN,
+
+    })
+    .optional(),
+
+  // product_image: Joi.string()
+  //   .allow("", null)
+  //   .label("Product Image")
+  //   .messages({
+  //     "string.base": COMMON_MESSAGES.STRING_BASE
+  //   })
+
+
+  // ✅ Multiple product images (array of objects)
+  product_image: Joi.array()
+    .items(
+      Joi.object({
+        file_path: Joi.string().uri().required().label("Product Image Path"),
+        view: Joi.string().trim().required().label("Image View")
+      })
+    )
+    .optional()
+    .label("Product Images"),
+
+  // ✅ Barcode image (object with file_path)
+  barcode_image: Joi.object({
+    file_path: Joi.string().uri().required().label("Barcode Image Path")
+  })
+    .optional()
+    .label("Barcode Image"),
+
+  barcode: Joi.string()
+    .optional()
+    .label("Barcode")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE
     })
 });
 
+// ✅ Schema for updating product
 const updateProductSchema = Joi.object({
   name: Joi.string()
     .trim()
@@ -131,13 +187,55 @@ const updateProductSchema = Joi.object({
       "string.base": COMMON_MESSAGES.STRING_BASE
     }),
 
+  category: Joi.string()
+    .trim()
+    .label("Category")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE
+    }),
+
+  category_id: Joi.number()
+    .integer()
+    .positive()
+    .label("Category ID")
+    .messages({
+      "number.base": COMMON_MESSAGES.NUMBER_BASE,
+      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE
+    }),
+
+  size: Joi.string()
+    .trim()
+    .allow("", null)
+    .label("Size")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE
+    }),
+
+  // ✅ JSONB ARRAY
+  product_image: Joi.array()
+    .items(
+      Joi.object({
+        file_path: Joi.string().uri().required().label("Product Image Path"),
+        view: Joi.string().trim().required().label("Image View")
+      })
+    )
+    .optional()
+    .label("Product Images"),
+
+  // ✅ JSONB OBJECT
+  barcode_image: Joi.object({
+    file_path: Joi.string().uri().required().label("Barcode Image Path")
+  })
+    .optional()
+    .label("Barcode Image"),
+
   barcode: Joi.string()
     .optional()
     .label("Barcode")
-    .messages({
-      "string.base": COMMON_MESSAGES.STRING_BASE
-    })
-}).min(1);
+})
+.min(1); // ✅ at least one field required
+
 
 module.exports = {
   productIdSchema,

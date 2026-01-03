@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { COMMON_MESSAGES } = require("../validators/validationConstants/commanMessages");
+const  COMMON_MESSAGES  = require("../validators/validationConstants/commanMessages");
 
 const vendorSchema = {
   create: Joi.object({

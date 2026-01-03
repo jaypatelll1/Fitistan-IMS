@@ -1,7 +1,7 @@
 const express = require("express");
 const AuthenticationManager = require("../../businesslogic/managers/AuthenticationManager");
 const { appWrapper } = require("../routeWrapper");
-const ACCESS_ROLES = require("../../businesslogic/accessmanagement/RoleConstants");
+const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 
 const router = express.Router();
 

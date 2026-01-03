@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { COMMON_MESSAGES } = require("../validators/validationConstants/commanMessages");
+const COMMON_MESSAGES  = require("../validators/validationConstants/commanMessages");
 
 const createRoomSchema = Joi.object({
   room_name: Joi.string()

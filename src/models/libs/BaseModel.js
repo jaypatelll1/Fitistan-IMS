@@ -1,21 +1,11 @@
-require('dotenv').config();
+require("dotenv").config();
 const { TABLE_DEFAULTS } = require("./dbConstants");
 const Db = require("../libs/Db");
 
-
 class BaseModel {
-    constructor(userId, dbname=null, isRead = false) {
+    constructor(userId, dbname = null, isRead = false) {
         this.userId = userId;
-        // this.dbname=dbname;
-        // dbname = process.env.DB_CONNECTION || "api_write"
-        // if (dbname == "api_write" && isRead) {
-        //     dbname = 'api_read'
-        // }
-        // console.log("dbname", dbname);
-        // this.DB = new Db(dbname)
     }
-
- 
 
     async getQueryBuilder() {
         return Db.getQueryBuilder();
@@ -25,8 +15,12 @@ class BaseModel {
         return this.userId;
     }
 
+    /**
+     * Adds audit fields during INSERT
+     */
     insertStatement(insertObj) {
         const userId = this.getUserId();
+
         if (!userId) {
             return insertObj;
         }
@@ -37,18 +31,23 @@ class BaseModel {
         };
     }
 
-    // Helper insert for array
+    /**
+     * Helper insert for bulk rows
+     */
     insertArrayStatement(rows) {
         return rows.map(r => this.insertStatement(r));
     }
 
-    async updateStatement({ updateObj },) {
+    /**
+     * Adds audit fields during UPDATE
+     */
+    async updateStatement(updateObj) {
         const userId = this.getUserId();
+        const queryBuilder = await this.getQueryBuilder();
+
         if (!userId) {
             return updateObj;
         }
-
-        const queryBuilder = await this.getQueryBuilder();
 
         return {
             ...updateObj,
@@ -56,15 +55,22 @@ class BaseModel {
         };
     }
 
-    whereStatement(whereObj) {
+    /**
+     * Common WHERE clause (soft delete support)
+     */
+    whereStatement(whereObj = {}) {
         return {
             [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: false,
             ...whereObj
         };
     }
 
+    /**
+     * Removes undefined values
+     */
     getDefinedObject(object) {
         const definedObject = {};
+
         for (const key in object) {
             if (object[key] !== undefined) {
                 definedObject[key] = object[key];
@@ -73,6 +79,8 @@ class BaseModel {
 
         return definedObject;
     }
+
+    
 }
 
 module.exports = BaseModel;

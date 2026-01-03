@@ -45,6 +45,11 @@ passport.use(
   )
 );
 
+/*  START CRON HERE */
+
+const DashboardCronManager = require('./src/businesslogic/managers/DashboardCronManager');
+
+DashboardCronManager.start();
 
 // view engine setup
 app.set('views', path.join(__dirname, './src/views'));

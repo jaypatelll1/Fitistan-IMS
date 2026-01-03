@@ -6,4 +6,4 @@ const ACCESS_ROLES = {
     
 };
 
-module.exports = ACCESS_ROLES;
+module.exports = {ACCESS_ROLES};

@@ -1,112 +1,190 @@
 const ItemModel = require("../../models/ItemModel");
-const ProductModel = require("../../models/ProductModel");
+const ProductModel = require("../../models/productModel");
+const OrderManager = require("./OrderManager");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
+const { ITEM_STATUS } = require("../../models/libs/dbConstants");
+const { ORDER_STATUS } = require("../../models/libs/dbConstants");
+const OrderModel = require("../../models/OrderModel");
 
 const {
   createItemSchema,
   removeStockSchema,
-  paginationSchema
+  paginationSchema,
 } = require("../../validators/itemValidator");
 
 class itemManager {
-
   static async createItem(product_id, shelf_id, quantity) {
-    const { error, value } = createItemSchema.validate(
-      { product_id, shelf_id, quantity },
-      { abortEarly: false, stripUnknown: true }
-    );
-
-    if (error) throw new JoiValidatorError(error);
-
     try {
       const itemModel = new ItemModel();
       const productModel = new ProductModel();
 
-      const Product = await productModel.findById(value.product_id);
-      if (!Product) return null;
+      console.log("payload", { product_id, shelf_id, quantity });
 
+      // 1. Verify product using SKU (barcode == sku)
+      const Product = await productModel.findById(product_id);
+      console.log("Product", Product);
+
+      if (!Product) {
+        return null; // product not found
+      }
+
+      if (quantity <= 0) {
+        throw new Error("Quantity must be greater than 0");
+      }
+
+      // 2. Insert items (1 row = 1 physical item)
       const createdItems = [];
 
-      for (let i = 0; i < value.quantity; i++) {
-        const item = await itemModel.create({
-          product_id: value.product_id,
-          name: Product.name,
-          shelf_id: value.shelf_id
-        });
+      for (let i = 0; i < quantity; i++) {
+        const item = await itemModel.create(
+          {
+            name: Product.name,
+            shelf_id: shelf_id,
+          },
+          product_id
+        );
+
         createdItems.push(item);
       }
 
-      return createdItems;
-
+      return createdItems; // return all created rows
     } catch (error) {
       throw new Error(error.message);
     }
   }
 
-  static async removeItemStock(product_id, quantity) {
-    const { error, value } = removeStockSchema.validate(
-      { product_id, quantity },
-      { abortEarly: false }
-    );
+static async removeItemStock(
+  product_id,
+  quantity,
+  status = ITEM_STATUS.SOLD,
+  order_id = null,
+  shelf_id = null // 🆕 you need to know which shelf the product is coming from
+) {
+  try {
+    const itemModel = new ItemModel();
+    const orderModel = new OrderModel();
 
-    if (error) throw new JoiValidatorError(error);
+    product_id = Number(product_id);
+    quantity = Number(quantity);
 
-    try {
-      const itemModel = new ItemModel();
+    const normalizedStatus = String(status).trim().toLowerCase();
 
-      const items = await itemModel.countByProductId(value.product_id);
-      if (items < value.quantity) {
+    if (!Object.values(ITEM_STATUS).includes(normalizedStatus)) {
+      throw new Error(`Invalid item status: ${normalizedStatus}`);
+    }
+
+    const isReturn = normalizedStatus === ITEM_STATUS.RETURNED;
+
+    if (!isReturn && quantity <= 0) {
+      throw new Error("Quantity must be greater than 0");
+    }
+
+    // Check stock only for sell/outward
+    if (!isReturn) {
+      const available = await itemModel.countByProductId(product_id);
+      if (available < quantity) {
         throw new Error("Insufficient stock");
       }
+    }
 
-      const deleted = await itemModel.softDelete(
-        value.product_id,
-        value.quantity
-      );
+    // Remove/return stock
+    const affected = await itemModel.softDelete(
+      product_id,
+      quantity,
+      normalizedStatus
+    );
 
-      return {
-        removed: value.quantity,
-        deleted
+    if (isReturn && affected === 0) {
+      throw new Error("No sold items found to return");
+    }
+
+    // ✅ Create order if selling and no existing order_id provided
+    let createdOrderId = order_id;
+    if (!isReturn && affected > 0) {
+      if (!shelf_id) {
+        throw new Error("Shelf ID is required to create an order");
+      }
+
+      const orderData = {
+        product_id,
+        shelf_id,
+        quantity,
+        status: ORDER_STATUS.SOLD
       };
 
+      const createdOrder = await orderModel.create(orderData);
+      createdOrderId = createdOrder.order_id;
+    }
+
+    return {
+      product_id,
+      quantity,
+      status: normalizedStatus,
+      affected,
+      order_id: createdOrderId,
+    };
+  } catch (error) {
+    throw new Error(`Failed to remove stock: ${error.message}`);
+  }
+}
+
+  static async updateItemStatus(payload) {
+
+    if (!payload || typeof payload !== "object") {
+      throw new Error("Invalid payload");
+    }
+
+    if (!payload.status) {
+      throw new Error("Status is required");
+    }
+
+    // Normalize ONLY for comparison
+    const incomingStatus = String(payload.status).trim().toLowerCase();
+
+    const allowedStatuses = Object.values(ITEM_STATUS);
+
+    if (!allowedStatuses.includes(incomingStatus)) {
+      throw new Error(`Invalid item status: ${payload.status}`);
+    }
+
+    // ✅ Store enum value (not user input)
+    payload.status = incomingStatus;
+
+    const itemModel = new ItemModel();
+    return await itemModel.updateItemStatus(payload);
+  }
+
+
+
+  static async getItemCount(product_id) {
+    try {
+      const itemModel = new ItemModel();
+      const count = await itemModel.countByProductId(product_id);
+      return count;
     } catch (error) {
-      throw new Error(`Failed to remove stock: ${error.message}`);
+      throw new Error(`Failed to get item count: ${error.message}`);
     }
   }
 
   static async getItemsPaginated(product_id, page, limit) {
-    const { error, value } = paginationSchema.validate(
-      { product_id, page, limit },
-      { abortEarly: false }
-    );
-
-    if (error) throw new JoiValidatorError(error);
-
     try {
       const itemModel = new ItemModel();
-
-      const result = await itemModel.findAllPaginated(
-        value.product_id,
-        value.page,
-        value.limit
-      );
-
-      const totalPages = Math.ceil(result.total / value.limit);
-      const offset = (value.page - 1) * value.limit;
+      const result = await itemModel.findAllPaginated(product_id, page, limit);
+      const offset = (page - 1) * limit;
+      const totalPages = Math.ceil(result.total / limit);
 
       return {
         items: result.data,
-        total: result.total,
-        page: value.page,
-        limit: value.limit,
-        totalPages,
+        page,
+        limit,
         offset,
-        previous: value.page > 1 ? value.page - 1 : null,
-        next: value.page < totalPages ? value.page + 1 : null
+        total: result.total,
+        totalPages,
+        previous: page > 1 ? page - 1 : null,
+        next: page < totalPages ? page + 1 : null,
       };
-
     } catch (error) {
-      throw new Error(`Failed to fetch items: ${error.message}`);
+      throw new Error(`Failed to get items: ${error.message}`);
     }
   }
 }
