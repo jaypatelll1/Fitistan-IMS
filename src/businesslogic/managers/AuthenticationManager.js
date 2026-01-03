@@ -9,6 +9,7 @@ const {
   registerSchema,
   loginSchema
 } = require("../../validators/AuthValidator");
+const { ADMIN } = require("../../models/libs/seedConstants");
 
 class AuthenticationManager {
 
@@ -97,6 +98,11 @@ class AuthenticationManager {
     // 1️⃣ Check if user already exists
     let user = await userModel.getUserByEmail(email);
 
+    //If exists by password and linking google 
+    if (user && !user.google_id) {
+      await userModel.linkGoogleId(user.user_id, googleId);
+    }
+
     // 2️⃣ If not, create user
     if (!user) {
       user = await userModel.createGoogleUser({
@@ -104,7 +110,7 @@ class AuthenticationManager {
         name,
         google_id: googleId,
         profile_picture_url: profilePicture,
-        role_id: 2 // default user role
+        role_id: ADMIN // default user role
       });
     }
 
