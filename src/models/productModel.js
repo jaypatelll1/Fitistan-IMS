@@ -44,6 +44,18 @@ class ProductModel extends BaseModel {
 
   /**
    * ✅ Get all products with category name
+   * Normalize product to ensure consistent JSONB structure
+   */
+  normalizeProduct(product) {
+    return {
+      ...product,
+      product_image: product.product_image || [],   // always array
+      barcode_image: product.barcode_image || null // always object
+    };
+  }
+
+  /**
+   * Get all products with pagination
    */
   async findAllPaginated(page = 1, limit = 10) {
     try {
@@ -75,7 +87,7 @@ class ProductModel extends BaseModel {
         .count("* as count");
 
       return {
-        data,
+        data: data.map(this.normalizeProduct),
         total: Number(count),
       };
     } catch (e) {
@@ -178,6 +190,46 @@ class ProductModel extends BaseModel {
     }
   }
 
+  // async countByCategoryId(category_id) {
+  //   try {
+  //     const qb = await this.getQueryBuilder();
+
+  //     const [{ count }] = await qb("products")
+  //       .where({
+  //         category_id,
+  //         is_deleted: false,
+  //       })
+  //       .count("* as count");
+
+  // Count total products
+  async countTotalProducts() {
+    try {
+      const qb = await this.getQueryBuilder();
+      const [{ count }] = await qb(this.tableName)
+        .where(this.whereStatement())
+        .count("* as count");
+
+      return Number(count);
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  // Get product by ID
+  async findById(product_id) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const product = await qb(this.tableName)
+        .select(this.getPublicColumns())
+        .where(this.whereStatement({ product_id }))
+        .first();
+
+      return product ? this.normalizeProduct(product) : null;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
   async countByCategoryId(category_id) {
     try {
       const qb = await this.getQueryBuilder();
@@ -188,6 +240,14 @@ class ProductModel extends BaseModel {
           is_deleted: false,
         })
         .count("* as count");
+
+  // Count products by category ID
+  // async countByCategoryId(category_id) {
+  //   try {
+  //     const qb = await this.getQueryBuilder();
+  //     const [{ count }] = await qb(this.tableName)
+  //       .where(this.whereStatement({ category_id }))
+  //       .count("* as count");
 
       return Number(count);
     } catch (e) {
@@ -201,13 +261,18 @@ class ProductModel extends BaseModel {
   async create(productData) {
     try {
       const qb = await this.getQueryBuilder();
+
+      // Normalize JSONB fields
+      if (!productData.product_image) productData.product_image = [];
+      if (!productData.barcode_image) productData.barcode_image = null;
+
       const data = this.insertStatement(productData);
 
       const [product] = await qb("products")
         .insert(data)
         .returning(this.getPublicColumns());
 
-      return product || null;
+      return product ? this.normalizeProduct(product) : null;
     } catch (e) {
       throw new DatabaseError(e);
     }
@@ -221,9 +286,11 @@ class ProductModel extends BaseModel {
       const qb = await this.getQueryBuilder();
       const data = await this.updateStatement(productData);
 
-      if (!data || Object.keys(data).length === 0) {
-        return null;
-      }
+      if (!data || Object.keys(data).length === 0) return null;
+
+      // If fields not provided, leave them undefined
+      if (data.product_image === undefined) data.product_image = undefined;
+      if (data.barcode_image === undefined) data.barcode_image = undefined;
 
       const updatedRows = await qb("products")
         .where({ product_id })
@@ -237,6 +304,7 @@ class ProductModel extends BaseModel {
       }
 
       return this.findById(product_id);
+      return updatedProduct ? this.normalizeProduct(updatedProduct) : null;
     } catch (e) {
       throw new DatabaseError(e);
     }
@@ -287,6 +355,12 @@ class ProductModel extends BaseModel {
           .where({ barcode, is_deleted: false })
           .first()) || null
       );
+      const product = await qb(this.tableName)
+        .select(this.getPublicColumns())
+        .where(this.whereStatement({ sku }))
+        .first();
+
+      return product ? this.normalizeProduct(product) : null;
     } catch (e) {
       throw new DatabaseError(e);
     }
@@ -333,6 +407,12 @@ class ProductModel extends BaseModel {
         data,
         total: Number(count),
       };
+      const product = await qb(this.tableName)
+        .select(this.getPublicColumns())
+        .where(this.whereStatement({ barcode }))
+        .first();
+
+      return product ? this.normalizeProduct(product) : null;
     } catch (e) {
       throw new DatabaseError(e);
     }

@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 
 const ProductManager = require("../../businesslogic/managers/ProductManager");
-
+const { generatePresignedUploadUrl } = require("../../services/presignedUploadServices");
 const { generateBarcodeBuffer } = require("../../utils/barcodeGenerator");
 const { appWrapper } = require("../routeWrapper");
 const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
+// const  {ACCESS_ROLES}  = require("../../businesslogic/accessmanagement/roleConstants");
 
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
@@ -45,10 +46,7 @@ router.get(
 // 
 router.post(
   "/create",
-  // validate(validators.createProductSchema),
   appWrapper(async (req, res) => {
-
-    // const{quantity,shelf_id, ...productData} = req.body;
     const productData = req.body;
 
     // Handle Image Upload
@@ -61,24 +59,36 @@ router.post(
 
     //   productData.product_image = imageUrl;
     // }
+    // 1️⃣ Handle multiple product images (frontend sends array via presigned URL)
+    if (req.body.product_images && Array.isArray(req.body.product_images)) {
+      productData.product_image = req.body.product_images.map(img => ({
+        file_path: img.file_path,
+        view: img.view || "front" // optional: front/back/etc
+      }));
+    }
 
+    // 2️⃣ Handle barcode image (backend uploads to S3)
+    if (req.files && req.files.barcode) {
+      const file = req.files.barcode;
+      const fileName = `barcode/${productData.sku}-${Date.now()}.png`;
+      const barcodeUrl = await uploadToS3(file.data, fileName, file.mimetype);
+
+      productData.barcode_image = { file_path: barcodeUrl };
+    }
+
+    // 3️⃣ Create product
     const product = await ProductManager.createProduct(productData);
-
-    // const item = await itemManager.createItem({ product_id: product.product_id, shelf_id, name : productData.name},quantity);
-
-    console.log("Product created:", product);
-
-
 
     return res.json({
       success: true,
       data: product,
       message: "Product created successfully",
-    })
-
-      ;
+    });
   }, [ACCESS_ROLES.ALL])
 );
+
+
+
 
 //
 // GET PRODUCT BY ID
@@ -108,16 +118,32 @@ router.get(
 // 
 router.put(
   "/update/:id",
-  // validate(validators.updateProductSchema),
   appWrapper(async (req, res) => {
     const { id } = req.params;
+    const updateData = req.body;
 
-    const updatedProduct = await ProductManager.updateProduct(id, req.body);
+    // 1️⃣ Update multiple product images if provided
+    if (req.body.product_images && Array.isArray(req.body.product_images)) {
+      updateData.product_image = req.body.product_images.map(img => ({
+        file_path: img.file_path,
+        view: img.view || "front"
+      }));
+    }
+
+    // 2️⃣ Update barcode image if a new file is uploaded
+    if (req.files && req.files.barcode) {
+      const file = req.files.barcode;
+      const fileName = `barcode/${updateData.sku || "unknown"}-${Date.now()}.png`;
+      const barcodeUrl = await uploadToS3(file.data, fileName, file.mimetype);
+
+      updateData.barcode_image = { file_path: barcodeUrl };
+    }
+
+    // 3️⃣ Update product
+    const updatedProduct = await ProductManager.updateProduct(id, updateData);
+
     if (!updatedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
 
     return res.json({
@@ -128,29 +154,6 @@ router.put(
   }, [ACCESS_ROLES.ALL])
 );
 
-// 
-// DELETE PRODUCT
-// 
-router.post(
-  "/delete/:id",
-  appWrapper(async (req, res) => {
-    const { id } = req.params;
-
-    const deletedProduct = await ProductManager.deleteProduct(id);
-    if (!deletedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    return res.json({
-      success: true,
-      data: deletedProduct,
-      message: "Product deleted successfully",
-    });
-  }, [ACCESS_ROLES.ALL])
-);
 
 router.get(
   "/sku/:sku",
@@ -173,6 +176,17 @@ router.get(
 );
 
 
+// ==========================
+// PRESIGNED URL FOR UPLOAD
+// ==========================
+router.post(
+  "/presigned-url",
+  appWrapper(async (req, res) => {
+    const { fileName, functionality, subFunctionality } = req.body;
+    const result = await generatePresignedUploadUrl({ fileName, functionality, subFunctionality });
+    res.json(result);
+  }, [ACCESS_ROLES.ALL])
+);
 
 
 // generate BARCODE BY barcode id

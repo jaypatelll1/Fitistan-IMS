@@ -10,9 +10,8 @@ const {
   updateProductSchema
 } = require("../../validators/productValidator");
 
-
-
 const productModel = new ProductModel(); // no userId for now
+
 class ProductManager {
 
 
@@ -142,10 +141,61 @@ class ProductManager {
   }
 
   static async getProductById(id) {
-    const { error, value } = productIdSchema.validate(
-      { id },
-      { abortEarly: false }
-    );
+    const { error, value } = productIdSchema.validate({ id }, { abortEarly: false });
+    if (error) throw new JoiValidatorError(error);
+    try {
+      const product = await productModel.findById(value.id);
+      if (!product) return null;
+
+      const itemModel = new ItemModel();
+      // Fetch all items using the NEW method
+      const items = await itemModel.getAllItemsByProductId(value.id);
+
+      
+
+      // Aggregate items by location (Warehouse -> Room -> Shelf) and status
+      const stockMap = new Map();
+
+      items.forEach(item => {
+        // Handle unassigned/missing location data gracefully
+        const shelfName = item.shelf_name || "Unassigned";
+        const roomName = item.room_name || "-";
+        const warehouseName = item.warehouse_name || "-";
+        const status = item.status || "available";
+
+        const key = `${item.warehouse_id}|${item.room_id}|${item.shelf_id}|${status}`;
+
+        if (!stockMap.has(key)) {
+          stockMap.set(key, {
+            product_id: item.product_id,
+            warehouse_id: item.warehouse_id,
+            room_id: item.room_id,
+            shelf_id: item.shelf_id,
+            warehouse_name: warehouseName,
+            room_name: roomName,
+            shelf_name: shelfName,
+            status: status,
+            item_count: 0
+          });
+        }
+        stockMap.get(key).item_count++;
+      });
+
+      const stockBreakdown = Array.from(stockMap.values());
+      const totalQuantity = items.length;
+
+      return {
+        ...product,
+        stock_quantity: totalQuantity, // Return actual count of items
+        stock_details: stockBreakdown
+      };
+    } catch (err) {
+      throw new Error(`Failed to get product full details: ${err.message}`);
+    }
+  }
+
+  static async getProductById(id) {
+    const { error, value } = productIdSchema.validate({ id }, { abortEarly: false });
     if (error) throw new JoiValidatorError(error);
 
     try {
@@ -161,7 +211,6 @@ class ProductManager {
         ...product,
         // stock_details: stockDetails || [] // Pass raw data to frontend
       };
-
     } catch (err) {
       throw new Error(`Failed to get product by ID: ${err.message}`);
     }
@@ -178,9 +227,7 @@ class ProductManager {
       const verifyProduct = await productModel.findBySkuId(value.sku);
       if (verifyProduct) {
         throw new JoiValidatorError({
-          details: [
-            { path: ["sku"], message: "Product with this SKU already exists" }
-          ]
+          details: [{ path: ["sku"], message: "Product with this SKU already exists" }]
         });
       }
 
@@ -197,14 +244,27 @@ class ProductManager {
       value.category_id = category.category_id;
       delete value.category;
 
-      value.barcode = value.sku;
+// barcode
+value.barcode = value.sku;
 
 
       const barcodeResult = await generateAndUploadBarcode(value.sku);
       value.barcode_image = JSON.stringify(barcodeResult.cdnUrl);
+// barcode image
+const barcodeResult = await generateAndUploadBarcode(value.sku);
+value.barcode_image = JSON.stringify({
+  file_path: barcodeResult.cdnUrl
+});
 
-      const product = await productModel.create(value);
-      return product;
+// product images
+if (!Array.isArray(value.product_image)) {
+  value.product_image = [];
+}
+value.product_image = JSON.stringify(value.product_image);
+
+const product = await productModel.create(value);
+return product;
+
 
     } catch (err) {
       throw err;
@@ -223,23 +283,27 @@ class ProductManager {
 
     try {
       const verifyProduct = await productModel.findById(id);
-      if (!verifyProduct) {
-        return null;
-      }
+      if (!verifyProduct) return null;
+
+      // ✅ Normalize product_image for JSONB array
+      if (value.product_image) {
+  value.product_image = JSON.stringify(value.product_image);
+}
+
+if (value.barcode_image) {
+  value.barcode_image = JSON.stringify(value.barcode_image);
+}
+
 
       const product = await productModel.update(id, value);
       return product || null;
-
     } catch (err) {
       throw new Error(`Failed to update product: ${err.message}`);
     }
   }
 
   static async deleteProduct(id) {
-    const { error, value } = productIdSchema.validate(
-      { id },
-      { abortEarly: false }
-    );
+    const { error, value } = productIdSchema.validate({ id }, { abortEarly: false });
     if (error) throw new JoiValidatorError(error);
 
     try {

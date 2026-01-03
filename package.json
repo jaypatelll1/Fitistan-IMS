@@ -29,6 +29,7 @@
   "packageManager": "pnpm@10.23.0",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",
+    "@aws-sdk/s3-request-presigner": "^3.958.0",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
@@ -45,9 +46,11 @@
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "knex": "^3.1.0",
+    "moment-timezone": "^0.6.0",
     "morgan": "^1.10.1",
     "node-cron": "^4.2.1",
     "pg": "^8.16.3",
+    "uniqid": "^5.4.0",
     "uuid": "^13.0.0",
     "winston": "^3.19.0",
     "winston-daily-rotate-file": "^5.0.0"
