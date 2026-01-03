@@ -248,8 +248,7 @@ class ProductManager {
 value.barcode = value.sku;
 
 
-      const barcodeResult = await generateAndUploadBarcode(value.sku);
-      value.barcode_image = JSON.stringify(barcodeResult.cdnUrl);
+  
 // barcode image
 const barcodeResult = await generateAndUploadBarcode(value.sku);
 value.barcode_image = JSON.stringify({
