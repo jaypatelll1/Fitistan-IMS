@@ -41,7 +41,9 @@ class OrderModel extends BaseModel {
                 // Warehouse columns
                 "warehouses.name as warehouse_name",
                 // Room columns
-                "rooms.room_name"
+                "rooms.room_name",
+                // Category columns
+                "category.category_name"
             ];
 
             let query = qb("orders")
@@ -50,6 +52,7 @@ class OrderModel extends BaseModel {
                 .leftJoin("shelf", "orders.shelf_id", "shelf.shelf_id")
                 .leftJoin("rooms", "shelf.room_id", "rooms.room_id")
                 .leftJoin("warehouses", "shelf.warehouse_id", "warehouses.warehouse_id")
+                .leftJoin("category", "products.category_id", "category.category_id")
                 .where("orders.is_deleted", false
                 );
 
@@ -138,7 +141,9 @@ class OrderModel extends BaseModel {
                 // Warehouse columns
                 "warehouses.name as warehouse_name",
                 // Room columns
-                "rooms.room_name"
+                "rooms.room_name",
+                // Category columns
+                "category.category_name"
             ];
 
             const order = await qb("orders")
@@ -147,6 +152,7 @@ class OrderModel extends BaseModel {
                 .leftJoin("shelf", "orders.shelf_id", "shelf.shelf_id")
                 .leftJoin("rooms", "shelf.room_id", "rooms.room_id")
                 .leftJoin("warehouses", "shelf.warehouse_id", "warehouses.warehouse_id")
+                .leftJoin("category", "products.category_id", "category.category_id")
                 .where("orders.order_id", order_id)
                 .where("orders.is_deleted", false)
                 .first();
