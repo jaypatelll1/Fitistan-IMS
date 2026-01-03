@@ -11,6 +11,9 @@ const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConst
 // const validators = require("../../validators/product.validator");
 // const validate = require("../../middleware/validation.middleware");
 
+const upload = require("../middleware/excelUpload");
+const ExcelUploadRouter = require("./ExcelUploadRouter");
+
 // 
 // GET ALL PRODUCTS
 // 
@@ -87,7 +90,12 @@ router.post(
   }, [ACCESS_ROLES.ALL])
 );
 
-
+//BULK UPLOAD PRODUCTS (MULTER)
+router.post(
+  "/products/import",
+  upload.single("file"),
+  ExcelUploadRouter.uploadProducts
+);
 
 
 //
