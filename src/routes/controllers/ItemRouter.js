@@ -43,7 +43,8 @@ router.post(
         quantity,
         status,
         order_id,
-        shelf_id
+        shelf_id,
+        mode
       } = req.body;
 
       const item = await itemManager.removeItemStock(
@@ -51,7 +52,8 @@ router.post(
         quantity,
         status,
         order_id,
-        shelf_id
+        shelf_id,
+        mode
       );
 
       if (!item) {

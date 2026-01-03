@@ -2,8 +2,7 @@ const ItemModel = require("../../models/ItemModel");
 const ProductModel = require("../../models/productModel");
 const OrderManager = require("./OrderManager");
 const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
-const { ITEM_STATUS } = require("../../models/libs/dbConstants");
-const { ORDER_STATUS } = require("../../models/libs/dbConstants");
+const { ITEM_STATUS, ORDER_STATUS, ORDER_MODE } = require("../../models/libs/dbConstants");
 const OrderModel = require("../../models/OrderModel");
 
 const {
@@ -53,80 +52,83 @@ class itemManager {
     }
   }
 
-static async removeItemStock(
-  product_id,
-  quantity,
-  status = ITEM_STATUS.SOLD,
-  order_id = null,
-  shelf_id = null // 🆕 you need to know which shelf the product is coming from
-) {
-  try {
-    const itemModel = new ItemModel();
-    const orderModel = new OrderModel();
+  static async removeItemStock(
+    product_id,
+    quantity,
+    status = ITEM_STATUS.SOLD,
+    order_id = null,
+    shelf_id = null, // 🆕 you need to know which shelf the product is coming from
+    mode = ORDER_MODE.ONLINE // 🆕 Added mode (Online/Offline)
+  ) {
+    try {
+      const itemModel = new ItemModel();
+      const orderModel = new OrderModel();
 
-    product_id = Number(product_id);
-    quantity = Number(quantity);
+      product_id = Number(product_id);
+      quantity = Number(quantity);
 
-    const normalizedStatus = String(status).trim().toLowerCase();
+      const normalizedStatus = String(status).trim().toLowerCase();
 
-    if (!Object.values(ITEM_STATUS).includes(normalizedStatus)) {
-      throw new Error(`Invalid item status: ${normalizedStatus}`);
-    }
-
-    const isReturn = normalizedStatus === ITEM_STATUS.RETURNED;
-
-    if (!isReturn && quantity <= 0) {
-      throw new Error("Quantity must be greater than 0");
-    }
-
-    // Check stock only for sell/outward
-    if (!isReturn) {
-      const available = await itemModel.countByProductId(product_id);
-      if (available < quantity) {
-        throw new Error("Insufficient stock");
-      }
-    }
-
-    // Remove/return stock
-    const affected = await itemModel.softDelete(
-      product_id,
-      quantity,
-      normalizedStatus
-    );
-
-    if (isReturn && affected === 0) {
-      throw new Error("No sold items found to return");
-    }
-
-    // ✅ Create order if selling and no existing order_id provided
-    let createdOrderId = order_id;
-    if (!isReturn && affected > 0) {
-      if (!shelf_id) {
-        throw new Error("Shelf ID is required to create an order");
+      if (!Object.values(ITEM_STATUS).includes(normalizedStatus)) {
+        throw new Error(`Invalid item status: ${normalizedStatus}`);
       }
 
-      const orderData = {
+      const isReturn = normalizedStatus === ITEM_STATUS.RETURNED;
+
+      if (!isReturn && quantity <= 0) {
+        throw new Error("Quantity must be greater than 0");
+      }
+
+      // Check stock only for sell/outward
+      if (!isReturn) {
+        const available = await itemModel.countByProductId(product_id);
+        if (available < quantity) {
+          throw new Error("Insufficient stock");
+        }
+      }
+
+      // Remove/return stock
+      const affected = await itemModel.softDelete(
         product_id,
-        shelf_id,
         quantity,
-        status: ORDER_STATUS.SOLD
+        normalizedStatus,
+        shelf_id // ✅ Pass shelf_id to delete specific items
+      );
+
+      if (isReturn && affected === 0) {
+        throw new Error("No sold items found to return");
+      }
+
+      // ✅ Create order if selling and no existing order_id provided
+      let createdOrderId = order_id;
+      if (!isReturn && affected > 0) {
+        if (!shelf_id) {
+          throw new Error("Shelf ID is required to create an order");
+        }
+
+        const orderData = {
+          product_id,
+          shelf_id,
+          quantity,
+          status: ORDER_STATUS.SOLD,
+          mode // ✅ Save mode (Online/Offline)
+        };
+
+        const createdOrder = await orderModel.create(orderData);
+        createdOrderId = createdOrder.order_id;
+      }
+
+      return {
+        product_id,
+        quantity,
+        status: normalizedStatus,
+        affected,
+        order_id: createdOrderId,
       };
-
-      const createdOrder = await orderModel.create(orderData);
-      createdOrderId = createdOrder.order_id;
+    } catch (error) {
+      throw new Error(`Failed to remove stock: ${error.message}`);
     }
-
-    return {
-      product_id,
-      quantity,
-      status: normalizedStatus,
-      affected,
-      order_id: createdOrderId,
-    };
-  } catch (error) {
-    throw new Error(`Failed to remove stock: ${error.message}`);
   }
-}
 
   static async updateItemStatus(payload) {
 

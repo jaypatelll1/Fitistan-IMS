@@ -201,59 +201,7 @@ class ProductModel extends BaseModel {
   //       })
   //       .count("* as count");
 
-  // Count total products
-  async countTotalProducts() {
-    try {
-      const qb = await this.getQueryBuilder();
-      const [{ count }] = await qb(this.tableName)
-        .where(this.whereStatement())
-        .count("* as count");
 
-      return Number(count);
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
-  }
-
-  // Get product by ID
-  async findById(product_id) {
-    try {
-      const qb = await this.getQueryBuilder();
-      const product = await qb(this.tableName)
-        .select(this.getPublicColumns())
-        .where(this.whereStatement({ product_id }))
-        .first();
-
-      return product ? this.normalizeProduct(product) : null;
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
-  }
-
-  async countByCategoryId(category_id) {
-    try {
-      const qb = await this.getQueryBuilder();
-
-      const [{ count }] = await qb("products")
-        .where({
-          category_id,
-          is_deleted: false,
-        })
-        .count("* as count");
-
-  // Count products by category ID
-  // async countByCategoryId(category_id) {
-  //   try {
-  //     const qb = await this.getQueryBuilder();
-  //     const [{ count }] = await qb(this.tableName)
-  //       .where(this.whereStatement({ category_id }))
-  //       .count("* as count");
-
-      return Number(count);
-    } catch (e) {
-      throw new DatabaseError(e);
-    }
-  }
 
   /**
    * ✅ Create product

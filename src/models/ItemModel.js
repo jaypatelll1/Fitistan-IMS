@@ -197,20 +197,25 @@ class ItemModel extends BaseModel {
     }
   }
 
-  async softDelete(product_id, quantity, status) {
+  async softDelete(product_id, quantity, status, shelf_id = null) {
     try {
       const qb = await this.getQueryBuilder();
       const isDeleted = status !== ITEM_STATUS.RETURNED;
 
       return qb("items")
         .whereIn("id", function () {
-          this.select("id")
+          const subQuery = this.select("id")
             .from("items")
             .where({
               product_id,
               is_deleted: !isDeleted,
-            })
-            .limit(quantity);
+            });
+
+          if (shelf_id) {
+            subQuery.where("shelf_id", shelf_id);
+          }
+
+          subQuery.limit(quantity);
         })
         .update({
           is_deleted: isDeleted,

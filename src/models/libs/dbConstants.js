@@ -58,5 +58,11 @@ const ORDER_STATUS = Object.freeze({
 
 
 
-module.exports = { PUBLIC_SCHEMA, TABLE_DEFAULTS, ITEM_STATUS, ORDER_STATUS};
+
+const ORDER_MODE = Object.freeze({
+  ONLINE: "Online",
+  OFFLINE: "Offline",
+});
+
+module.exports = { PUBLIC_SCHEMA, TABLE_DEFAULTS, ITEM_STATUS, ORDER_STATUS, ORDER_MODE };
 
