@@ -1,5 +1,9 @@
 require('dotenv').config();
 const knexFileObject = require("../../../knexfile");
+const { types } = require("pg");
+
+// Force DATE (OID 1082) to be read as string to prevent timezone conversion issues
+types.setTypeParser(1082, (str) => str);
 
 class Db {
     constructor() {
