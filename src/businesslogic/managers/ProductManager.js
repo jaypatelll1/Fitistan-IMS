@@ -283,6 +283,10 @@ class ProductManager {
         value.barcode_image = JSON.stringify(value.barcode_image);
       }
 
+      // Cleanup non-column fields
+      if ('product_code' in value) delete value.product_code;
+      if ('category_name' in value) delete value.category_name;
+
 
       const product = await productModel.update(id, value);
       return product || null;
