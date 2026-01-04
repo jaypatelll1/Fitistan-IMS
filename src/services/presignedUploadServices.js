@@ -20,10 +20,10 @@ async function generatePresignedUploadUrl({
     let filePath = "";
     let validExtensions = [];
 
-    
+
     const fileExtension = fileName.split(".").pop().toLowerCase();
 
-  
+
     if (functionality === "app_assets" && subFunctionality === "image") {
         validExtensions = ["jpg", "jpeg", "png", "webp"];
         filePath = "app_assets/image";
@@ -31,6 +31,10 @@ async function generatePresignedUploadUrl({
     else if (functionality === "product" && subFunctionality === "images") {
         validExtensions = ["jpg", "jpeg", "png", "webp"];
         filePath = "app_assets/products/images";
+    }
+    else if (functionality === "user" && subFunctionality === "profile_image") {
+        validExtensions = ["jpg", "jpeg", "png", "webp"];
+        filePath = "app_assets/users/profile_images";
     }
     else {
         throw new Error("Invalid functionality or subFunctionality");
@@ -42,13 +46,13 @@ async function generatePresignedUploadUrl({
         );
     }
 
-    
+
     const contentType = MIME_TYPES[fileExtension];
     if (!contentType) {
         throw new Error("MIME type not found");
     }
 
-    
+
     const timestamp =
         moment.tz("Asia/Kolkata").format("YYYY-MM-DD") + "_" + uniqid();
 
@@ -58,25 +62,24 @@ async function generatePresignedUploadUrl({
 
     const finalFilePath = `${filePath}/${timestamp}_${safeFileName}`;
 
-  
+
     const command = new PutObjectCommand({
         Bucket: process.env.S3_BUCKET_NAME,
         Key: finalFilePath,
         ContentType: contentType
     });
 
-    
+
     const presignedUrl = await getSignedUrl(s3, command, {
         expiresIn: 900 // 15 minutes
     });
 
     return {
-    presignedUrl,
-    filePath: finalFilePath,
-    cdnUrl: `${process.env.CDN_BASE_URL}/${finalFilePath}`
+        presignedUrl,
+        cdnUrl: `${process.env.CDN_BASE_URL}/${finalFilePath}`
 
 
-};
+    };
 
 }
 

@@ -97,7 +97,7 @@ class ProductManager {
       // Fetch all items using the NEW method
       const items = await itemModel.getAllItemsByProductId(value.id);
 
-      
+
 
       // Aggregate items by location (Warehouse -> Room -> Shelf) and status
       const stockMap = new Map();
@@ -151,7 +151,7 @@ class ProductManager {
       // Fetch all items using the NEW method
       const items = await itemModel.getAllItemsByProductId(value.id);
 
-      
+
 
       // Aggregate items by location (Warehouse -> Room -> Shelf) and status
       const stockMap = new Map();
@@ -244,25 +244,25 @@ class ProductManager {
       value.category_id = category.category_id;
       delete value.category;
 
-// barcode
-value.barcode = value.sku;
+      // barcode
+      value.barcode = value.sku;
 
 
-  
-// barcode image
-const barcodeResult = await generateAndUploadBarcode(value.sku);
-value.barcode_image = JSON.stringify({
-  file_path: barcodeResult.cdnUrl
-});
 
-// product images
-if (!Array.isArray(value.product_image)) {
-  value.product_image = [];
-}
-value.product_image = JSON.stringify(value.product_image);
+      // barcode image
+      const barcodeResult = await generateAndUploadBarcode(value.sku);
+      value.barcode_image = JSON.stringify({
+        file_path: barcodeResult.cdnUrl
+      });
 
-const product = await productModel.create(value);
-return product;
+      // product images
+      if (!Array.isArray(value.product_image)) {
+        value.product_image = [];
+      }
+      value.product_image = JSON.stringify(value.product_image);
+
+      const product = await productModel.create(value);
+      return product;
 
 
     } catch (err) {
@@ -284,14 +284,26 @@ return product;
       const verifyProduct = await productModel.findById(id);
       if (!verifyProduct) return null;
 
+      // Check if SKU is being updated
+      if (value.sku && value.sku !== verifyProduct.sku) {
+        // 1. Update text barcode
+        value.barcode = value.sku;
+
+        // 2. Generate new barcode image
+        const barcodeResult = await generateAndUploadBarcode(value.sku);
+        value.barcode_image = {
+          file_path: barcodeResult.cdnUrl
+        };
+      }
+
       // ✅ Normalize product_image for JSONB array
       if (value.product_image) {
-  value.product_image = JSON.stringify(value.product_image);
-}
+        value.product_image = JSON.stringify(value.product_image);
+      }
 
-if (value.barcode_image) {
-  value.barcode_image = JSON.stringify(value.barcode_image);
-}
+      if (value.barcode_image) {
+        value.barcode_image = JSON.stringify(value.barcode_image);
+      }
 
 
       const product = await productModel.update(id, value);
