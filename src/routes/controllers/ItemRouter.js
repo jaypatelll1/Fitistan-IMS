@@ -47,27 +47,36 @@ router.post(
         mode
       } = req.body;
 
-      const item = await itemManager.removeItemStock(
-        product_id,
-        quantity,
-        status,
-        order_id,
-        shelf_id,
-        mode
-      );
+      try {
+        const item = await itemManager.removeItemStock(
+          product_id,
+          quantity,
+          status,
+          order_id,
+          shelf_id,
+          mode
+        );
 
-      if (!item) {
-        return res.status(404).json({
+        if (!item) {
+          return res.status(404).json({
+            success: false,
+            message: "Item not found or insufficient stock",
+          });
+        }
+
+        return res.json({
+          success: true,
+          data: item,
+          message: "Item(s) removed successfully",
+        });
+
+      } catch (err) {
+        return res.status(400).json({
           success: false,
-          message: "Item not found or insufficient stock",
+          message: err.message || "Failed to remove stock",
         });
       }
 
-      return res.json({
-        success: true,
-        data: item,
-        message: "Item(s) removed successfully",
-      });
     },
     [ACCESS_ROLES.ALL]
   )
