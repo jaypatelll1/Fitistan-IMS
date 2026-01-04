@@ -268,4 +268,36 @@ router.get(
   }, [ACCESS_ROLES.ALL])
 );
 
+// Get products by Code (Variant Group)
+router.get(
+  "/code/:code",
+  appWrapper(async (req, res) => {
+    const { code } = req.params;
+
+    const products = await ProductManager.getProductsByCode(code);
+
+    // Always return success200, but data might be empty array
+    return res.json({
+      success: true,
+      data: products,
+    });
+  }, [ACCESS_ROLES.ALL])
+);
+
+
+
+// Search for product codes (autocomplete)
+router.get(
+  "/codes/search",
+  appWrapper(async (req, res) => {
+    const { query } = req.query; // ?query=sum
+    const codes = await ProductManager.searchProductCodes(query);
+
+    return res.json({
+      success: true,
+      data: codes,
+    });
+  }, [ACCESS_ROLES.ALL])
+);
+
 module.exports = router;

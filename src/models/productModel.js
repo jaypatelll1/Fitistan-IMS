@@ -39,6 +39,7 @@ class ProductModel extends BaseModel {
       "size",
       "products.category_id",
       "category_name",
+      "product_code_id",
     ];
   }
 
@@ -75,8 +76,10 @@ class ProductModel extends BaseModel {
           "products.size",
           "products.category_id",
           "category.category_name as category_name",
+          "product_codes.code as product_code"
         ])
         .leftJoin("category", "products.category_id", "category.category_id")
+        .leftJoin("product_codes", "products.product_code_id", "product_codes.id")
         .where("products.is_deleted", false)
         .orderBy("products.product_id", "asc")
         .limit(limit)
@@ -177,8 +180,10 @@ class ProductModel extends BaseModel {
             "products.size",
             "products.category_id",
             "category.category_name as category_name",
+            "product_codes.code as product_code"
           ])
           .leftJoin("category", "products.category_id", "category.category_id")
+          .leftJoin("product_codes", "products.product_code_id", "product_codes.id")
           .where({
             "products.product_id": product_id,
             "products.is_deleted": false,
@@ -361,6 +366,123 @@ class ProductModel extends BaseModel {
         .first();
 
       return product ? this.normalizeProduct(product) : null;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  async findByCodeIdWithStock(product_code_id) {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      const data = await qb("products")
+        .select([
+          "products.product_id",
+          "products.name",
+          "products.description",
+          "products.sku",
+          "products.product_image",
+          "products.size", // Added size
+          "products.category_id",
+          "category.category_name as category_name",
+          "product_codes.code as product_code",
+          qb.raw(
+            "(SELECT count(*) FROM items WHERE items.product_id = products.product_id AND items.status = 'available') as stock_quantity"
+          ),
+        ])
+        .leftJoin("category", "products.category_id", "category.category_id")
+        .leftJoin("product_codes", "products.product_code_id", "product_codes.id")
+        .where({
+          "products.product_code_id": product_code_id,
+          "products.is_deleted": false,
+        })
+        .orderBy("products.product_id", "asc");
+
+      return data;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+  /**
+   * ✅ Get Inventory for a Category (Grouped by Code)
+   */
+  async findCategoryInventory(category_id, page = 1, limit = 10) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const offset = (page - 1) * limit;
+
+      // 1. Grouped Products Query
+      const groupedQuery = qb("products")
+        .select([
+          "product_codes.id as id",
+          "product_codes.name as name",
+          "product_codes.code as sku", // Use code as SKU
+          "category.category_name as category_name",
+          qb.raw("'group' as type"),
+          qb.raw("NULL as product_image"), // Could pick one image, for now null
+          qb.raw("SUM((SELECT count(*) FROM items WHERE items.product_id = products.product_id AND items.status = 'available'))::integer as stock_quantity"),
+          qb.raw("COUNT(products.product_id)::integer as variant_count"),
+          qb.raw("MIN(products.product_id) as single_id"),
+          qb.raw("MIN(products.sku) as single_sku")
+        ])
+        .join("product_codes", "products.product_code_id", "product_codes.id")
+        .leftJoin("category", "products.category_id", "category.category_id")
+        .where({
+          "products.category_id": category_id,
+          "products.is_deleted": false
+        })
+        .groupBy("product_codes.id", "product_codes.name", "product_codes.code", "category.category_name");
+
+      // 2. Standalone Products Query
+      const standaloneQuery = qb("products")
+        .select([
+          "products.product_id as id",
+          "products.name",
+          "products.sku",
+          "category.category_name as category_name",
+          qb.raw("'product' as type"),
+          "products.product_image",
+          qb.raw("(SELECT count(*) FROM items WHERE items.product_id = products.product_id AND items.status = 'available')::integer as stock_quantity"),
+          qb.raw("1 as variant_count"),
+          qb.raw("NULL::integer as single_id"),
+          qb.raw("NULL::text as single_sku")
+        ])
+        .leftJoin("category", "products.category_id", "category.category_id")
+        .where({
+          "products.category_id": category_id,
+          "products.is_deleted": false
+        })
+        .whereNull("products.product_code_id");
+
+      // 3. Combine using Union
+      // Note: Knex union pagination is a bit manual or we use a wrapper query
+      const unionQuery = qb.union([groupedQuery, standaloneQuery], true); // true for Union All (though overlap shouldn't happen)
+
+      // 4. Paginate the Union
+      // We need to wrap the union in a selection to order and limit
+      const data = await qb.from(function () {
+        this.from(unionQuery.as("combined_inventory"));
+      })
+        .orderBy("name", "asc")
+        .limit(limit)
+        .offset(offset);
+
+      // 5. Get Total Count
+      const countResult = await qb.from(function () {
+        this.from(unionQuery.as("combined_count"));
+      }).count("* as count");
+
+      const total = Number(countResult[0]?.count || 0);
+
+      return {
+        data: data.map(item => ({
+          ...item,
+          stock_quantity: Number(item.stock_quantity || 0), // Ensure number
+          product_image: typeof item.product_image === 'string' ? JSON.parse(item.product_image) : (item.product_image || [])
+        })),
+        total
+      };
+
     } catch (e) {
       throw new DatabaseError(e);
     }
