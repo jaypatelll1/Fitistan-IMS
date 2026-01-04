@@ -20,18 +20,18 @@ const updateStatusSchema = Joi.object({
     }),
 });
 
-const profileUpdateSchema = Joi.object({  
+const profileUpdateSchema = Joi.object({
   email: Joi.string()
     .email()
     .required()
     .label("Email")
     .messages({
       "string.email": COMMON_MESSAGES.STRING_EMAIL,
-      
+
     })
     .optional(),
 
- 
+
 
   name: Joi.string()
     .min(2)
@@ -42,7 +42,7 @@ const profileUpdateSchema = Joi.object({
       "string.base": COMMON_MESSAGES.STRING_BASE,
       "string.min": COMMON_MESSAGES.STRING_MIN,
       "string.max": COMMON_MESSAGES.STRING_MAX,
-    
+
     })
     .optional(),
 
@@ -63,22 +63,22 @@ const profileUpdateSchema = Joi.object({
     .optional(),
 
   address: Joi.string()
-  .max(225)
-  .label("Address")
-  .messages({
-    "string.base": COMMON_MESSAGES.STRING_BASE,
-    "string.max": COMMON_MESSAGES.STRING_MAX
-  })
-  .optional(),
+    .max(225)
+    .label("Address")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.max": COMMON_MESSAGES.STRING_MAX
+    })
+    .optional(),
 
   location: Joi.string()
-  .max(100)
-  .label("Location")
-  .messages({
-    "string.base": COMMON_MESSAGES.STRING_BASE,
-    "string.max": COMMON_MESSAGES.STRING_MAX
-  })
-  .optional(),
+    .max(100)
+    .label("Location")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.max": COMMON_MESSAGES.STRING_MAX
+    })
+    .optional(),
 
   date_of_birth: Joi.date()
     .less('now')
@@ -87,23 +87,28 @@ const profileUpdateSchema = Joi.object({
     })
     .optional(),
 
- postal_code: Joi.string()
-  .pattern(/^[1-9][0-9]{5}$/)
-  .label("Postal Code")
-  .messages({
-    "string.base": COMMON_MESSAGES.STRING_BASE,
-    "string.max": COMMON_MESSAGES.STRING_MAX,
-    "string.min": COMMON_MESSAGES.STRING_MIN,
-  }) .optional()
+  postal_code: Joi.string()
+    .pattern(/^[1-9][0-9]{5}$/)
+    .label("Postal Code")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.max": COMMON_MESSAGES.STRING_MAX,
+      "string.min": COMMON_MESSAGES.STRING_MIN,
+    }).optional(),
+
+  profile_picture_url: Joi.string()
+    .uri()
+    .label("Profile Picture URL")
+    .optional()
 
 
-  });
+});
 
-  const idSchema = Joi.number().integer().positive().required()
- 
+const idSchema = Joi.number().integer().positive().required()
 
-    
- 
+
+
+
 
 module.exports = {
   updateRoleSchema,

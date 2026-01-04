@@ -143,6 +143,7 @@ class ProductManager {
 
 
 
+
   static async getProductById(id) {
     const { error, value } = productIdSchema.validate({ id }, { abortEarly: false });
     if (error) throw new JoiValidatorError(error);
@@ -206,7 +207,6 @@ class ProductManager {
         value.product_code_id = codeRecord.id;
         delete value.product_code;
       }
-
       // barcode
       value.barcode = value.sku;
 
@@ -247,6 +247,7 @@ class ProductManager {
       const verifyProduct = await productModel.findById(id);
       if (!verifyProduct) return null;
 
+
       if (value.product_code) {
         const productCodeModel = new ProductCodeModel();
         let codeRecord = await productCodeModel.findByCode(value.product_code);
@@ -258,6 +259,19 @@ class ProductManager {
         }
         value.product_code_id = codeRecord.id;
         delete value.product_code;
+      }
+
+      // Check if SKU is being updated
+      if (value.sku && value.sku !== verifyProduct.sku) {
+        // 1. Update text barcode
+        value.barcode = value.sku;
+
+        // 2. Generate new barcode image
+        const barcodeResult = await generateAndUploadBarcode(value.sku);
+        value.barcode_image = {
+          file_path: barcodeResult.cdnUrl
+        };
+
       }
 
       // ✅ Normalize product_image for JSONB array

@@ -33,6 +33,7 @@ class OrderModel extends BaseModel {
                 "products.sku as product_sku",
                 "products.barcode as product_barcode",
                 "products.vendor_id as product_vendor_id",
+                "products.product_image",
                 // Shelf columns
                 "shelf.shelf_name",
                 "shelf.warehouse_id",
@@ -133,6 +134,7 @@ class OrderModel extends BaseModel {
                 "products.sku as product_sku",
                 "products.barcode as product_barcode",
                 "products.vendor_id as product_vendor_id",
+                "products.product_image",
                 // Shelf columns
                 "shelf.shelf_name",
                 "shelf.warehouse_id",

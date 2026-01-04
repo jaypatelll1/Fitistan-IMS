@@ -308,12 +308,7 @@ class ProductModel extends BaseModel {
           .where({ barcode, is_deleted: false })
           .first()) || null
       );
-      const product = await qb(this.tableName)
-        .select(this.getPublicColumns())
-        .where(this.whereStatement({ sku }))
-        .first();
-
-      return product ? this.normalizeProduct(product) : null;
+      
     } catch (e) {
       throw new DatabaseError(e);
     }
@@ -360,12 +355,7 @@ class ProductModel extends BaseModel {
         data,
         total: Number(count),
       };
-      const product = await qb(this.tableName)
-        .select(this.getPublicColumns())
-        .where(this.whereStatement({ barcode }))
-        .first();
-
-      return product ? this.normalizeProduct(product) : null;
+     
     } catch (e) {
       throw new DatabaseError(e);
     }
