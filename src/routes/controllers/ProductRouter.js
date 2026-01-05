@@ -155,6 +155,30 @@ router.put(
 );
 
 
+// 
+// DELETE PRODUCT
+// 
+router.post(
+  "/delete/:id",
+  appWrapper(async (req, res) => {
+    const { id } = req.params;
+
+    const result = await ProductManager.deleteProduct(id);
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found or already deleted",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Product deleted successfully",
+    });
+  }, [ACCESS_ROLES.ALL])
+);
+
+
 router.get(
   "/sku/:sku",
   appWrapper(async (req, res) => {

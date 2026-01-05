@@ -70,7 +70,7 @@ const createProductSchema = Joi.object({
     }),
   size: Joi.string()
     .trim()
-    .min(1)
+    .allow("", null)
     .label("Size")
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE,

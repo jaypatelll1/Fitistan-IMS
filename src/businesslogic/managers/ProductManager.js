@@ -205,8 +205,10 @@ class ProductManager {
           });
         }
         value.product_code_id = codeRecord.id;
-        delete value.product_code;
       }
+
+      // Always remove product_code from the insert object (since it's not a column)
+      if ('product_code' in value) delete value.product_code;
       // barcode
       value.barcode = value.sku;
 
