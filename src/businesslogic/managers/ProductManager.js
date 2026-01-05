@@ -314,16 +314,12 @@ class ProductManager {
   }
 
   static async deleteProduct(id) {
-    const { error, value } = productIdSchema.validate({ id }, { abortEarly: false });
-    if (error) throw new JoiValidatorError(error);
+  const { error, value } = productIdSchema.validate({ id }, { abortEarly: false });
+  if (error) throw new JoiValidatorError(error);
 
-    try {
-      const product = await productModel.softDelete(value.id);
-      return product || null;
-    } catch (err) {
-      throw new Error(`Failed to delete product: ${err.message}`);
-    }
-  }
+  return await productModel.softDelete(value.id);
+}
+
 
   static async findBysku(sku) {
     if (!sku) {

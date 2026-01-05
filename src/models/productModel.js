@@ -262,19 +262,36 @@ class ProductModel extends BaseModel {
    * ✅ Soft delete
    */
   async softDelete(product_id) {
-    try {
-      const qb = await this.getQueryBuilder();
+  try {
+    const qb = await this.getQueryBuilder();
 
-      return qb("products")
-        .where({ product_id })
-        .update({
-          is_deleted: true,
-          [TABLE_DEFAULTS.COLUMNS.UPDATED_AT.KEY]: qb.raw("CURRENT_TIMESTAMP"),
-        });
-    } catch (e) {
-      throw new DatabaseError(e);
+    const product = await qb("products")
+      .select("product_id", "is_deleted")
+      .where({ product_id })
+      .first();
+
+    if (!product) {
+      return { status: "NOT_FOUND" };
     }
+
+    if (product.is_deleted) {
+      return { status: "ALREADY_DELETED" };
+    }
+
+    await qb("products")
+      .where({ product_id })
+      .update({
+        is_deleted: true,
+        [TABLE_DEFAULTS.COLUMNS.UPDATED_AT.KEY]: qb.raw("CURRENT_TIMESTAMP"),
+      });
+
+    return { status: "DELETED" };
+  } catch (e) {
+    throw new DatabaseError(e);
   }
+}
+
+
 
   async findBySkuId(sku) {
     try {
