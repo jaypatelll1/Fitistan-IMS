@@ -217,6 +217,9 @@ class itemManager {
         console.warn(`Requested return of ${quantity} but only ${affected} items were found/returned.`);
       }
 
+      // Create order record for the return
+      await OrderManager.createOrder(product_id, shelf_id, affected, ORDER_STATUS.RETURNED);
+
       return {
         success: true,
         affected,
