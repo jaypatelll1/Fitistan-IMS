@@ -21,9 +21,22 @@ router.get(
     const limit = parseInt(req.query.limit) || 100;
     const result = await ProductManager.getAllProductsPaginated(page, limit);
     if (!result.products || result.products.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No products found",
+      // return res.status(404).json({
+      //   success: false,
+      //   message: "No products found",
+      // });
+      // Return 200 with empty list
+      return res.json({
+        success: true,
+        data: [],
+        pagination: {
+          total: 0,
+          page: page,
+          limit: limit,
+          totalPages: 0,
+          previous: null,
+          next: null,
+        },
       });
     }
     return res.json({
@@ -279,9 +292,21 @@ router.get(
     );
 
     if (!result.products || result.products.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: `No products found for category: ${categoryName}`,
+      // return res.status(404).json({
+      //   success: false,
+      //   message: `No products found for category: ${categoryName}`,
+      // });
+      return res.json({
+        success: true,
+        data: {
+          products: [],
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+          previous: null,
+          next: null
+        },
       });
     }
 

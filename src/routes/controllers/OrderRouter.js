@@ -21,9 +21,22 @@ router.get(
         const result = await OrderManager.getOrdersPaginated(page, limit, filters);
 
         if (!result.orders || result.orders.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No orders found"
+            // return res.status(404).json({
+            //     success: false,
+            //     message: "No orders found"
+            // });
+            return res.json({
+                success: true,
+                data: [],
+                pagination: {
+                    page: page,
+                    limit: limit,
+                    offset: 0,
+                    total: 0,
+                    totalPages: 0,
+                    previous: null,
+                    next: null
+                }
             });
         }
 
