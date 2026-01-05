@@ -189,6 +189,44 @@ class itemManager {
       throw new Error(`Failed to get items: ${error.message}`);
     }
   }
+  static async returnStock({ product_id, quantity, shelf_id }) {
+    try {
+      const itemModel = new ItemModel();
+      const productModel = new ProductModel();
+
+      if (!product_id || !quantity || !shelf_id) {
+        throw new Error("product_id, quantity, and shelf_id are required");
+      }
+
+      // Verify product exists
+      const product = await productModel.findById(product_id);
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      // Perform the return
+      const affected = await itemModel.returnItems(product_id, quantity, shelf_id);
+
+      if (affected === 0) {
+        throw new Error("No sold items found to return (or insufficient quantity sold)");
+      }
+
+      if (affected < quantity) {
+        // This is a partial success case, theoretically. 
+        // But for now we just return what we did.
+        console.warn(`Requested return of ${quantity} but only ${affected} items were found/returned.`);
+      }
+
+      return {
+        success: true,
+        affected,
+        message: `Successfully returned ${affected} item(s)`
+      };
+
+    } catch (error) {
+      throw new Error(`Failed to return stock: ${error.message}`);
+    }
+  }
 }
 
 module.exports = itemManager;

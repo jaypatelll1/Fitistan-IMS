@@ -84,6 +84,37 @@ router.post(
 
 
 router.post(
+  "/return-stock",
+  appWrapper(
+    async (req, res) => {
+      const { product_id, quantity, shelf_id } = req.body;
+
+      try {
+        const result = await itemManager.returnStock({
+          product_id: Number(product_id),
+          quantity: Number(quantity),
+          shelf_id: Number(shelf_id)
+        });
+
+        return res.json({
+          success: true,
+          data: result,
+          message: result.message,
+        });
+
+      } catch (err) {
+        return res.status(400).json({
+          success: false,
+          message: err.message || "Failed to return stock",
+        });
+      }
+    },
+    [ACCESS_ROLES.ALL]
+  )
+);
+
+
+router.post(
   "/outward-scan",
   appWrapper(async (req, res) => {
     const { item_id, status } = req.body;

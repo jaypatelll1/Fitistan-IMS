@@ -291,6 +291,32 @@ class ItemModel extends BaseModel {
       throw new DatabaseError(e);
     }
   }
+  async returnItems(product_id, quantity, shelf_id) {
+    try {
+      const qb = await this.getQueryBuilder();
+
+      return qb("items")
+        .whereIn("id", function () {
+          this.select("id")
+            .from("items")
+            .where({
+              product_id,
+              status: ITEM_STATUS.SOLD,
+              is_deleted: true
+            })
+            .limit(quantity);
+        })
+        .update({
+          is_deleted: false,
+          status: ITEM_STATUS.AVAILABLE,
+          shelf_id: shelf_id,
+          updated_at: qb.raw("CURRENT_TIMESTAMP"),
+        });
+
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 }
 
 module.exports = ItemModel;
