@@ -101,6 +101,27 @@ router.post(
 );
 
 
+// 
+// BULK IMPORT PRODUCTS
+// 
+router.post(
+  "/import",
+  appWrapper(async (req, res) => {
+    const { file_path } = req.body;
+
+    if (!file_path) {
+      return res.status(400).json({ success: false, message: "No file path provided" });
+    }
+
+    const result = await ProductManager.bulkImport(file_path);
+
+    return res.json({
+      success: true,
+      data: result,
+      message: `Import processed: ${result.summary.success} success, ${result.summary.failed} failed.`
+    });
+  }, [ACCESS_ROLES.ALL])
+);
 
 
 //

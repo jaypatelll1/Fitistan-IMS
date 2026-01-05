@@ -32,6 +32,10 @@ async function generatePresignedUploadUrl({
         validExtensions = ["jpg", "jpeg", "png", "webp"];
         filePath = "app_assets/products/images";
     }
+    else if (functionality === "product" && subFunctionality === "bulk_import") {
+        validExtensions = ["csv", "xls", "xlsx"];
+        filePath = "app_assets/products/bulk_imports";
+    }
     else if (functionality === "user" && subFunctionality === "profile_image") {
         validExtensions = ["jpg", "jpeg", "png", "webp"];
         filePath = "app_assets/users/profile_images";

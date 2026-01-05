@@ -32,7 +32,10 @@ const MIME_TYPES = {
     jpg: "image/jpg",
     png: "image/png",
     webp: "image/webp",
-    gif: "image/gif"
+    gif: "image/gif",
+    csv: "text/csv",
+    xls: "application/vnd.ms-excel",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 };
 
 
@@ -40,4 +43,4 @@ module.exports = {
     RES_LOCALS,
     LOG_CONSTANTS,
     MIME_TYPES
- }
+}

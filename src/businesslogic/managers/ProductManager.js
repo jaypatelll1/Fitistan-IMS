@@ -3,6 +3,9 @@ const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 const CategoryModel = require("../../models/CategoryModel");
 const ItemModel = require("../../models/ItemModel");
 const ProductCodeModel = require("../../models/ProductCodeModel");
+const csv = require("csv-parser");
+const axios = require("axios");
+const { Readable } = require("stream");
 
 const { generateAndUploadBarcode } = require("../../services/barcodeServices");
 const {
@@ -13,7 +16,98 @@ const {
 
 const productModel = new ProductModel(); // no userId for now
 
+
 class ProductManager {
+  static async bulkImport(fileKey) {
+    const results = [];
+    const errors = [];
+    let successCount = 0;
+    let failureCount = 0;
+
+    try {
+      // Determine file type from URL
+      // Remove query params if any, then get extension
+      const cleanUrl = fileKey.split('?')[0];
+      const isExcel = cleanUrl.endsWith('.xlsx') || cleanUrl.endsWith('.xls');
+
+      let rows = [];
+
+      if (isExcel) {
+        const xlsx = require("xlsx");
+        const response = await axios.get(fileKey, { responseType: "arraybuffer" });
+        const workbook = xlsx.read(response.data, { type: "buffer" });
+        const sheetName = workbook.SheetNames[0];
+        rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]); // Returns array of objects
+      } else {
+        // CSV Handling via Stream
+        const response = await axios.get(fileKey, { responseType: "stream" });
+        const stream = response.data.pipe(csv());
+        for await (const row of stream) {
+          rows.push(row);
+        }
+      }
+
+      // Process Rows (Common Logic)
+      for (const row of rows) {
+        try {
+          // Normalize Keys (lowercase, trim, remove BOM)
+          const cleanRow = {};
+          Object.keys(row).forEach(k => {
+            const cleanKey = k.trim().replace(/^\uFEFF/, '').toLowerCase();
+            cleanRow[cleanKey] = typeof row[k] === 'string' ? row[k].trim() : row[k];
+          });
+
+          // Map Columns to Product Data
+          const productData = {
+            name: cleanRow.name,
+            sku: cleanRow.sku,
+            category: cleanRow.category,
+            description: cleanRow.description || "",
+            size: cleanRow.size || "",
+            product_code: cleanRow.product_code || "",
+            product_image: cleanRow.image ? [{ file_path: cleanRow.image, view: "front" }] : []
+          };
+
+          // Reuse createProduct for validation & creation
+          await ProductManager.createProduct(productData);
+          successCount++;
+          results.push({ sku: productData.sku, status: "success" });
+
+        } catch (err) {
+          failureCount++;
+
+          // Extract detailed validation message if available
+          let errorMessage = err.message || "Unknown error";
+          if (err.name === "JoiValidatorError" && err.response && err.response.errors) {
+            // Try to get the first validation detail
+            const firstError = err.response.errors[0]?.body_error?.[0];
+            if (firstError) {
+              errorMessage = `${firstError.key}: ${firstError.message}`;
+            }
+          }
+
+          errors.push({
+            sku: row.sku || "UNKNOWN",
+            error: errorMessage
+          });
+          results.push({ sku: row.sku, status: "failed", reason: errorMessage });
+        }
+      }
+
+      return {
+        success: true,
+        summary: {
+          total: successCount + failureCount,
+          success: successCount,
+          failed: failureCount
+        },
+        errors: errors
+      };
+
+    } catch (err) {
+      throw new Error(`Bulk import failed: ${err.message}`);
+    }
+  }
 
 
   static async getAllProductsPaginated(page, limit) {
