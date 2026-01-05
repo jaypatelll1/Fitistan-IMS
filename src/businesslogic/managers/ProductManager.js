@@ -6,6 +6,7 @@ const ProductCodeModel = require("../../models/ProductCodeModel");
 const csv = require("csv-parser");
 const axios = require("axios");
 const { Readable } = require("stream");
+const xlsx = require("xlsx");
 
 const { generateAndUploadBarcode } = require("../../services/barcodeServices");
 const {
@@ -33,7 +34,7 @@ class ProductManager {
       let rows = [];
 
       if (isExcel) {
-        const xlsx = require("xlsx");
+       
         const response = await axios.get(fileKey, { responseType: "arraybuffer" });
         const workbook = xlsx.read(response.data, { type: "buffer" });
         const sheetName = workbook.SheetNames[0];
