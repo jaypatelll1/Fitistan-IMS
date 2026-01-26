@@ -109,9 +109,28 @@ static async findAllGlobal(){
     .select("global_category_id", "category_name")
     .from(`${PUBLIC_SCHEMA}.global_category`)              
     .orderBy("global_category_id", "asc");  
-    
+
 }
 
+static async countByGlobalCategoryId(globalCategoryId) {
+    const result = await this.qb()
+      .from("category")
+      .where({
+        global_category_id: globalCategoryId,
+        is_deleted: false
+      })
+      .count("category_id as count")
+      .first();
+
+    return parseInt(result.count, 10);
+  }
+
+  static async globalCategoryDelete(globalCategoryId) { 
+    return this.qb()
+      .from(`${PUBLIC_SCHEMA}.global_category`)
+      .where({ global_category_id: globalCategoryId })
+      .update({ is_deleted: true });
+  } 
 
   static async findAll() {
     return this.qb()

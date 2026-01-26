@@ -2,7 +2,7 @@ const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 const CategoryModel = require("../../models/CategoryModel");
 const ProductModel = require("../../models/ProductModel");
 const validationError= require("../../errorhandlers/ValidationError");
-const { createCategorySchema,createGlobalCategorySchema } = require("../../validators/categoryValidator");
+const { createCategorySchema,createGlobalCategorySchema,categoryIdSchema } = require("../../validators/categoryValidator");
 
 
 class CategoryManager {
@@ -110,10 +110,67 @@ console.log("global_category_id:", value.global_category_id);
     global_category_id: value.global_category_id
   });
 }
+static async getGlobalCategoryById(categoryId) {
 
+  const{error,value} = categoryIdSchema.validate({category_id:categoryId},{
+    abortEarly:false,
+    stripUnknown:true
+  })
+  if (error){
+    throw new JoiValidatorError (error);
+  
+  }
+ const category = await CategoryModel.findGlobalById(categoryId);
+ if (!category) {
+   throw new Error("Global Category not found");
+ }   
+
+  return category;
+}
+static async deleteGlobalCategoryById(globalCategoryId) {
+
+  const{error,value} = categoryIdSchema.validate({category_id:globalCategoryId},{
+    abortEarly:false,
+    stripUnknown:true
+  })
+  if (error){
+    throw new JoiValidatorError (error);
+  
+  }
+  // 1️⃣ Check global category exists
+  const globalCategory = await CategoryModel.findGlobalById(globalCategoryId);
+
+  if (!globalCategory) {
+    throw new Error("Global Category not found");
+  }
+
+  // 2️⃣ Check if sub-categories exist
+  const subCategoryCount = await CategoryModel.countByGlobalCategoryId(globalCategoryId);
+
+  if (subCategoryCount > 0) {
+    throw new Error("Global Category cannot be deleted because sub-categories exist");
+  }
+
+  // 3️⃣ Soft delete
+  await CategoryModel.globalCategoryDelete(globalCategoryId);
+
+  return {
+    global_category_id: globalCategoryId,
+    deleted: true,
+    message: "Global Category deleted successfully"
+  };
+}
 
 
 static async deleteCategoryById(categoryId, userId) {
+  const{error,value} = categoryIdSchema.validate({category_id:categoryId},{
+    abortEarly:false,
+    stripUnknown:true
+  })
+  if (error){
+    throw new JoiValidatorError (error);
+  
+  }
   // 1️⃣ Check category exists
   const category = await CategoryModel.findById(categoryId);
 

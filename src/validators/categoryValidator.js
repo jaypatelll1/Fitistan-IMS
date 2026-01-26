@@ -41,12 +41,30 @@ const createCategorySchema = joi.object({
       "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
       "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
-    })
+    }),
+  
+    });
+     const categoryIdSchema =joi.object ({
+    category_id: joi.number()
+    .integer()
+    .positive()
+    .required()
+    .label("Category ID")
+    .messages({
+      "number.base": COMMON_MESSAGES.NUMBER_BASE,
+      "number.integer": COMMON_MESSAGES.NUMBER_INTEGER,
+      "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
+      "any.required": COMMON_MESSAGES.ANY_REQUIRED
+  })
 });
+
+
+
 
 
 
 module.exports = {
   createCategorySchema,
-  createGlobalCategorySchema
+  createGlobalCategorySchema,
+  categoryIdSchema
 };
