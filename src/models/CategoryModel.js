@@ -7,6 +7,45 @@ class CategoryModel {
         return Db.getQueryBuilder(); // ✅ always use this
       }
 
+   static async findGlobalByName(categoryName) {
+    return this.qb()
+      .select("global_category_id", "category_name")
+      .from(`${PUBLIC_SCHEMA}.global_category`)              
+      .whereRaw("LOWER(category_name) = ?", [
+        categoryName.trim().toLowerCase()
+      ])
+      .first();
+  }
+ static async findGlobalById(globalCategoryId) {
+    return this.qb()("global_category")
+      .select("global_category_id", "category_name")
+      .where("global_category_id", globalCategoryId)
+      .first();
+  }
+static async findByNameAndGlobal(categoryName, globalCategoryId) {
+    return this.qb()("category")
+      .select("category_id", "category_name", "global_category_id")
+      .where({
+        category_name: categoryName,
+        global_category_id: globalCategoryId
+      })
+      .first();
+  }
+
+
+  static async createGlobal(categoryData) {
+    try {
+      const [category] = await this.qb()
+        .from(`${PUBLIC_SCHEMA}.global_category`)
+        .insert(categoryData)
+        .returning(["global_category_id", "category_name"]);
+  
+      return category;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
 static async create(categoryData) {
   try {
     const [category] = await this.qb()
@@ -48,7 +87,7 @@ static async categoryDelete(category_id) {
   }
 
 
- async findByCategoryId(category_id) {
+static async findByCategoryId(category_id) {
   try {
     const qb = await this.getQueryBuilder();
 
@@ -65,6 +104,14 @@ static async categoryDelete(category_id) {
     throw new DatabaseError(e);
   }
 }
+static async findAllGlobal(){
+  return this.qb()
+    .select("global_category_id", "category_name")
+    .from(`${PUBLIC_SCHEMA}.global_category`)              
+    .orderBy("global_category_id", "asc");  
+    
+}
+
 
   static async findAll() {
     return this.qb()

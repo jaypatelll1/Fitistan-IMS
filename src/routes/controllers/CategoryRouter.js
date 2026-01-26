@@ -7,6 +7,37 @@ const CategoryModel = require("../../models/CategoryModel");
 
 
 
+router.post("/createGlobal",
+
+  appWrapper(async(req,res)=> {
+    const globalCategory = await CategoryManager.createGlobalCategory(req.body);
+    
+    return res.json({
+      success:true,
+      data:globalCategory,
+      message:"Global Category created successfully"
+    });
+
+  }, [ACCESS_ROLES.ACCOUNT_SUPER_ADMIN])
+)
+
+router.get('/list_global',
+  appWrapper (async (req,res) => {
+    const globalCategories = await CategoryManager.findAllGlobalCategories();
+
+    if (!globalCategories || globalCategories.length ===0){
+      return res.status (404).json ({
+        success:false,
+        message:"No global categories found"
+      });
+    }
+
+    return res.json ({
+      success:true,
+      data:globalCategories
+    });
+  }, [ACCESS_ROLES.ACCOUNT_SUPER_ADMIN])
+)
 
 router.post("/create",
   appWrapper(async(req,res)=> {

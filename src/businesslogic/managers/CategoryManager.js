@@ -2,7 +2,7 @@ const JoiValidatorError = require("../../errorhandlers/JoiValidationError");
 const CategoryModel = require("../../models/CategoryModel");
 const ProductModel = require("../../models/ProductModel");
 const validationError= require("../../errorhandlers/ValidationError");
-const { createCategorySchema } = require("../../validators/categoryValidator");
+const { createCategorySchema,createGlobalCategorySchema } = require("../../validators/categoryValidator");
 
 
 class CategoryManager {
@@ -13,7 +13,7 @@ class CategoryManager {
       // 1️⃣ Validate category
       const category = await CategoryModel.findByName(categoryName);
       if (!category) {
-        throw new ValidationError("Invalid category");
+        throw new validationError("Invalid category");
       }
 
       // 2️⃣ Product model instance
@@ -45,8 +45,8 @@ class CategoryManager {
     }
   }
 
-  static async createCategory(payload){
-    const{error,value} =createCategorySchema.validate(payload,{
+  static async createGlobalCategory(payload){
+    const{error,value} =createGlobalCategorySchema.validate(payload,{
       abortEarly:false,
      stripUnknown:true
 
@@ -55,17 +55,62 @@ class CategoryManager {
       throw new JoiValidatorError (error);
     
     }
-    const existingCategory= await CategoryModel.findByName(value.category_name);
+    const existingCategory= await CategoryModel.findGlobalByName(value.category_name);
 
   if (existingCategory){
-    throw new validationError ("Category with this name already exists");
+    throw new validationError ("Global Category with this name already exists");
 
   }
-  return CategoryModel.create(
+  return CategoryModel.createGlobal(
     {category_name:value.category_name},
   
   );
 }
+
+static async findAllGlobalCategories(){
+  
+  return CategoryModel.findAllGlobal();
+}
+static async createCategory(payload) {
+  const { error, value } = createCategorySchema.validate(payload, {
+    abortEarly: false,
+    stripUnknown: true
+  });
+
+  if (error) {
+    throw new JoiValidatorError(error);
+  }
+
+  // 1️⃣ Check if global category exists
+  console.log("Validated payload value:", value);
+console.log("global_category_id:", value.global_category_id);
+  const globalCategory =
+    await CategoryModel.findGlobalById(value.global_category_id);
+
+  if (!globalCategory) {
+    throw new ValidationError("Global category does not exist");
+  }
+
+  // 2️⃣ Check duplicate category under same global category
+  const existingCategory =
+    await CategoryModel.findByNameAndGlobal(
+      value.category_name,
+      value.global_category_id
+    );
+
+  if (existingCategory) {
+    throw new ValidationError(
+      "Category with this name already exists under this global category"
+    );
+  }
+
+  // 3️⃣ Create sub-category
+  return CategoryModel.create({
+    category_name: value.category_name,
+    global_category_id: value.global_category_id
+  });
+}
+
 
 
 static async deleteCategoryById(categoryId, userId) {
