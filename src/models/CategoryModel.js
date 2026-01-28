@@ -3,17 +3,52 @@ const { PUBLIC_SCHEMA } = require("./libs/dbConstants");
 
 class CategoryModel {
 
+
   static qb() {
-    return Db.getQueryBuilder(); // ✅ always use this
+    return Db.getQueryBuilder();
   }
 
-  static async create(categoryData) {
+   static async findGlobalByName(categoryName) {
+    return this.qb()
+      .select("global_category_id", "category_name")
+      .from(`${PUBLIC_SCHEMA}.global_category`)              
+      .whereRaw("LOWER(category_name) = ?", [
+        categoryName.trim().toLowerCase()
+      ])
+      .first();
+  }
+ static async findGlobalById(globalCategoryId) {
+    return this.qb()("global_category")
+      .select("global_category_id", "category_name")
+      .where("global_category_id", globalCategoryId)
+      .first();
+  }
+static async findByNameAndGlobal(categoryName, globalCategoryId) {
+    return this.qb()("category")
+      .select("category_id", "category_name", "global_category_id")
+      .where({
+        category_name: categoryName,
+        global_category_id: globalCategoryId
+      })
+      .first();
+  }
+
+  static async findAllGlobal(){
+    return this.qb()
+      .select("global_category_id", "category_name")
+      .from(`${PUBLIC_SCHEMA}.global_category`)               
+      .orderBy("global_category_id", "asc");
+
+  }
+
+
+  static async createGlobal(categoryData) {
     try {
       const [category] = await this.qb()
-        .from("category")
+        .from(`${PUBLIC_SCHEMA}.global_category`)
         .insert(categoryData)
-        .returning(["category_id", "category_name"]);
-
+        .returning(["global_category_id", "category_name"]);
+  
       return category;
     } catch (e) {
       throw new DatabaseError(e);
@@ -52,7 +87,18 @@ class CategoryModel {
       .where({ category_id })
       .first();
   }
+static async create(categoryData) {
+  try {
+    const [category] = await this.qb()
+      .from("category")
+      .insert(categoryData)
+      .returning(["category_id", "category_name"]);
 
+    return category;
+  } catch (e) {
+    throw new DatabaseError(e);
+  }
+}
 
   static async categoryDelete(category_id) {
     return this.qb()
@@ -74,9 +120,9 @@ class CategoryModel {
   }
 
 
-  async findByCategoryId(category_id) {
-    try {
-      const qb = await this.getQueryBuilder();
+static async findByCategoryId(category_id) {
+  try {
+    const qb = await this.getQueryBuilder();
 
       return qb(this.tableName)
         .select(this.getPublicColumns())
