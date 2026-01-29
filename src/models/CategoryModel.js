@@ -47,7 +47,7 @@ static async findByNameAndGlobal(categoryName, globalCategoryId) {
       const [category] = await this.qb()
         .from(`${PUBLIC_SCHEMA}.global_category`)
         .insert(categoryData)
-        .returning(["global_category_id", "category_name"]);
+        .returning(["global_category_id", "category_name", "logo_url"]);
   
       return category;
     } catch (e) {
@@ -92,7 +92,7 @@ static async create(categoryData) {
     const [category] = await this.qb()
       .from("category")
       .insert(categoryData)
-      .returning(["category_id", "category_name"]);
+      .returning(["category_id", "category_name", "logo_url"]);
 
     return category;
   } catch (e) {

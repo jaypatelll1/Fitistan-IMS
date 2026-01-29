@@ -15,6 +15,13 @@ const createGlobalCategorySchema = joi.object({
       "string.min": COMMON_MESSAGES.STRING_MIN,
       "string.max": COMMON_MESSAGES.STRING_MAX,
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
+    }),
+    logo_url: joi.string()             
+    .optional()                      
+    .label("Category Logo URL")      
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.uri": "Logo URL must be a valid URI"
     })
 })
 const createCategorySchema = joi.object({
@@ -42,6 +49,14 @@ const createCategorySchema = joi.object({
       "number.positive": COMMON_MESSAGES.NUMBER_POSITIVE,
       "any.required": COMMON_MESSAGES.ANY_REQUIRED
     }),
+    logo_url: joi.string()             
+    .uri()
+    .optional()
+    .label("Category Logo URL")
+    .messages({
+      "string.base": COMMON_MESSAGES.STRING_BASE,
+      "string.uri": "Logo URL must be a valid URI"
+    })
   
     });
      const categoryIdSchema =joi.object ({

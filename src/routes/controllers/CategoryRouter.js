@@ -4,7 +4,7 @@ const router = express.Router({ mergeParams: true });
 const { appWrapper } = require("../routeWrapper");
 const { ACCESS_ROLES } = require("../../businesslogic/accessmanagement/roleConstants");
 const CategoryModel = require("../../models/CategoryModel");
-
+const { generatePresignedUploadUrl } = require("../../services/presignedUploadServices");
 
 
 router.post("/createGlobal",
@@ -177,6 +177,16 @@ router.post(
       success: true,
       data: categories,
     });
+  }, [ACCESS_ROLES.ALL])
+);
+
+
+router.post(
+  "/presigned-url",
+  appWrapper(async (req, res) => {
+    const { fileName, functionality, subFunctionality } = req.body;
+    const result = await generatePresignedUploadUrl({ fileName, functionality, subFunctionality });
+    res.json(result);
   }, [ACCESS_ROLES.ALL])
 );
 

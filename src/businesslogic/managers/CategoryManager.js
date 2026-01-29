@@ -62,7 +62,9 @@ class CategoryManager {
 
   }
   return CategoryModel.createGlobal(
-    {category_name:value.category_name},
+    {category_name:value.category_name,
+      logo_url: value.logo_url || null
+    },
   
   );
 }
@@ -107,7 +109,8 @@ console.log("global_category_id:", value.global_category_id);
   // 3️⃣ Create sub-category
   return CategoryModel.create({
     category_name: value.category_name,
-    global_category_id: value.global_category_id
+    global_category_id: value.global_category_id,
+    logo_url: value.logo_url || null
   });
 }
 static async getGlobalCategoryById(categoryId) {

@@ -40,6 +40,10 @@ async function generatePresignedUploadUrl({
         validExtensions = ["jpg", "jpeg", "png", "webp"];
         filePath = "app_assets/users/profile_images";
     }
+    else if (functionality === "category" && subFunctionality === "logo") {
+    validExtensions = ["jpg", "jpeg", "png", "webp"];
+    filePath = "app_assets/categories/logos";
+}
     else {
         throw new Error("Invalid functionality or subFunctionality");
     }
