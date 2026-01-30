@@ -112,7 +112,11 @@ const createProductSchema = Joi.object({
     .messages({
       "string.base": COMMON_MESSAGES.STRING_BASE
     }),
-  product_code: Joi.string().trim().allow("", null).optional().label("Product Code")
+  product_code: Joi.string().trim().allow("", null).optional().label("Product Code"),
+  mrp: Joi.number().allow(0, null).optional().label("MRP"),
+  discounted_price: Joi.number().allow(0, null).optional().label("Discounted Price"),
+  gst_percentage: Joi.number().allow(0, null).optional().label("GST Percentage"),
+  cost_to_consumer: Joi.number().allow(0, null).optional().label("Cost to Consumer")
 });
 
 // ✅ Schema for updating product
@@ -195,7 +199,11 @@ const updateProductSchema = Joi.object({
     .optional()
     .label("Barcode"),
 
-  product_code: Joi.string().trim().allow("", null).optional().label("Product Code")
+  product_code: Joi.string().trim().allow("", null).optional().label("Product Code"),
+  mrp: Joi.number().allow(0, null).optional().label("MRP"),
+  discounted_price: Joi.number().allow(0, null).optional().label("Discounted Price"),
+  gst_percentage: Joi.number().allow(0, null).optional().label("GST Percentage"),
+  cost_to_consumer: Joi.number().allow(0, null).optional().label("Cost to Consumer")
 })
   .min(1); // ✅ at least one field required
 

@@ -1,68 +1,106 @@
-const Db = require("../models/libs/Db");
-const { PUBLIC_SCHEMA } = require("./libs/dbConstants");
+const BaseModel = require("../models/libs/BaseModel");
+const DatabaseError = require("../errorhandlers/DatabaseError");
+const { PUBLIC_SCHEMA, TABLE_DEFAULTS } = require("./libs/dbConstants");
 
-class CategoryModel {
+class CategoryModel extends BaseModel {
 
-
-  static qb() {
-    return Db.getQueryBuilder();
-  }
-
-   static async findGlobalByName(categoryName) {
-    return this.qb()
-      .select("global_category_id", "category_name")
-      .from(`${PUBLIC_SCHEMA}.global_category`)              
+  async findGlobalByName(categoryName) {
+    const qb = await this.getQueryBuilder();
+    return qb
+      .select("global_category_id", "category_name", "logo_url")
+      .from(`${PUBLIC_SCHEMA}.global_category`)
       .whereRaw("LOWER(category_name) = ?", [
         categoryName.trim().toLowerCase()
       ])
+      .andWhere(this.whereStatement())
       .first();
   }
- static async findGlobalById(globalCategoryId) {
-    return this.qb()("global_category")
-      .select("global_category_id", "category_name")
-      .where("global_category_id", globalCategoryId)
+
+  async findGlobalById(globalCategoryId) {
+    const qb = await this.getQueryBuilder();
+    return qb(`${PUBLIC_SCHEMA}.global_category`)
+      .select("global_category_id", "category_name", "logo_url")
+      .where(this.whereStatement({ global_category_id: globalCategoryId }))
       .first();
   }
-static async findByNameAndGlobal(categoryName, globalCategoryId) {
-    return this.qb()("category")
-      .select("category_id", "category_name", "global_category_id")
-      .where({
+
+  async findByNameAndGlobal(categoryName, globalCategoryId) {
+    const qb = await this.getQueryBuilder();
+    return qb("category")
+      .select("category_id", "category_name", "global_category_id", "logo_url")
+      .where(this.whereStatement({
         category_name: categoryName,
         global_category_id: globalCategoryId
-      })
+      }))
       .first();
   }
 
-  static async findAllGlobal(){
-    return this.qb()
-      .select("global_category_id", "category_name")
-      .from(`${PUBLIC_SCHEMA}.global_category`)               
+  async findAllGlobal() {
+    const qb = await this.getQueryBuilder();
+    return qb
+      .select("global_category_id", "category_name", "logo_url")
+      .from(`${PUBLIC_SCHEMA}.global_category`)
+      .where(this.whereStatement())
       .orderBy("global_category_id", "asc");
-
   }
 
-
-  static async createGlobal(categoryData) {
+  async createGlobal(categoryData) {
     try {
-      const [category] = await this.qb()
+      const qb = await this.getQueryBuilder();
+      const [category] = await qb
         .from(`${PUBLIC_SCHEMA}.global_category`)
         .insert(categoryData)
         .returning(["global_category_id", "category_name", "logo_url"]);
-  
+
       return category;
     } catch (e) {
       throw new DatabaseError(e);
     }
   }
 
-  static async countProductsByCategory() {
+  async updateGlobal(global_category_id, categoryData) {
     try {
-      const qb = this.qb();
+      const qb = await this.getQueryBuilder();
+      const [category] = await qb
+        .from(`${PUBLIC_SCHEMA}.global_category`)
+        .where({ global_category_id })
+        .update(categoryData)
+        .returning(["global_category_id", "category_name", "logo_url"]);
+
+      return category;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  async globalCategoryDelete(global_category_id) {
+    const qb = await this.getQueryBuilder();
+    return qb
+      .from(`${PUBLIC_SCHEMA}.global_category`)
+      .where({ global_category_id })
+      .update({ [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: true });
+  }
+
+  async countByGlobalCategoryId(global_category_id) {
+    const qb = await this.getQueryBuilder();
+    const result = await qb
+      .from("category")
+      .where(this.whereStatement({ global_category_id }))
+      .count("category_id as count")
+      .first();
+    return parseInt(result.count);
+  }
+
+  async countProductsByCategory() {
+    try {
+      const qb = await this.getQueryBuilder();
 
       return await qb("category as c")
         .select(
           "c.category_id",
           "c.category_name",
+          "c.global_category_id",
+          "c.logo_url",
           qb.raw(`(
             COUNT(DISTINCT p.product_code_id) + 
             COUNT(CASE WHEN p.product_code_id IS NULL THEN p.product_id END)
@@ -73,76 +111,78 @@ static async findByNameAndGlobal(categoryName, globalCategoryId) {
             .andOn("p.is_deleted", qb.raw("false"));
         })
         .where("c.is_deleted", false)
-        .groupBy("c.category_id", "c.category_name")
+        .groupBy("c.category_id", "c.category_name", "c.global_category_id", "c.logo_url")
         .orderBy("c.category_id", "asc");
 
     } catch (e) {
       throw new DatabaseError(e);
     }
   }
-  static async findById(category_id) {
-    return this.qb()
-      .select("category_id", "category_name", "is_deleted")
-      .from("category")
-      .where({ category_id })
-      .first();
-  }
-static async create(categoryData) {
-  try {
-    const [category] = await this.qb()
-      .from("category")
-      .insert(categoryData)
-      .returning(["category_id", "category_name", "logo_url"]);
 
-    return category;
-  } catch (e) {
-    throw new DatabaseError(e);
-  }
-}
-
-  static async categoryDelete(category_id) {
-    return this.qb()
-      .from("category")
-      .where({ category_id })
-      .update({ is_deleted: true });
-  }
-
-
-  static async findByName(categoryName) {
-    return this.qb()
-      .select("category_id", "category_name")
-      .from("category")
-      .whereRaw("LOWER(category_name) = ?", [
-        categoryName.trim().toLowerCase()
-      ])
-      .andWhere("is_deleted", false)
-      .first();
-  }
-
-
-static async findByCategoryId(category_id) {
-  try {
+  async findById(category_id) {
     const qb = await this.getQueryBuilder();
+    return qb
+      .select("category_id", "category_name", "is_deleted", "logo_url")
+      .from("category")
+      .where({ category_id })
+      .first();
+  }
 
-      return qb(this.tableName)
-        .select(this.getPublicColumns())
-        .where(
-          this.whereStatement({
-            category_id,
-            [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: false
-          })
-        )
-        .orderBy("product_id", "asc");
+  async create(categoryData) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const [category] = await qb
+        .from("category")
+        .insert(categoryData)
+        .returning(["category_id", "category_name", "logo_url"]);
+
+      return category;
     } catch (e) {
       throw new DatabaseError(e);
     }
   }
 
-  static async findAll() {
-    return this.qb()
+  async update(category_id, categoryData) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const [category] = await qb
+        .from("category")
+        .where({ category_id })
+        .update(categoryData)
+        .returning(["category_id", "category_name", "logo_url"]);
+
+      return category;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  async categoryDelete(category_id) {
+    const qb = await this.getQueryBuilder();
+    return qb
+      .from("category")
+      .where({ category_id })
+      .update({ [TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY]: true });
+  }
+
+  async findByName(categoryName) {
+    const qb = await this.getQueryBuilder();
+    return qb
       .select("category_id", "category_name")
-      .from("category")               // ✅ SAME HERE
-      .where("is_deleted", false)
+      .from("category")
+      .whereRaw("LOWER(category_name) = ?", [
+        categoryName.trim().toLowerCase()
+      ])
+      .andWhere(TABLE_DEFAULTS.COLUMNS.IS_DELETED.KEY, false)
+      .first();
+  }
+
+  async findAll() {
+    const qb = await this.getQueryBuilder();
+    return qb
+      .select("category_id", "category_name", "global_category_id", "logo_url")
+      .from("category")
+      .where(this.whereStatement())
       .orderBy("category_id", "asc");
   }
 }

@@ -23,6 +23,10 @@ class ProductModel extends BaseModel {
       "barcode_image",
       "size",
       "category_id",
+      "mrp",
+      "discounted_price",
+      "gst_percentage",
+      "cost_to_consumer"
     ];
   }
 
@@ -40,6 +44,10 @@ class ProductModel extends BaseModel {
       "products.category_id",
       "category_name",
       "product_code_id",
+      "mrp",
+      "discounted_price",
+      "gst_percentage",
+      "cost_to_consumer"
     ];
   }
 
@@ -75,10 +83,17 @@ class ProductModel extends BaseModel {
           "products.barcode_image",
           "products.size",
           "products.category_id",
+          "products.mrp",
+          "products.discounted_price",
+          "products.gst_percentage",
+          "products.cost_to_consumer",
           "category.category_name as category_name",
+          "category.global_category_id as global_category_id",
+          "gc.category_name as global_category_name",
           "product_codes.code as product_code"
         ])
         .leftJoin("category", "products.category_id", "category.category_id")
+        .leftJoin("public.global_category as gc", "category.global_category_id", "gc.global_category_id")
         .leftJoin("product_codes", "products.product_code_id", "product_codes.id")
         .where("products.is_deleted", false)
         .orderBy("products.product_id", "asc")
@@ -118,9 +133,15 @@ class ProductModel extends BaseModel {
           "products.barcode_image",
           "products.size",
           "products.category_id",
+          "products.mrp",
+          "products.discounted_price",
+          "products.gst_percentage",
+          "products.cost_to_consumer",
           "category.category_name as category_name",
+          "gc.category_name as global_category_name",
         ])
         .leftJoin("category", "products.category_id", "category.category_id")
+        .leftJoin("public.global_category as gc", "category.global_category_id", "gc.global_category_id")
         .where({
           "products.category_id": category_id,
           "products.is_deleted": false,
@@ -179,10 +200,17 @@ class ProductModel extends BaseModel {
             "products.barcode_image",
             "products.size",
             "products.category_id",
+            "products.mrp",
+            "products.discounted_price",
+            "products.gst_percentage",
+            "products.cost_to_consumer",
             "category.category_name as category_name",
+            "category.global_category_id as global_category_id",
+            "gc.category_name as global_category_name",
             "product_codes.code as product_code"
           ])
           .leftJoin("category", "products.category_id", "category.category_id")
+          .leftJoin("public.global_category as gc", "category.global_category_id", "gc.global_category_id")
           .leftJoin("product_codes", "products.product_code_id", "product_codes.id")
           .where({
             "products.product_id": product_id,
@@ -287,7 +315,10 @@ class ProductModel extends BaseModel {
 
       return ((
         await qb("products")
-          .select(this.getPrivateColumns())
+          .select([
+            ...this.getPrivateColumns(),
+            "category.global_category_id as global_category_id"
+          ])
           .leftJoin("category", "products.category_id", "category.category_id")
           .where("products.sku", sku)
           .where("products.is_deleted", false)
@@ -308,7 +339,7 @@ class ProductModel extends BaseModel {
           .where({ barcode, is_deleted: false })
           .first()) || null
       );
-      
+
     } catch (e) {
       throw new DatabaseError(e);
     }
@@ -355,7 +386,7 @@ class ProductModel extends BaseModel {
         data,
         total: Number(count),
       };
-     
+
     } catch (e) {
       throw new DatabaseError(e);
     }

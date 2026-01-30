@@ -34,7 +34,7 @@ class ProductManager {
       let rows = [];
 
       if (isExcel) {
-       
+
         const response = await axios.get(fileKey, { responseType: "arraybuffer" });
         const workbook = xlsx.read(response.data, { type: "buffer" });
         const sheetName = workbook.SheetNames[0];
@@ -276,7 +276,8 @@ class ProductManager {
         });
       }
 
-      const category = await CategoryModel.findByName(value.category);
+      const categoryModel = new CategoryModel(null);
+      const category = await categoryModel.findByName(value.category);
       if (!category) {
         throw new JoiValidatorError({
           details: [
@@ -434,7 +435,8 @@ class ProductManager {
 
   static async getProductsByCategoryWithStock(categoryName, page = 1, limit = 10) {
     try {
-      const category = await CategoryModel.findByName(categoryName);
+      const categoryModel = new CategoryModel(null);
+      const category = await categoryModel.findByName(categoryName);
       if (!category) {
         throw new JoiValidatorError({
           details: [{ path: ["category"], message: "Invalid category" }]
