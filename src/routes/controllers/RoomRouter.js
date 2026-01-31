@@ -22,26 +22,19 @@ router.get(
         limit
       );
 
-      if (!result.rooms || result.rooms.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "No rooms found"
-        });
-      }
-
       return {
         success: true,
-        rooms: result.rooms,
+        rooms: result.rooms || [],
         pagination: {
           page: result.page,
           limit: result.limit,
-          total: result.total,
-          totalPages: result.totalPages,
-          offset: result.offset,
+          total: result.total || 0,
+          totalPages: result.totalPages || 0,
+          offset: result.offset || 0,
           previous: result.previous,
           next: result.next
         },
-        message: "Rooms fetched successfully"
+        message: result.rooms && result.rooms.length > 0 ? "Rooms fetched successfully" : "No rooms found"
       };
     },
     [ACCESS_ROLES.ALL]

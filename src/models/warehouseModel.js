@@ -84,6 +84,74 @@ class WarehouseModel extends BaseModel {
       throw new DatabaseError(e);
     }
   }
+
+  async create(data) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const [warehouse] = await qb('warehouses')
+        .insert({
+          name: data.name,
+          location: data.location || null,
+          created_by: this.userId,
+          last_modified_by: this.userId,
+          is_deleted: false,
+          created_at: new Date(),
+          updated_at: new Date()
+        })
+        .returning('*');
+
+      return warehouse;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  async update(id, data) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const updateData = {
+        updated_at: new Date(),
+        last_modified_by: this.userId
+      };
+
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.location !== undefined) updateData.location = data.location;
+
+      const [warehouse] = await qb('warehouses')
+        .where({ warehouse_id: id, is_deleted: false })
+        .update(updateData)
+        .returning('*');
+
+      if (!warehouse) {
+        throw new Error('Warehouse not found');
+      }
+
+      return warehouse;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
+
+  async softDelete(id) {
+    try {
+      const qb = await this.getQueryBuilder();
+      const [warehouse] = await qb('warehouses')
+        .where({ warehouse_id: id })
+        .update({
+          is_deleted: true,
+          updated_at: new Date()
+        })
+        .returning('*');
+
+      if (!warehouse) {
+        throw new Error('Warehouse not found');
+      }
+
+      return warehouse;
+    } catch (e) {
+      throw new DatabaseError(e);
+    }
+  }
 }
 
 module.exports = WarehouseModel;

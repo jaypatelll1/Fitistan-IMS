@@ -10,7 +10,7 @@ class ItemModel extends BaseModel {
 
   // ✅ FIXED: removed invalid "name" column
   getPublicColumns() {
-    return ["id", "shelf_id", "product_id", "status", "is_deleted"];
+    return ["id", "shelf_id", "rack_id", "product_id", "status", "is_deleted"];
   }
 
   async findAllPaginated(filters = {}, page = 1, limit = 10) {
@@ -54,6 +54,9 @@ class ItemModel extends BaseModel {
       if (filters.shelf_id) {
         query.where("items.shelf_id", filters.shelf_id);
       }
+      if (filters.rack_id) {
+        query.where("items.rack_id", filters.rack_id);
+      }
       if (filters.status) {
         query.where("items.status", filters.status);
       }
@@ -68,6 +71,7 @@ class ItemModel extends BaseModel {
         .modify(qb => {
           if (filters.product_id) qb.where("product_id", filters.product_id);
           if (filters.shelf_id) qb.where("shelf_id", filters.shelf_id);
+          if (filters.rack_id) qb.where("rack_id", filters.rack_id);
           if (filters.status) qb.where("status", filters.status);
         })
         .count("* as count");

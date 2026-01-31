@@ -12,14 +12,14 @@ const {
 } = require("../../validators/itemValidator");
 
 class itemManager {
-  static async createItem(product_id, shelf_id, quantity) {
+  static async createItem(product_id, shelf_id, quantity, rack_id = null) {
     try {
       const itemModel = new ItemModel();
       const productModel = new ProductModel();
 
-      console.log("payload", { product_id, shelf_id, quantity });
+      console.log("payload", { product_id, shelf_id, rack_id, quantity });
 
-      // 1. Verify product using SKU (barcode == sku)
+      // 1. Verify product
       const Product = await productModel.findById(product_id);
       console.log("Product", Product);
 
@@ -31,14 +31,18 @@ class itemManager {
         throw new Error("Quantity must be greater than 0");
       }
 
+      if (!shelf_id && !rack_id) {
+        throw new Error("Either shelf_id or rack_id is required");
+      }
+
       // 2. Insert items (1 row = 1 physical item)
       const createdItems = [];
 
       for (let i = 0; i < quantity; i++) {
         const item = await itemModel.create(
           {
-            name: Product.name,
-            shelf_id: shelf_id,
+            shelf_id: shelf_id || null,
+            rack_id: rack_id || null,
           },
           product_id
         );

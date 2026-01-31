@@ -98,6 +98,76 @@ class WarehouseManager {
       totalPages: Math.ceil(result.total / limit)
     };
   }
+
+  static async getWarehouseById(id, userId) {
+    const model = new WarehouseModel(userId);
+    const warehouse = await model.findWarehouseById(id);
+
+    if (!warehouse) {
+      throw new ValidationError({
+        details: [{
+          path: ["warehouse_id"],
+          message: "Warehouse not found"
+        }]
+      });
+    }
+
+    return warehouse;
+  }
+
+  static async createWarehouse(data, userId) {
+    const { name, location } = data;
+
+    if (!name || name.trim() === '') {
+      throw new ValidationError({
+        details: [{
+          path: ["name"],
+          message: "Warehouse name is required"
+        }]
+      });
+    }
+
+    const model = new WarehouseModel(userId);
+    const warehouse = await model.create({ name, location });
+
+    return warehouse;
+  }
+
+  static async updateWarehouse(id, data, userId) {
+    const model = new WarehouseModel(userId);
+
+    // Validate warehouse exists
+    const existing = await model.findWarehouseById(id);
+    if (!existing) {
+      throw new ValidationError({
+        details: [{
+          path: ["warehouse_id"],
+          message: "Warehouse not found"
+        }]
+      });
+    }
+
+    const warehouse = await model.update(id, data);
+    return warehouse;
+  }
+
+  static async deleteWarehouse(id, userId) {
+    const model = new WarehouseModel(userId);
+
+    // Validate warehouse exists
+    const existing = await model.findWarehouseById(id);
+    if (!existing) {
+      throw new ValidationError({
+        details: [{
+          path: ["warehouse_id"],
+          message: "Warehouse not found"
+        }]
+      });
+    }
+
+    const warehouse = await model.softDelete(id);
+    return warehouse;
+  }
 }
 
 module.exports = WarehouseManager;

@@ -14,8 +14,8 @@ router.post(
     async (req, res) => {
       console.log("add item:", req.body);
 
-      const { quantity, shelf_id, product_id } = req.body;
-      const item = await itemManager.createItem(product_id, shelf_id, quantity);
+      const { quantity, shelf_id, rack_id, product_id } = req.body;
+      const item = await itemManager.createItem(product_id, shelf_id, quantity, rack_id);
       console.log("item", item);
       if (!item) {
         return res.status(404).json({
@@ -44,8 +44,17 @@ router.post(
         status,
         order_id,
         shelf_id,
+        rack_id,
         mode
       } = req.body;
+
+      // Validate that either shelf_id or rack_id is provided
+      if (!shelf_id && !rack_id) {
+        return res.status(400).json({
+          success: false,
+          message: "Either shelf_id or rack_id is required",
+        });
+      }
 
       try {
         const item = await itemManager.removeItemStock(
@@ -54,6 +63,7 @@ router.post(
           status,
           order_id,
           shelf_id,
+          rack_id,
           mode
         );
 
@@ -87,13 +97,22 @@ router.post(
   "/return-stock",
   appWrapper(
     async (req, res) => {
-      const { product_id, quantity, shelf_id } = req.body;
+      const { product_id, quantity, shelf_id, rack_id } = req.body;
+
+      // Validate that either shelf_id or rack_id is provided
+      if (!shelf_id && !rack_id) {
+        return res.status(400).json({
+          success: false,
+          message: "Either shelf_id or rack_id is required",
+        });
+      }
 
       try {
         const result = await itemManager.returnStock({
           product_id: Number(product_id),
           quantity: Number(quantity),
-          shelf_id: Number(shelf_id)
+          shelf_id: shelf_id ? Number(shelf_id) : undefined,
+          rack_id: rack_id ? Number(rack_id) : undefined
         });
 
         return res.json({

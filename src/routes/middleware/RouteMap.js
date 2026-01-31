@@ -12,6 +12,7 @@ const openrouter = express.Router();
 const Authloginrouter = require("../../routes/controllers/open/authloginrouter");
 const RoomRouter = require("../../routes/controllers/RoomRouter");
 const ShelfRouter = require("../../routes/controllers/shelfRouter");
+const RackRouter = require("../../routes/controllers/RackRouter");
 const WarehouseRouter = require("../../routes/controllers/warehouseRouter");
 const Authrouter = require("../../routes/controllers/Authrouter");
 const vendorRouter = require("../../routes/controllers/vendorRouter")
@@ -52,6 +53,7 @@ class RouteMap {
     Router.use("/users", UserRouter);
     Router.use("/rooms", RoomRouter);
     Router.use("/shelfs", ShelfRouter);
+    Router.use("/racks", RackRouter);
     Router.use("/warehouses", WarehouseRouter);
     Router.use("/vendors", vendorRouter );
     Router.use("/items", ItemRouter);
